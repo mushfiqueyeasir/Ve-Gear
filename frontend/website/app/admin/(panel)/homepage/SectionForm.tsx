@@ -530,7 +530,7 @@ export function SectionForm({
                 max={24}
                 value={limit}
                 onChange={(e) => setLimit(e.target.value)}
-                className={`${adminInputClass} w-32`}
+                className={`${adminInputClass} w-full sm:w-32`}
               />
             </FormField>
           )}

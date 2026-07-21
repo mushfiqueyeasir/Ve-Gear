@@ -323,3 +323,11 @@
 .admin-content :where(input.h-8, input.h-9) {
   min-height: unset;
 }
+
+/* Larger icon hit targets on phones */
+@media (max-width: 639px) {
+  .admin-content :where(button.size-9) {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}

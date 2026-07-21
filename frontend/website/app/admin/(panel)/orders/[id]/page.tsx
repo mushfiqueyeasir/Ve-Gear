@@ -109,8 +109,8 @@ export default async function OrderDetailPage({
             <h2 className="mb-4 text-sm font-semibold text-foreground">
               Items
             </h2>
-            <div className="overflow-hidden rounded-lg border border-border">
-              <Table>
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <Table className="min-w-[36rem]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Product</TableHead>

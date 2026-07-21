@@ -94,13 +94,13 @@ export function ImageCropDialog({
         if (!v) onCancel();
       }}
     >
-      <DialogContent className="max-w-lg gap-0 overflow-hidden border-border bg-card p-0">
-        <DialogHeader className="border-b border-border px-5 py-4">
+      <DialogContent className="max-h-[90dvh] max-w-lg gap-0 overflow-hidden border-border bg-card p-0">
+        <DialogHeader className="border-b border-border px-4 py-4 sm:px-5">
           <DialogTitle className="font-display text-lg">Crop image</DialogTitle>
         </DialogHeader>
 
         <div
-          className="image-crop-free max-h-[60vh] overflow-auto p-4"
+          className="image-crop-free max-h-[min(52vh,420px)] overflow-auto p-3 sm:max-h-[60vh] sm:p-4"
           style={{
             backgroundColor: "#1a1a1a",
             backgroundImage:
@@ -131,17 +131,17 @@ export function ImageCropDialog({
           ) : null}
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-border px-5 py-4">
-          <p className="text-xs text-muted-foreground">
+        <div className="flex flex-col gap-3 border-t border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <p className="hidden text-xs text-muted-foreground sm:block">
             Drag the corners to resize freely. Move the box to reposition.
           </p>
-          <div className="flex shrink-0 gap-2">
+          <div className="flex w-full gap-2 sm:w-auto sm:shrink-0">
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
               disabled={busy}
-              className="rounded-full"
+              className="min-h-11 flex-1 rounded-full sm:flex-none"
             >
               Cancel
             </Button>
@@ -149,7 +149,7 @@ export function ImageCropDialog({
               type="button"
               onClick={apply}
               disabled={busy || !completedCrop?.width || !completedCrop?.height}
-              className="rounded-full"
+              className="min-h-11 flex-1 rounded-full sm:flex-none"
             >
               {busy && <Loader2 className="mr-2 size-4 animate-spin" />}
               Apply & upload

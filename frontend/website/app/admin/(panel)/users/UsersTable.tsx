@@ -67,7 +67,7 @@ function RoleSelect({
 
   return (
     <Select value={row.role} onValueChange={onChange} disabled={pending}>
-      <SelectTrigger className="w-32 rounded-full">
+      <SelectTrigger className="h-11 w-full min-w-28 rounded-full sm:h-9 sm:w-32">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

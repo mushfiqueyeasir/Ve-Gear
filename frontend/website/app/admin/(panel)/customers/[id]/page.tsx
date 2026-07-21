@@ -168,8 +168,8 @@ export default async function CustomerDetailPage({
             <h2 className="mb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
               Order history
             </h2>
-            <div className="overflow-hidden rounded-xl border border-border">
-              <Table>
+            <div className="overflow-x-auto rounded-xl border border-border">
+              <Table className="min-w-[32rem]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Order</TableHead>

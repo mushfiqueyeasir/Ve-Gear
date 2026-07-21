@@ -195,25 +195,25 @@ export function SettingsForm({
     <div className="mx-auto max-w-3xl space-y-8">
       <Tabs defaultValue="brand" className="w-full">
         <TabsList className="mb-6 flex h-auto w-fit flex-wrap justify-start gap-1 rounded-xl bg-card p-1">
-          <TabsTrigger value="brand" className="rounded-lg px-4">
+          <TabsTrigger value="brand" className="rounded-lg px-3 sm:px-4">
             Brand
           </TabsTrigger>
-          <TabsTrigger value="colors" className="rounded-lg px-4">
+          <TabsTrigger value="colors" className="rounded-lg px-3 sm:px-4">
             Colors
           </TabsTrigger>
-          <TabsTrigger value="contact" className="rounded-lg px-4">
+          <TabsTrigger value="contact" className="rounded-lg px-3 sm:px-4">
             Contact
           </TabsTrigger>
-          <TabsTrigger value="currency" className="rounded-lg px-4">
+          <TabsTrigger value="currency" className="rounded-lg px-3 sm:px-4">
             Currency
           </TabsTrigger>
-          <TabsTrigger value="social" className="rounded-lg px-4">
+          <TabsTrigger value="social" className="rounded-lg px-3 sm:px-4">
             Social
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="rounded-lg px-4">
+          <TabsTrigger value="analytics" className="rounded-lg px-3 sm:px-4">
             Analytics
           </TabsTrigger>
-          <TabsTrigger value="seo" className="rounded-lg px-4">
+          <TabsTrigger value="seo" className="rounded-lg px-3 sm:px-4">
             SEO
           </TabsTrigger>
         </TabsList>

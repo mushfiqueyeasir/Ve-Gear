@@ -83,7 +83,7 @@ export default function AdminShell({
     router.refresh();
   };
 
-  const NavList = () => (
+  const NavList = ({ compact }: { compact: boolean }) => (
     <ScrollArea className="min-h-0 flex-1">
       <nav className="space-y-5 px-3 py-5">
         {NAV_GROUPS.map((group) => {
@@ -91,7 +91,7 @@ export default function AdminShell({
           if (groupItems.length === 0) return null;
           return (
             <div key={group}>
-              {!collapsed && (
+              {!compact && (
                 <p className="px-2.5 pb-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
                   {group}
                 </p>
@@ -103,17 +103,17 @@ export default function AdminShell({
                     <Link
                       key={item.href}
                       href={item.href}
-                      title={collapsed ? item.label : undefined}
+                      title={compact ? item.label : undefined}
                       className={cn(
-                        "flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors",
+                        "flex min-h-11 items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm font-medium transition-colors",
                         active
                           ? "bg-primary/15 text-primary"
                           : "text-sidebar-foreground/70 hover:bg-foreground/5 hover:text-foreground",
-                        collapsed && "justify-center",
+                        compact && "justify-center px-2",
                       )}
                     >
                       <Icon name={item.icon} className="size-4 shrink-0" />
-                      {!collapsed && <span>{item.label}</span>}
+                      {!compact && <span>{item.label}</span>}
                     </Link>
                   );
                 })}
@@ -125,15 +125,15 @@ export default function AdminShell({
     </ScrollArea>
   );
 
-  const SidebarInner = () => (
+  const SidebarInner = ({ compact }: { compact: boolean }) => (
     <div className="flex h-full min-h-0 flex-col bg-sidebar text-sidebar-foreground">
       <div
         className={cn(
           "flex h-16 shrink-0 items-center gap-2 border-b border-sidebar-border px-4",
-          collapsed && "justify-center px-2",
+          compact && "justify-center px-2",
         )}
       >
-        {collapsed ? (
+        {compact ? (
           <Image
             src="/images/logo/favicon.png"
             alt="VE Gear"
@@ -156,19 +156,19 @@ export default function AdminShell({
           </div>
         )}
       </div>
-      <NavList />
+      <NavList compact={compact} />
       <div className="shrink-0 border-t border-sidebar-border p-3">
         <Link
           href="/"
           target="_blank"
           className={cn(
-            "flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground",
-            collapsed && "justify-center",
+            "flex min-h-11 items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground",
+            compact && "justify-center px-2",
           )}
           title="View storefront"
         >
           <ExternalLink className="size-4 shrink-0" />
-          {!collapsed && <span>View store</span>}
+          {!compact && <span>View store</span>}
         </Link>
       </div>
     </div>
@@ -183,7 +183,7 @@ export default function AdminShell({
             collapsed ? "w-16" : "w-60",
           )}
         >
-          <SidebarInner />
+          <SidebarInner compact={collapsed} />
         </aside>
 
         {mobileOpen && (
@@ -192,11 +192,13 @@ export default function AdminShell({
               className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
               onClick={() => setMobileOpen(false)}
             />
-            <div className="absolute left-0 top-0 h-full w-64 border-r border-sidebar-border bg-sidebar shadow-2xl">
-              <SidebarInner />
+            <div className="absolute left-0 top-0 flex h-full w-[min(18rem,88vw)] flex-col border-r border-sidebar-border bg-sidebar shadow-2xl">
+              <SidebarInner compact={false} />
               <button
-                className="absolute right-3 top-4 text-muted-foreground hover:text-foreground"
+                type="button"
+                className="absolute right-2 top-2 grid size-11 place-items-center rounded-lg text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground"
                 onClick={() => setMobileOpen(false)}
+                aria-label="Close menu"
               >
                 <X className="size-5" />
               </button>
@@ -205,8 +207,9 @@ export default function AdminShell({
         )}
 
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <header className="z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background/90 px-4 backdrop-blur-md lg:px-6">
+          <header className="z-30 flex h-16 shrink-0 items-center gap-2 border-b border-border bg-background/90 px-3 backdrop-blur-md sm:gap-3 sm:px-4 lg:px-6">
             <button
+              type="button"
               className="grid size-11 place-items-center rounded-lg text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground lg:hidden"
               onClick={() => setMobileOpen(true)}
               aria-label="Open menu"
@@ -214,6 +217,7 @@ export default function AdminShell({
               <Menu className="size-5" />
             </button>
             <button
+              type="button"
               className="hidden size-11 place-items-center rounded-lg text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground lg:grid"
               onClick={() => setCollapsed((c) => !c)}
               aria-label="Toggle sidebar"
@@ -226,12 +230,14 @@ export default function AdminShell({
             </button>
 
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                <span>Admin</span>
+              <div className="flex min-w-0 items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                <span className="hidden sm:inline">Admin</span>
                 {activeItem && (
                   <>
-                    <span className="text-border">/</span>
-                    <span className="text-foreground">{activeItem.label}</span>
+                    <span className="hidden text-border sm:inline">/</span>
+                    <span className="truncate text-foreground">
+                      {activeItem.label}
+                    </span>
                   </>
                 )}
               </div>

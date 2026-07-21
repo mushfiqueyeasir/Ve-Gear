@@ -145,7 +145,7 @@ export function ContactTable({
                 {selected.message}
               </div>
 
-              <DialogFooter className="sm:justify-between">
+              <DialogFooter className="gap-3 sm:justify-between">
                 <div className="flex items-center gap-2">
                   {selected.is_read ? (
                     <Badge variant="secondary">Read</Badge>
@@ -154,12 +154,12 @@ export function ContactTable({
                   )}
                 </div>
                 {canWrite && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                     <Button
                       variant="outline"
                       onClick={handleToggleRead}
                       disabled={pending}
-                      className="rounded-full"
+                      className="min-h-11 w-full rounded-full sm:w-auto"
                     >
                       {pending ? (
                         <Loader2 className="mr-2 size-4 animate-spin" />
@@ -172,7 +172,10 @@ export function ContactTable({
                     </Button>
                     <ConfirmDialog
                       trigger={
-                        <Button variant="destructive" className="rounded-full">
+                        <Button
+                          variant="destructive"
+                          className="min-h-11 w-full rounded-full sm:w-auto"
+                        >
                           <Trash2 className="mr-2 size-4" />
                           Delete
                         </Button>

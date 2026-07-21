@@ -33,8 +33,8 @@ export function ImageUploader({
   label = "Drop image here or click to browse",
   aspect,
   enableCrop = false,
-  /** Single-image preview shape — logo = wide, favicon = square. */
-  preview = "wide",
+  /** Single-image preview: cover = photos, wide = logos, square = favicon. */
+  preview = "cover",
 }: {
   bucket: BucketName;
   value: UploadedImage[];
@@ -45,7 +45,7 @@ export function ImageUploader({
   aspect?: number;
   /** Enable crop dialog before upload (e.g. logo / favicon). */
   enableCrop?: boolean;
-  preview?: "wide" | "square";
+  preview?: "cover" | "wide" | "square";
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -198,13 +198,21 @@ export function ImageUploader({
           onDrop={onDrop}
           className={cn(
             "relative overflow-hidden rounded-2xl border border-dashed text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
-            preview === "square" ? "w-40 sm:w-44" : "w-full max-w-md",
+            preview === "square"
+              ? "w-40 sm:w-44"
+              : preview === "cover"
+                ? "w-full max-w-xl"
+                : "w-full max-w-md",
             dragOver
               ? "border-primary bg-primary/10"
               : "border-border bg-background/40 hover:border-primary/40",
             uploading && "pointer-events-none opacity-60",
             !singleUrl &&
-              (preview === "square" ? "aspect-square p-4" : "px-4 py-10"),
+              (preview === "square"
+                ? "aspect-square p-4"
+                : preview === "cover"
+                  ? "aspect-[4/3] min-h-52 p-4 sm:min-h-64"
+                  : "px-4 py-10"),
           )}
           style={singleUrl && enableCrop ? checkerboardStyle : undefined}
         >
@@ -212,50 +220,83 @@ export function ImageUploader({
             <div
               className={cn(
                 "relative overflow-hidden",
-                preview === "square" ? "aspect-square" : "aspect-[5/2]",
+                preview === "square"
+                  ? "aspect-square"
+                  : preview === "cover"
+                    ? "aspect-[4/3] min-h-52 sm:min-h-64"
+                    : "aspect-[5/2]",
               )}
             >
               <Skeleton className="absolute inset-0 rounded-none" />
             </div>
           ) : singleUrl ? (
-            <div
-              className={cn(
-                "relative flex flex-col",
-                preview === "square" ? "aspect-square" : "aspect-[5/2]",
-              )}
-            >
-              <div className="flex flex-1 items-center justify-center p-4">
+            preview === "cover" ? (
+              <div className="relative aspect-[4/3] min-h-52 w-full sm:min-h-64">
                 <Image
                   src={singleUrl}
                   alt={singlePreview?.alt ?? "Uploaded image"}
-                  width={preview === "square" ? 160 : 400}
-                  height={preview === "square" ? 160 : 160}
-                  className={cn(
-                    "object-contain",
-                    preview === "square"
-                      ? "size-full max-h-28 max-w-28"
-                      : "max-h-16 w-auto sm:max-h-20",
-                  )}
+                  fill
+                  sizes="(max-width: 640px) 100vw, 576px"
+                  className="object-cover"
                 />
+                <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-black/80 via-black/50 to-transparent px-3 pb-2.5 pt-8">
+                  <span className="truncate text-xs text-white/90">
+                    {dragOver ? "Drop to replace" : "Replace"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      remove(singlePreview!.path);
+                    }}
+                    className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-full border border-white/30 bg-black/40 px-3 py-1.5 text-xs text-white transition hover:border-destructive hover:text-destructive"
+                    aria-label="Remove image"
+                  >
+                    <X className="size-3" />
+                    Remove
+                  </button>
+                </div>
               </div>
-              <div className="mt-auto flex items-center justify-between gap-2 border-t border-border/60 bg-background/85 px-2.5 py-2 backdrop-blur-md">
-                <span className="truncate text-[10px] text-muted-foreground sm:text-xs">
-                  {dragOver ? "Drop to replace" : "Replace"}
-                </span>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    remove(singlePreview!.path);
-                  }}
-                  className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground transition hover:border-destructive hover:text-destructive sm:text-xs"
-                  aria-label="Remove image"
-                >
-                  <X className="size-3" />
-                  Remove
-                </button>
+            ) : (
+              <div
+                className={cn(
+                  "relative flex flex-col",
+                  preview === "square" ? "aspect-square" : "aspect-[5/2]",
+                )}
+              >
+                <div className="flex flex-1 items-center justify-center p-4">
+                  <Image
+                    src={singleUrl}
+                    alt={singlePreview?.alt ?? "Uploaded image"}
+                    width={preview === "square" ? 160 : 400}
+                    height={preview === "square" ? 160 : 160}
+                    className={cn(
+                      "object-contain",
+                      preview === "square"
+                        ? "size-full max-h-28 max-w-28"
+                        : "max-h-16 w-auto sm:max-h-20",
+                    )}
+                  />
+                </div>
+                <div className="mt-auto flex items-center justify-between gap-2 border-t border-border/60 bg-background/85 px-2.5 py-2 backdrop-blur-md">
+                  <span className="truncate text-[10px] text-muted-foreground sm:text-xs">
+                    {dragOver ? "Drop to replace" : "Replace"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      remove(singlePreview!.path);
+                    }}
+                    className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition hover:border-destructive hover:text-destructive"
+                    aria-label="Remove image"
+                  >
+                    <X className="size-3" />
+                    Remove
+                  </button>
+                </div>
               </div>
-            </div>
+            )
           ) : (
             <div
               className={cn(
@@ -367,7 +408,7 @@ export function ImageUploader({
                     <button
                       type="button"
                       onClick={() => remove(img.path)}
-                      className="absolute right-1.5 top-1.5 flex size-7 items-center justify-center rounded-full bg-black/70 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                      className="absolute right-1.5 top-1.5 flex size-9 items-center justify-center rounded-full bg-black/70 text-white opacity-100 transition-opacity md:size-7 md:opacity-0 md:group-hover:opacity-100"
                       aria-label="Remove"
                     >
                       <X className="size-3.5" />
@@ -376,10 +417,10 @@ export function ImageUploader({
                       type="button"
                       onClick={() => setMain(img.path)}
                       className={cn(
-                        "absolute left-1.5 top-1.5 flex size-7 items-center justify-center rounded-full text-white transition-opacity",
+                        "absolute left-1.5 top-1.5 flex size-9 items-center justify-center rounded-full text-white transition-opacity md:size-7",
                         img.isMain
                           ? "bg-primary"
-                          : "bg-black/70 opacity-0 group-hover:opacity-100",
+                          : "bg-black/70 opacity-100 md:opacity-0 md:group-hover:opacity-100",
                       )}
                       aria-label="Set as main image"
                       title="Set as main image"

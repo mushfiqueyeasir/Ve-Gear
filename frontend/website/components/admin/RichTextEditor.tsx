@@ -170,7 +170,7 @@ function ToolbarBtn({
       aria-label={label}
       onClick={onClick}
       className={cn(
-        "grid size-8 place-items-center rounded-md text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground",
+        "grid size-10 place-items-center rounded-md text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground sm:size-8",
         active && "bg-primary/15 text-primary",
       )}
     >

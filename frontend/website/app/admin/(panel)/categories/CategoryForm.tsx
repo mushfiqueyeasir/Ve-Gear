@@ -113,6 +113,7 @@ export function CategoryForm({ category }: { category?: CategoryRow }) {
               value={image}
               onChange={setImage}
               label="Upload category image"
+              preview="cover"
             />
           </FormField>
         </div>

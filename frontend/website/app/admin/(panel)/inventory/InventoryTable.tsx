@@ -46,14 +46,14 @@ function StockEditor({
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex w-full items-center gap-2 sm:w-auto">
       <Input
         type="number"
         min={0}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         disabled={!canWrite || pending}
-        className="h-9 w-20 rounded-full"
+        className="h-11 w-full min-w-0 rounded-full sm:h-9 sm:w-24"
       />
       {canWrite ? (
         <Button
@@ -61,7 +61,7 @@ function StockEditor({
           variant="outline"
           onClick={save}
           disabled={!dirty || pending}
-          className="rounded-full"
+          className="size-11 shrink-0 rounded-full sm:size-9"
           aria-label="Save stock"
         >
           {pending ? (

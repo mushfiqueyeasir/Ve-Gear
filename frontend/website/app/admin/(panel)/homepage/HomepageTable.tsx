@@ -89,54 +89,61 @@ function SortableRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-3 rounded-2xl border border-border bg-card/80 px-3 py-3 sm:px-4",
+        "flex flex-col gap-3 rounded-2xl border border-border bg-card/80 px-3 py-3 sm:flex-row sm:items-center sm:px-4",
         isDragging &&
           "z-10 border-primary/50 bg-card shadow-lg shadow-black/40",
       )}
     >
-      {canWrite ? (
-        <button
-          type="button"
-          className="flex size-9 shrink-0 cursor-grab items-center justify-center rounded-xl text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground active:cursor-grabbing"
-          aria-label="Drag to reorder"
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical className="size-4" />
-        </button>
-      ) : (
-        <span className="size-9 shrink-0" />
-      )}
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        {canWrite ? (
+          <button
+            type="button"
+            className="flex size-11 shrink-0 cursor-grab items-center justify-center rounded-xl text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground active:cursor-grabbing sm:size-9"
+            aria-label="Drag to reorder"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="size-4" />
+          </button>
+        ) : (
+          <span className="size-9 shrink-0" />
+        )}
 
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary" className="capitalize">
-            {section.type}
-          </Badge>
-          <p className="truncate font-medium text-foreground">
-            {section.title || (
-              <span className="text-muted-foreground">
-                {section.type === "banner"
-                  ? "Carousel, stats & marquee"
-                  : "— (auto)"}
-              </span>
-            )}
-          </p>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary" className="capitalize">
+              {section.type}
+            </Badge>
+            <p className="truncate font-medium text-foreground">
+              {section.title || (
+                <span className="text-muted-foreground">
+                  {section.type === "banner"
+                    ? "Carousel, stats & marquee"
+                    : "— (auto)"}
+                </span>
+              )}
+            </p>
+          </div>
+          {section.subtitle ? (
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              {section.subtitle}
+            </p>
+          ) : null}
         </div>
-        {section.subtitle ? (
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {section.subtitle}
-          </p>
-        ) : null}
       </div>
 
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="flex w-full shrink-0 flex-wrap items-center justify-end gap-3 border-t border-border/60 pt-3 sm:w-auto sm:border-0 sm:pt-0">
         <ActiveToggle
           id={section.id}
           active={section.active}
           canWrite={canWrite}
         />
-        <Button variant="ghost" size="icon" asChild className="rounded-full">
+        <Button
+          variant="ghost"
+          size="icon"
+          asChild
+          className="size-11 rounded-full sm:size-9"
+        >
           <Link href={`/admin/homepage/${section.id}`} aria-label="Edit">
             <Pencil className="size-4" />
           </Link>

@@ -190,7 +190,7 @@ export default async function DashboardPage() {
                 <Link
                   key={o.id}
                   href={`/admin/orders/${o.id}`}
-                  className="flex items-center justify-between gap-4 px-5 py-3.5 transition-colors hover:bg-foreground/[0.035] sm:px-6"
+                  className="flex flex-col gap-2 px-5 py-3.5 transition-colors hover:bg-foreground/[0.035] sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6"
                 >
                   <div className="min-w-0">
                     <p className="font-medium text-foreground">
@@ -203,7 +203,7 @@ export default async function DashboardPage() {
                       · {formatDate(o.created_at)}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+                  <div className="flex items-center justify-between gap-3 sm:shrink-0 sm:justify-end sm:gap-4">
                     <Badge
                       variant="outline"
                       className={cn(

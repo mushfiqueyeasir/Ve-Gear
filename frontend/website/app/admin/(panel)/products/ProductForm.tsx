@@ -216,7 +216,7 @@ export function ProductForm({
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="mb-6 flex h-auto w-fit flex-wrap justify-start gap-1 rounded-xl bg-card p-1">
+        <TabsList className="mb-6 flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-card p-1">
           <TabsTrigger value="general" className="rounded-lg px-4">
             General
           </TabsTrigger>
@@ -343,7 +343,7 @@ export function ProductForm({
             {variants.map((v, i) => (
               <div
                 key={i}
-                className="grid grid-cols-2 gap-3 rounded-2xl border border-border bg-card/60 p-4 sm:grid-cols-12 sm:items-end"
+                className="grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card/60 p-4 sm:grid-cols-12 sm:items-end"
               >
                 <FormField label="Size" className="sm:col-span-2">
                   <Input
@@ -397,12 +397,12 @@ export function ProductForm({
                     className={adminInputClass}
                   />
                 </FormField>
-                <div className="flex justify-end sm:col-span-1">
+                <div className="flex justify-stretch sm:col-span-1 sm:justify-end">
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="rounded-full"
+                    className="size-11 w-full rounded-full sm:size-9 sm:w-9"
                     onClick={() => removeVariant(i)}
                     aria-label="Remove variation"
                   >
@@ -493,7 +493,7 @@ export function ProductForm({
             {sizeChart.map((row, i) => (
               <div
                 key={i}
-                className="grid grid-cols-2 gap-3 rounded-2xl border border-border bg-card/60 p-4 sm:grid-cols-12 sm:items-end"
+                className="grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card/60 p-4 sm:grid-cols-12 sm:items-end"
               >
                 <FormField label="Size" className="sm:col-span-3">
                   <Input

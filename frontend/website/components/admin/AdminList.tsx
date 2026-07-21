@@ -61,27 +61,29 @@ function RowContent<T extends AdminListItem>({
 }) {
   return (
     <>
-      {leading}
-      {renderLeading ? (
-        <div className="shrink-0">{renderLeading(item)}</div>
-      ) : null}
-      <div className="min-w-0 flex-1">
-        <div className="truncate font-medium text-foreground">
-          {renderTitle(item)}
+      <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
+        {leading}
+        {renderLeading ? (
+          <div className="hidden shrink-0 sm:block">{renderLeading(item)}</div>
+        ) : null}
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-medium text-foreground">
+            {renderTitle(item)}
+          </div>
+          {renderSubtitle ? (
+            <div className="mt-0.5 truncate text-xs text-muted-foreground">
+              {renderSubtitle(item)}
+            </div>
+          ) : null}
+          {renderMeta ? (
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              {renderMeta(item)}
+            </div>
+          ) : null}
         </div>
-        {renderSubtitle ? (
-          <div className="mt-0.5 truncate text-xs text-muted-foreground">
-            {renderSubtitle(item)}
-          </div>
-        ) : null}
-        {renderMeta ? (
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            {renderMeta(item)}
-          </div>
-        ) : null}
       </div>
       {renderTrailing ? (
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="flex w-full shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border/60 pt-3 sm:w-auto sm:border-0 sm:pt-0 sm:gap-3">
           {renderTrailing(item)}
         </div>
       ) : null}
@@ -121,7 +123,7 @@ function SortableRow<T extends AdminListItem>({
         transition,
       }}
       className={cn(
-        "flex items-center gap-3 rounded-2xl border border-border bg-card/80 px-3 py-3 sm:px-4",
+        "flex flex-col gap-3 rounded-2xl border border-border bg-card/80 px-3 py-3 sm:flex-row sm:items-center sm:px-4",
         isDragging &&
           "z-10 border-primary/50 bg-card shadow-lg shadow-black/40",
       )}
@@ -165,7 +167,7 @@ function StaticRow<T extends AdminListItem>({
   renderTrailing?: (item: T) => ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-border bg-card/80 px-3 py-3 sm:px-4">
+    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card/80 px-3 py-3 sm:flex-row sm:items-center sm:px-4">
       <RowContent
         item={item}
         renderLeading={renderLeading}
@@ -294,18 +296,22 @@ export function AdminList<T extends AdminListItem>({
               <p className="text-sm text-muted-foreground">{hint}</p>
             ) : null}
             {searchPlaceholder ? (
-              <div className="relative max-w-sm">
+              <div className="relative w-full max-w-sm">
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={searchPlaceholder}
-                  className="h-10 rounded-full border-border bg-card/60 pl-9"
+                  className="h-11 w-full rounded-full border-border bg-card/60 pl-9"
                 />
               </div>
             ) : null}
           </div>
-          {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
+          {toolbar ? (
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
+              {toolbar}
+            </div>
+          ) : null}
         </div>
       )}
 

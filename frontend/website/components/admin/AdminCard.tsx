@@ -21,7 +21,7 @@ export function AdminCard({
       )}
     >
       {(title || action) && (
-        <div className="mb-5 flex items-start justify-between gap-3">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             {title && (
               <h2 className="font-display text-lg font-semibold tracking-tight text-foreground">
@@ -34,7 +34,11 @@ export function AdminCard({
               </p>
             )}
           </div>
-          {action}
+          {action ? (
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
+              {action}
+            </div>
+          ) : null}
         </div>
       )}
       {children}
