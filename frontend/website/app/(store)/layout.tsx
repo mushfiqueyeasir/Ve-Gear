@@ -2,6 +2,7 @@ import Header from "@/components/Common/Header/Header";
 import Footer from "@/components/Common/Footer";
 import StoreScrollShell from "@/components/Common/StoreScrollShell";
 import PromotionModalWrapper from "@/components/Common/PromotionModalWrapper";
+import ChatPlugins from "@/components/Common/ChatPlugins";
 import CursorGlow from "@/components/HomePage/CursorGlow";
 import { CurrencyProvider } from "@/components/providers/CurrencyProvider";
 import { CustomSecurity } from "@/utility/security/scripts";
@@ -43,6 +44,7 @@ export default async function StoreLayout({
           <Footer settings={settings} />
         </StoreScrollShell>
         <PromotionModalWrapper promotions={promotions} />
+        <ChatPlugins widgets={settings.chatWidgets} />
       </div>
     </CurrencyProvider>
   );

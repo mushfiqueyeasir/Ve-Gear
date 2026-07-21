@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
+import { buildDescriptionPayload } from "@/lib/products/sizeChart";
 
 export interface ProductImageInput {
   path: string;
@@ -85,7 +86,7 @@ export async function saveProduct(
     product_type: input.product_type?.trim() || null,
     original_price: Number(input.original_price) || 0,
     current_price: Number(input.current_price) || 0,
-    description: input.description,
+    description: buildDescriptionPayload(input.description, sizeChart, false),
     size_chart: sizeChart,
     ...(nextSort != null ? { sort: nextSort } : {}),
     updated_at: new Date().toISOString(),
@@ -97,10 +98,14 @@ export async function saveProduct(
     .select("id")
     .single();
 
-  // Fallback if size_chart column isn't migrated yet.
+  // Column missing: store size chart inside description jsonb (already exists).
   if (productError && /size_chart/i.test(productError.message)) {
-    const withoutChart = { ...productPayload };
+    const withoutChart = {
+      ...productPayload,
+      description: buildDescriptionPayload(input.description, sizeChart, true),
+    };
     delete (withoutChart as { size_chart?: unknown }).size_chart;
+    delete (withoutChart as { sort?: unknown }).sort;
     ({ data: product, error: productError } = await supabase
       .from("products")
       .upsert(withoutChart)

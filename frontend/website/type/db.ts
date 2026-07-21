@@ -102,6 +102,7 @@ export interface OrderDelivery {
   city?: string;
   postalCode?: string;
   phone?: string;
+  shippingMethod?: "inside-dhaka" | "outside-dhaka";
 }
 
 export interface OrderTotals {

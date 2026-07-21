@@ -216,7 +216,7 @@ export function ProductForm({
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="mb-6 flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-card p-1">
+        <TabsList className="mb-6 flex h-auto w-fit flex-wrap justify-start gap-1 rounded-xl bg-card p-1">
           <TabsTrigger value="general" className="rounded-lg px-4">
             General
           </TabsTrigger>

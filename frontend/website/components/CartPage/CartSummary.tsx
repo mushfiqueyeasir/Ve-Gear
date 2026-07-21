@@ -20,7 +20,7 @@ export default function CartSummary({ total }: CartSummaryProps) {
           <p className="font-display text-3xl font-semibold">{format(total)}</p>
         </div>
         <p className="text-xs text-muted-foreground">
-          Local fulfillment — no shipping charge.
+          Delivery charge is calculated at checkout (Inside / Outside Dhaka).
         </p>
         <Link
           href="/checkout"

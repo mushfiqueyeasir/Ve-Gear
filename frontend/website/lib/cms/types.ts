@@ -34,3 +34,9 @@ export {
   DEFAULT_CURRENCY_SETTINGS,
   SUPPORTED_CURRENCIES,
 } from "@/lib/currency";
+
+export type { DeliveryCharges } from "@/lib/delivery";
+export { DEFAULT_DELIVERY_CHARGES } from "@/lib/delivery";
+
+export type { ChatWidgets } from "@/lib/chatWidgets";
+export { DEFAULT_CHAT_WIDGETS } from "@/lib/chatWidgets";

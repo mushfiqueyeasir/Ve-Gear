@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { productImageUrl } from "@/utility/imageUrl";
-import { normalizeSizeChart } from "@/lib/products/sizeChart";
+import { resolveSizeChart } from "@/lib/products/sizeChart";
 import type {
   Product,
   CategoryWithProducts,
@@ -94,8 +94,8 @@ function mapProduct(raw: RawProduct): Product {
     images: gallery,
     originalPrice: Number(raw.original_price),
     currentPrice: Number(raw.current_price),
-    description: raw.description,
-    sizeChart: normalizeSizeChart(raw.size_chart),
+    description: raw.description ? { html: raw.description.html } : null,
+    sizeChart: resolveSizeChart(raw.size_chart, raw.description),
     stock: aggregateStock(raw.product_variants),
   };
 }

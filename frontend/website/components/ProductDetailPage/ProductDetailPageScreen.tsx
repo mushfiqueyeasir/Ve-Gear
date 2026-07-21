@@ -32,10 +32,14 @@ export default function ProductDetailPageScreen({
         <ProductInfo product={product} stock={stock} />
       </div>
 
-      <div className="mx-auto max-w-3xl space-y-12">
-        {description?.html && <ProductDescription description={description} />}
-        {hasSizeChart && <SizeChart sizeChart={product.sizeChart} />}
-      </div>
+      {(description?.html || hasSizeChart) && (
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16">
+          {description?.html ? (
+            <ProductDescription description={description} />
+          ) : null}
+          {hasSizeChart ? <SizeChart sizeChart={product.sizeChart} /> : null}
+        </div>
+      )}
     </section>
   );
 }

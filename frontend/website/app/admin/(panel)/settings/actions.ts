@@ -5,6 +5,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, isAdmin } from "@/lib/admin/auth";
 import type { CmsSeo, CurrencySettings } from "@/lib/cms/types";
 import { getCurrencyMeta, normalizeCurrencySettings } from "@/lib/currency";
+import { normalizeDeliveryCharges, type DeliveryCharges } from "@/lib/delivery";
+import { normalizeChatWidgets, type ChatWidgets } from "@/lib/chatWidgets";
 import { normalizePalette, type ThemePalette } from "@/lib/theme/palette";
 
 export interface SettingsInput {
@@ -15,6 +17,8 @@ export interface SettingsInput {
   contact_phone: string | null;
   address: string | null;
   currencies: CurrencySettings;
+  deliveryCharges: DeliveryCharges;
+  chatWidgets: ChatWidgets;
   palette: ThemePalette;
   socials: Record<string, string>;
   google_analytics_id: string | null;
@@ -50,6 +54,8 @@ export async function saveSettings(
   if (currencies.enabled.length === 0) {
     return { error: "Enable at least one currency." };
   }
+  const deliveryCharges = normalizeDeliveryCharges(input.deliveryCharges);
+  const chatWidgets = normalizeChatWidgets(input.chatWidgets);
   const defaultMeta = getCurrencyMeta(currencies.default);
 
   const supabase = await createSupabaseServerClient();
@@ -82,6 +88,8 @@ export async function saveSettings(
         og_image_path: input.seo.og_image_path,
       },
       currencies,
+      deliveryCharges,
+      chatWidgets,
       favicon_path: input.favicon_path,
       palette: normalizePalette(input.palette),
     },
@@ -96,7 +104,7 @@ export async function saveSettings(
     address: input.address,
     currency: defaultMeta.code,
     currency_symbol: defaultMeta.symbol,
-    shipping_flat: 0,
+    shipping_flat: deliveryCharges.insideDhaka,
     free_shipping_threshold: null,
     socials,
     google_analytics_id: input.google_analytics_id,

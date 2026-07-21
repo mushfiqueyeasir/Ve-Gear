@@ -7,14 +7,20 @@ import {
 } from "@/type/db";
 import {
   DEFAULT_CURRENCY_SETTINGS,
+  DEFAULT_DELIVERY_CHARGES,
+  DEFAULT_CHAT_WIDGETS,
   DEFAULT_SEO,
   type CmsAnnouncement,
   type CmsPage,
   type CmsPageSlug,
   type CmsSeo,
   type CurrencySettings,
+  type DeliveryCharges,
+  type ChatWidgets,
 } from "./types";
 import { normalizeCurrencySettings } from "@/lib/currency";
+import { normalizeDeliveryCharges } from "@/lib/delivery";
+import { normalizeChatWidgets } from "@/lib/chatWidgets";
 import {
   DEFAULT_PALETTE,
   normalizePalette,
@@ -42,8 +48,15 @@ export type {
   CmsPageSlug,
   CmsSeo,
   CurrencySettings,
+  DeliveryCharges,
+  ChatWidgets,
 } from "./types";
-export { DEFAULT_SEO, DEFAULT_CURRENCY_SETTINGS } from "./types";
+export {
+  DEFAULT_SEO,
+  DEFAULT_CURRENCY_SETTINGS,
+  DEFAULT_DELIVERY_CHARGES,
+  DEFAULT_CHAT_WIDGETS,
+} from "./types";
 export type { AboutSectionRow, AboutSectionType } from "./aboutSections";
 export {
   ABOUT_SECTION_TYPES,
@@ -59,6 +72,8 @@ export interface CmsBlob {
   announcement: CmsAnnouncement;
   seo: CmsSeo;
   currencies: CurrencySettings;
+  deliveryCharges: DeliveryCharges;
+  chatWidgets: ChatWidgets;
   /** Fallback when site_settings.favicon_path column is missing. */
   favicon_path: string | null;
   palette: ThemePalette;
@@ -106,6 +121,8 @@ function emptyCms(): CmsBlob {
     },
     seo: { ...DEFAULT_SEO },
     currencies: { ...DEFAULT_CURRENCY_SETTINGS },
+    deliveryCharges: { ...DEFAULT_DELIVERY_CHARGES },
+    chatWidgets: { ...DEFAULT_CHAT_WIDGETS },
     favicon_path: null,
     palette: { ...DEFAULT_PALETTE },
   };
@@ -139,6 +156,8 @@ function normalize(raw: unknown): CmsBlob {
       ...(o.seo ?? {}),
     },
     currencies: normalizeCurrencySettings(o.currencies),
+    deliveryCharges: normalizeDeliveryCharges(o.deliveryCharges),
+    chatWidgets: normalizeChatWidgets(o.chatWidgets),
     favicon_path:
       typeof o.favicon_path === "string" && o.favicon_path.trim()
         ? o.favicon_path.trim()

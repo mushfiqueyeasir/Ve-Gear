@@ -50,12 +50,14 @@ export default async function SettingsPage() {
     <div>
       <PageHeader
         title="Settings"
-        description="Brand, colors, contact, currency, analytics, and SEO."
+        description="Brand, colors, contact, currency, delivery, chat, analytics, and SEO."
       />
       <SettingsForm
         settings={settings}
         seo={cms.seo}
         currencies={cms.currencies}
+        deliveryCharges={cms.deliveryCharges}
+        chatWidgets={cms.chatWidgets}
         palette={cms.palette}
       />
     </div>

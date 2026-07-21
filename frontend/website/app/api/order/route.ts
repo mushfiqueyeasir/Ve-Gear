@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getSiteSettings } from "@/utility/getSettings";
+import { shippingCostForZone, type DeliveryZone } from "@/lib/delivery";
 import type { OrderFormData } from "@/type/orderType";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
+
+function resolveZone(value: string | undefined): DeliveryZone {
+  return value === "outside-dhaka" ? "outside-dhaka" : "inside-dhaka";
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,6 +38,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const settings = await getSiteSettings();
+    const zone = resolveZone(body.delivery.shippingMethod);
+    const shipping = shippingCostForZone(settings.deliveryCharges, zone);
+    const subtotal = Number(body.totals.subtotal) || 0;
+    const total = subtotal + shipping;
+
     const payload = {
       delivery: {
         country: body.delivery.country?.trim() ?? "",
@@ -41,6 +53,7 @@ export async function POST(request: NextRequest) {
         city: city.trim(),
         postalCode: body.delivery.postalCode?.trim() ?? "",
         phone: phone.trim(),
+        shippingMethod: zone,
       },
       items: body.items.map((item) => ({
         product_id: item.product,
@@ -52,9 +65,9 @@ export async function POST(request: NextRequest) {
         unit_price: item.unitPrice,
       })),
       totals: {
-        subtotal: body.totals.subtotal,
-        shipping: body.totals.shipping,
-        total: body.totals.total,
+        subtotal,
+        shipping,
+        total,
       },
       notes: body.notes?.trim() ?? "",
     };

@@ -15,7 +15,7 @@ export default function SizeChart({
     <div className={compact ? "space-y-4" : "space-y-6"}>
       {!compact && (
         <div>
-          <h2 className="font-display text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+          <h2 className="font-display text-xl font-semibold tracking-tight text-foreground lg:text-2xl">
             Size chart
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">

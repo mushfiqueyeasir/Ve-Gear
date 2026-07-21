@@ -8,6 +8,16 @@ import {
   type CurrencySettings,
 } from "@/lib/currency";
 import {
+  DEFAULT_DELIVERY_CHARGES,
+  normalizeDeliveryCharges,
+  type DeliveryCharges,
+} from "@/lib/delivery";
+import {
+  DEFAULT_CHAT_WIDGETS,
+  normalizeChatWidgets,
+  type ChatWidgets,
+} from "@/lib/chatWidgets";
+import {
   DEFAULT_PALETTE,
   normalizePalette,
   type ThemePalette,
@@ -18,6 +28,8 @@ export interface SiteSettings extends SiteSettingsRow {
   logoUrl: string | null;
   faviconUrl: string | null;
   currencies: CurrencySettings;
+  deliveryCharges: DeliveryCharges;
+  chatWidgets: ChatWidgets;
   palette: ThemePalette;
 }
 
@@ -46,6 +58,8 @@ const FALLBACK: SiteSettings = {
   announcement_url: null,
   updated_at: new Date(0).toISOString(),
   currencies: { ...DEFAULT_CURRENCY_SETTINGS },
+  deliveryCharges: { ...DEFAULT_DELIVERY_CHARGES },
+  chatWidgets: { ...DEFAULT_CHAT_WIDGETS },
   palette: { ...DEFAULT_PALETTE },
 };
 
@@ -80,6 +94,8 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       currency: meta.code,
       currency_symbol: meta.symbol,
       currencies,
+      deliveryCharges: normalizeDeliveryCharges(cms.deliveryCharges),
+      chatWidgets: normalizeChatWidgets(cms.chatWidgets),
       announcement_text: announcement_text ?? null,
       announcement_active: announcement_active ?? false,
       announcement_url: announcement_url ?? null,

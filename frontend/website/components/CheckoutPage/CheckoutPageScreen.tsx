@@ -6,8 +6,15 @@ import CheckoutOrderSummary from "./CheckoutOrderSummary";
 import CheckoutForm from "./CheckoutForm";
 import Link from "next/link";
 import { trackInitiateCheckout } from "@/utility/analytics/facebookPixelEvents";
+import type { DeliveryCharges } from "@/lib/delivery";
 
-export default function CheckoutPageScreen() {
+interface CheckoutPageScreenProps {
+  deliveryCharges: DeliveryCharges;
+}
+
+export default function CheckoutPageScreen({
+  deliveryCharges,
+}: CheckoutPageScreenProps) {
   const { items, getTotal, getItemCount } = useCartStore();
 
   useEffect(() => {
@@ -46,9 +53,9 @@ export default function CheckoutPageScreen() {
         Checkout
       </h1>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-14">
-        <CheckoutForm />
+        <CheckoutForm deliveryCharges={deliveryCharges} />
         <div className="lg:sticky lg:top-28 lg:self-start">
-          <CheckoutOrderSummary />
+          <CheckoutOrderSummary deliveryCharges={deliveryCharges} />
         </div>
       </div>
     </section>

@@ -30,6 +30,17 @@ import {
   type CurrencySettings,
 } from "@/lib/currency";
 import {
+  DEFAULT_DELIVERY_CHARGES,
+  normalizeDeliveryCharges,
+  type DeliveryCharges,
+} from "@/lib/delivery";
+import {
+  DEFAULT_CHAT_WIDGETS,
+  normalizeChatWidgets,
+  type ChatProvider,
+  type ChatWidgets,
+} from "@/lib/chatWidgets";
+import {
   DEFAULT_PALETTE,
   PALETTE_FIELDS,
   PALETTE_PRESETS,
@@ -37,6 +48,7 @@ import {
   type ThemePalette,
 } from "@/lib/theme/palette";
 import { cn } from "@/lib/utils";
+import { appConfig } from "@/lib/config";
 import { saveSettings, type SettingsInput } from "./actions";
 
 function orNull(v: string): string | null {
@@ -44,15 +56,31 @@ function orNull(v: string): string | null {
   return t === "" ? null : t;
 }
 
+function siteHostLabel(siteUrl: string): string {
+  const raw = siteUrl.trim();
+  if (!raw) return "your store domain";
+  try {
+    return new URL(raw).host;
+  } catch {
+    return (
+      raw.replace(/^https?:\/\//, "").replace(/\/$/, "") || "your store domain"
+    );
+  }
+}
+
 export function SettingsForm({
   settings,
   seo: initialSeo,
   currencies: initialCurrencies,
+  deliveryCharges: initialDeliveryCharges,
+  chatWidgets: initialChatWidgets,
   palette: initialPalette,
 }: {
   settings: SiteSettingsRow;
   seo?: CmsSeo | null;
   currencies?: CurrencySettings | null;
+  deliveryCharges?: DeliveryCharges | null;
+  chatWidgets?: ChatWidgets | null;
   palette?: ThemePalette | null;
 }) {
   const router = useRouter();
@@ -84,6 +112,29 @@ export function SettingsForm({
   );
   const [defaultCurrency, setDefaultCurrency] = useState<CurrencyCode>(
     currencyState.default,
+  );
+
+  const deliveryState = normalizeDeliveryCharges(
+    initialDeliveryCharges ?? DEFAULT_DELIVERY_CHARGES,
+  );
+  const [insideDhakaCharge, setInsideDhakaCharge] = useState(
+    String(deliveryState.insideDhaka),
+  );
+  const [outsideDhakaCharge, setOutsideDhakaCharge] = useState(
+    String(deliveryState.outsideDhaka),
+  );
+
+  const chatState = normalizeChatWidgets(
+    initialChatWidgets ?? DEFAULT_CHAT_WIDGETS,
+  );
+  const [chatProvider, setChatProvider] = useState<ChatProvider>(
+    chatState.provider,
+  );
+  const [whatsappNumber, setWhatsappNumber] = useState(
+    chatState.whatsappNumber,
+  );
+  const [messengerPageId, setMessengerPageId] = useState(
+    chatState.messengerPageId,
   );
 
   const socials = settings.socials ?? {};
@@ -154,6 +205,40 @@ export function SettingsForm({
       default: defaultCurrency,
     });
 
+    const deliveryCharges = normalizeDeliveryCharges({
+      insideDhaka: Number(insideDhakaCharge),
+      outsideDhaka: Number(outsideDhakaCharge),
+    });
+
+    if (
+      !Number.isFinite(Number(insideDhakaCharge)) ||
+      Number(insideDhakaCharge) < 0 ||
+      !Number.isFinite(Number(outsideDhakaCharge)) ||
+      Number(outsideDhakaCharge) < 0
+    ) {
+      toast.error("Delivery charges must be valid numbers (0 or more).");
+      return;
+    }
+
+    const chatWidgets = normalizeChatWidgets({
+      provider: chatProvider,
+      whatsappNumber,
+      messengerPageId,
+    });
+
+    if (chatWidgets.provider === "whatsapp" && !chatWidgets.whatsappNumber) {
+      toast.error("Enter a WhatsApp number with country code.");
+      return;
+    }
+    if (chatWidgets.provider === "messenger") {
+      if (!/^\d{5,}$/.test(chatWidgets.messengerPageId)) {
+        toast.error(
+          "Enter your numeric Facebook Page ID (digits only) for on-site chat.",
+        );
+        return;
+      }
+    }
+
     const input: SettingsInput = {
       store_name: storeName,
       logo_path: logo[0]?.path ?? null,
@@ -162,6 +247,8 @@ export function SettingsForm({
       contact_phone: orNull(contactPhone),
       address: orNull(address),
       currencies,
+      deliveryCharges,
+      chatWidgets,
       palette: normalizePalette(palette),
       socials: nextSocials,
       google_analytics_id: orNull(gaId),
@@ -206,6 +293,12 @@ export function SettingsForm({
           </TabsTrigger>
           <TabsTrigger value="currency" className="rounded-lg px-3 sm:px-4">
             Currency
+          </TabsTrigger>
+          <TabsTrigger value="delivery" className="rounded-lg px-3 sm:px-4">
+            Delivery
+          </TabsTrigger>
+          <TabsTrigger value="chat" className="rounded-lg px-3 sm:px-4">
+            Chat
           </TabsTrigger>
           <TabsTrigger value="social" className="rounded-lg px-3 sm:px-4">
             Social
@@ -484,6 +577,146 @@ export function SettingsForm({
                 ?.symbol ?? ""}
             </span>
           </p>
+        </TabsContent>
+
+        <TabsContent value="delivery" className="space-y-5">
+          <p className="text-sm text-muted-foreground">
+            Cash on delivery charge per order. Customers pick Inside Dhaka or
+            Outside Dhaka at checkout — the matching rate is added to the total.
+          </p>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <FormField
+              label="Inside Dhaka"
+              hint="Default 70 — applies to Dhaka city orders."
+            >
+              <Input
+                type="number"
+                min={0}
+                step={1}
+                value={insideDhakaCharge}
+                onChange={(e) => setInsideDhakaCharge(e.target.value)}
+                className={adminInputClass}
+              />
+            </FormField>
+            <FormField
+              label="Outside Dhaka"
+              hint="Default 120 — applies outside Dhaka."
+            >
+              <Input
+                type="number"
+                min={0}
+                step={1}
+                value={outsideDhakaCharge}
+                onChange={(e) => setOutsideDhakaCharge(e.target.value)}
+                className={adminInputClass}
+              />
+            </FormField>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Amounts use your store currency (
+            <span className="text-foreground">{defaultCurrency}</span>
+            ).
+          </p>
+        </TabsContent>
+
+        <TabsContent value="chat" className="space-y-5">
+          <p className="text-sm text-muted-foreground">
+            Pick one chat option. Messenger can chat on your website; WhatsApp
+            always opens the WhatsApp app (Meta does not allow in-page WhatsApp
+            chat).
+          </p>
+
+          <div className="space-y-2">
+            {(
+              [
+                {
+                  value: "none" as const,
+                  label: "Off",
+                  hint: "Hide chat button",
+                },
+                {
+                  value: "messenger" as const,
+                  label: "Messenger (on website)",
+                  hint: "Customers chat in a popup on your store",
+                },
+                {
+                  value: "whatsapp" as const,
+                  label: "WhatsApp (opens app)",
+                  hint: "Opens WhatsApp — cannot stay on the website",
+                },
+              ] as const
+            ).map((option) => {
+              const selected = chatProvider === option.value;
+              return (
+                <label
+                  key={option.value}
+                  className={cn(
+                    "flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition",
+                    selected
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-card/60 hover:border-primary/40",
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="chat-provider"
+                    checked={selected}
+                    onChange={() => setChatProvider(option.value)}
+                    className="accent-primary"
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium text-foreground">
+                      {option.label}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">
+                      {option.hint}
+                    </span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+
+          {chatProvider === "whatsapp" ? (
+            <FormField
+              label="WhatsApp number"
+              hint="Country code + number, e.g. 8801712345678. Clicking opens WhatsApp."
+            >
+              <Input
+                value={whatsappNumber}
+                onChange={(e) => setWhatsappNumber(e.target.value)}
+                placeholder="8801712345678"
+                inputMode="tel"
+                className={adminInputClass}
+              />
+            </FormField>
+          ) : null}
+
+          {chatProvider === "messenger" ? (
+            <>
+              <FormField
+                label="Facebook Page ID"
+                hint="Numeric Page ID only (not the username). Find it in Page Settings → About / Page transparency."
+              >
+                <Input
+                  value={messengerPageId}
+                  onChange={(e) => setMessengerPageId(e.target.value)}
+                  placeholder="123456789012345"
+                  inputMode="numeric"
+                  className={adminInputClass}
+                />
+              </FormField>
+              <p className="rounded-xl border border-border bg-card/60 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
+                In Meta Business / Page settings, enable messaging and add your
+                store domain (
+                <span className="text-foreground">
+                  {siteHostLabel(appConfig.siteUrl)}
+                </span>{" "}
+                and localhost for local testing) to the allowed websites for the
+                chat plugin. Without that, the bubble will not appear.
+              </p>
+            </>
+          ) : null}
         </TabsContent>
 
         <TabsContent value="social" className="space-y-5">

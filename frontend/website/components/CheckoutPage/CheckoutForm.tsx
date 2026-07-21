@@ -12,14 +12,28 @@ import { sendEmail } from "@/utility/sendEmail";
 import { trackPurchase } from "@/utility/analytics/facebookPixelEvents";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
 import { appConfig } from "@/lib/config";
+import {
+  deliveryZoneLabel,
+  shippingCostForZone,
+  type DeliveryCharges,
+} from "@/lib/delivery";
+import { cn } from "@/lib/utils";
 
-export default function CheckoutForm() {
+export default function CheckoutForm({
+  deliveryCharges,
+}: {
+  deliveryCharges: DeliveryCharges;
+}) {
   const router = useRouter();
   const { formData, updateFormData, saveDeliveryInfo, loadSavedDeliveryInfo } =
     useCheckoutStore();
   const { items, getTotal, clearCart } = useCartStore();
-  const { code } = useCurrency();
+  const { code, format } = useCurrency();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const shippingCost = shippingCostForZone(
+    deliveryCharges,
+    formData.shippingMethod,
+  );
 
   useEffect(() => {
     loadSavedDeliveryInfo();
@@ -48,8 +62,11 @@ export default function CheckoutForm() {
 
     try {
       const subtotal = getTotal();
-      const shippingCost = 0;
-      const total = subtotal;
+      const shipping = shippingCostForZone(
+        deliveryCharges,
+        formData.shippingMethod,
+      );
+      const total = subtotal + shipping;
 
       const orderData = {
         delivery: {
@@ -60,6 +77,7 @@ export default function CheckoutForm() {
           city: formData.city,
           postalCode: formData.postalCode,
           phone: formData.phone,
+          shippingMethod: formData.shippingMethod,
         },
         items: items.map((item) => ({
           product: item.id,
@@ -70,7 +88,7 @@ export default function CheckoutForm() {
         })),
         totals: {
           subtotal,
-          shipping: shippingCost,
+          shipping,
           total,
         },
       };
@@ -142,15 +160,15 @@ export default function CheckoutForm() {
             <div style="text-align: right;">
               <div style="font-size: 13px; color: #666666; margin-bottom: 8px;">Estimated total</div>
               <div style="font-size: 20px; font-weight: 400; color: #000000; margin-bottom: 8px;">Tk ${total.toLocaleString()}.00 BDT</div>
-              <div style="font-size: 11px; color: #999999; margin-bottom: 16px;">Local fulfillment — no shipping charge</div>
+              <div style="font-size: 11px; color: #999999; margin-bottom: 16px;">Cash on delivery · ${escapeHtml(deliveryZoneLabel(formData.shippingMethod))}</div>
               <table style="width: 100%; border-collapse: collapse; margin-top: 16px; border-top: 1px solid #e8e8e8; padding-top: 16px;">
                 <tr>
                   <td style="padding: 6px 0; color: #666666; font-size: 13px; text-align: left;">Subtotal</td>
                   <td style="padding: 6px 0; text-align: right; color: #666666; font-size: 13px;">Tk ${subtotal.toLocaleString()}.00</td>
                 </tr>
                 <tr>
-                  <td style="padding: 6px 0; color: #666666; font-size: 13px; text-align: left;">Shipping</td>
-                  <td style="padding: 6px 0; text-align: right; color: #666666; font-size: 13px;">Local · Free</td>
+                  <td style="padding: 6px 0; color: #666666; font-size: 13px; text-align: left;">Delivery (${escapeHtml(deliveryZoneLabel(formData.shippingMethod))})</td>
+                  <td style="padding: 6px 0; text-align: right; color: #666666; font-size: 13px;">Tk ${shipping.toLocaleString()}.00</td>
                 </tr>
               </table>
             </div>
@@ -266,8 +284,51 @@ export default function CheckoutForm() {
         </label>
       </div>
 
-      <div className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
-        Local fulfillment only — no shipping charge for now.
+      <div className="space-y-4">
+        <h2 className="font-display text-lg font-semibold">Delivery area</h2>
+        <p className="text-sm text-muted-foreground">
+          Cash on delivery — choose where we should deliver.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {(
+            [
+              {
+                value: "inside-dhaka" as const,
+                label: "Inside Dhaka",
+                amount: deliveryCharges.insideDhaka,
+              },
+              {
+                value: "outside-dhaka" as const,
+                label: "Outside Dhaka",
+                amount: deliveryCharges.outsideDhaka,
+              },
+            ] as const
+          ).map((zone) => {
+            const selected = formData.shippingMethod === zone.value;
+            return (
+              <button
+                key={zone.value}
+                type="button"
+                onClick={() => updateFormData({ shippingMethod: zone.value })}
+                className={cn(
+                  "rounded-xl border px-4 py-3 text-left text-sm transition-colors",
+                  selected
+                    ? "border-primary bg-primary/10 text-foreground"
+                    : "border-border bg-card hover:border-primary/50",
+                )}
+              >
+                <span className="block font-medium">{zone.label}</span>
+                <span className="mt-1 block text-muted-foreground">
+                  {format(zone.amount)} delivery
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Delivery charge for this order:{" "}
+          <span className="text-foreground">{format(shippingCost)}</span>
+        </p>
       </div>
 
       <div className="space-y-4">

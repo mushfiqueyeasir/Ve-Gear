@@ -8,7 +8,7 @@ import type {
   ProductImageRow,
   ProductVariantRow,
 } from "@/type/db";
-import { normalizeSizeChart } from "@/lib/products/sizeChart";
+import { resolveSizeChart } from "@/lib/products/sizeChart";
 import {
   ProductForm,
   type CategoryOption,
@@ -67,8 +67,8 @@ export default async function EditProductPage({
     product_type: row.product_type,
     original_price: row.original_price,
     current_price: row.current_price,
-    description: row.description,
-    size_chart: normalizeSizeChart(row.size_chart),
+    description: row.description ? { html: row.description.html } : null,
+    size_chart: resolveSizeChart(row.size_chart, row.description),
     categoryIds: ((links ?? []) as { category_id: string }[]).map(
       (l) => l.category_id,
     ),

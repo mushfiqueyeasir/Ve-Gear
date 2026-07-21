@@ -21,6 +21,7 @@ import {
 } from "@/lib/admin/format";
 import { cn } from "@/lib/utils";
 import type { OrderRow, OrderItemRow } from "@/type/db";
+import { DownloadInvoiceButton } from "@/components/admin/DownloadInvoiceButton";
 import { OrderNotes } from "./OrderNotes";
 import { OrderStatusControl } from "./OrderStatusControl";
 
@@ -45,6 +46,7 @@ export default async function OrderDetailPage({
   if (!order) notFound();
   const o = order as OrderRow;
   const symbol = settings.currency_symbol || "$";
+  const currencyCode = settings.currency || "BDT";
 
   const [{ data: items }, customerRes] = await Promise.all([
     supabase
@@ -100,6 +102,38 @@ export default async function OrderDetailPage({
             Placed {formatDateTime(o.created_at)} · Payment: {o.payment_method}
           </p>
         </div>
+        <DownloadInvoiceButton
+          invoice={{
+            orderNumber: o.order_number,
+            createdAt: o.created_at,
+            status: o.status,
+            paymentMethod: o.payment_method || "COD",
+            storeName: settings.store_name,
+            storeEmail: settings.contact_email,
+            storePhone: settings.contact_phone,
+            currencyCode,
+            logoUrl: settings.logoUrl,
+            palette: settings.palette,
+            customerName,
+            phone: o.delivery?.phone ?? null,
+            addressLines: addressParts.map(String),
+            deliveryZone: o.delivery?.shippingMethod
+              ? o.delivery.shippingMethod === "outside-dhaka"
+                ? "Outside Dhaka"
+                : "Inside Dhaka"
+              : null,
+            items: orderItems.map((it) => ({
+              title: it.title ?? "Item",
+              size: it.size,
+              color: it.color,
+              quantity: it.quantity,
+              unitPrice: Number(it.unit_price) || 0,
+            })),
+            subtotal: Number(o.totals?.subtotal) || 0,
+            shipping: Number(o.totals?.shipping) || 0,
+            total: Number(o.totals?.total) || 0,
+          }}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -252,6 +286,22 @@ export default async function OrderDetailPage({
                   </dd>
                 </div>
               </div>
+              {o.delivery?.shippingMethod && (
+                <div className="flex items-start gap-2">
+                  <Icon
+                    name="PackageOpen"
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                  />
+                  <div>
+                    <dt className="text-muted-foreground">Delivery zone</dt>
+                    <dd className="text-foreground">
+                      {o.delivery.shippingMethod === "outside-dhaka"
+                        ? "Outside Dhaka"
+                        : "Inside Dhaka"}
+                    </dd>
+                  </div>
+                </div>
+              )}
             </dl>
           </div>
         </div>
