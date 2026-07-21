@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import type { SeoItemType } from "@/type/seoType";
 import { SeoContent } from "@/SeoContent/SeoContent";
+import { appConfig } from "@/lib/config";
 
 export function generateMetadata(seoContent: SeoItemType) {
   const { title, description, image, siteUrl, keywords, tags } = seoContent;
@@ -13,14 +14,14 @@ export function generateMetadata(seoContent: SeoItemType) {
     openGraph: {
       title: title,
       description: description,
-      images: [{ url: new URL(image, process.env.NEXT_PUBLIC_SITE_URL).href }],
+      images: [{ url: new URL(image, appConfig.siteUrl).href }],
       url: siteUrl,
       type: "website",
     },
     twitter: {
       title: title,
       description: description,
-      images: [{ url: new URL(image, process.env.NEXT_PUBLIC_SITE_URL).href }],
+      images: [{ url: new URL(image, appConfig.siteUrl).href }],
       card: "summary_large_image",
     },
     robots: "index, follow",

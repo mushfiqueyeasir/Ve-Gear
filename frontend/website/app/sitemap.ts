@@ -1,7 +1,8 @@
 import { MetadataRoute } from "next";
+import { appConfig } from "@/lib/config";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+  const baseUrl = appConfig.siteUrl || "";
   const currentDate = new Date();
 
   const staticRoutes = [

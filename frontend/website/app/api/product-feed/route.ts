@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProducts } from "@/utility/getProducts";
+import { appConfig } from "@/lib/config";
 
 export const runtime = "nodejs";
 
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
     const products = await getProducts();
 
     const baseUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ||
+      appConfig.siteUrl ||
       `${request.nextUrl.protocol}//${request.nextUrl.host}`;
 
     const headers = [

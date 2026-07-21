@@ -1,4 +1,7 @@
 import type { SeoContentType } from "@/type/seoType";
+import { appConfig } from "@/lib/config";
+
+const siteUrl = appConfig.siteUrl;
 
 export const SeoContent: SeoContentType = {
   baseSeo: {
@@ -6,7 +9,7 @@ export const SeoContent: SeoContentType = {
     description:
       "Shop premium gear and everyday essentials at VE Gear. Thoughtfully designed, high-quality pieces built to move with you.",
     image: "/images/seoThumbnail/home.png",
-    siteUrl: `${process.env.NEXT_PUBLIC_SITE_URL}`,
+    siteUrl: `${siteUrl}`,
     keywords: [
       "VE Gear",
       "Premium Gear",
@@ -23,7 +26,7 @@ export const SeoContent: SeoContentType = {
     description:
       "Learn about VE Gear - where modern design meets everyday performance. Discover our mission to craft premium, dependable essentials with quality materials and contemporary design.",
     image: "/images/seoThumbnail/home.png",
-    siteUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/about-us`,
+    siteUrl: `${siteUrl}/about-us`,
     keywords: [
       "VE Gear",
       "About VE Gear",
@@ -40,7 +43,7 @@ export const SeoContent: SeoContentType = {
     description:
       "Explore the VE Gear collection of premium gear and essentials. Shop the latest drops, featured pieces, and best sellers.",
     image: "/images/seoThumbnail/home.png",
-    siteUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/product`,
+    siteUrl: `${siteUrl}/product`,
     keywords: [
       "VE Gear",
       "Collections",
@@ -56,7 +59,7 @@ export const SeoContent: SeoContentType = {
     description:
       "Review your selected items in your VE Gear shopping cart. Continue shopping or proceed to a secure checkout.",
     image: "/images/seoThumbnail/home.png",
-    siteUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/cart`,
+    siteUrl: `${siteUrl}/cart`,
     keywords: [
       "VE Gear",
       "Shopping Cart",
@@ -70,7 +73,7 @@ export const SeoContent: SeoContentType = {
     description:
       "Your saved VE Gear favorites — kept on this device so you can come back anytime.",
     image: "/images/seoThumbnail/home.png",
-    siteUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/wishlist`,
+    siteUrl: `${siteUrl}/wishlist`,
     keywords: [
       "VE Gear",
       "Favorites",
@@ -84,7 +87,7 @@ export const SeoContent: SeoContentType = {
     description:
       "Complete your purchase at VE Gear with a fast, secure checkout.",
     image: "/images/seoThumbnail/home.png",
-    siteUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout`,
+    siteUrl: `${siteUrl}/checkout`,
     keywords: [
       "VE Gear",
       "Checkout",
@@ -98,7 +101,7 @@ export const SeoContent: SeoContentType = {
     description:
       "Get in touch with VE Gear. Have questions? Contact us for customer support, inquiries, or feedback.",
     image: "/images/seoThumbnail/home.png",
-    siteUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/contact-us`,
+    siteUrl: `${siteUrl}/contact-us`,
     keywords: [
       "VE Gear",
       "Contact VE Gear",
@@ -112,7 +115,7 @@ export const SeoContent: SeoContentType = {
     description:
       "Read authentic customer reviews and see real photos from the VE Gear community. Discover what customers say about quality, comfort, and design.",
     image: "/images/seoThumbnail/home.png",
-    siteUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/reviews`,
+    siteUrl: `${siteUrl}/reviews`,
     keywords: [
       "VE Gear",
       "Customer Reviews",
@@ -126,7 +129,7 @@ export const SeoContent: SeoContentType = {
     description:
       "Read the VE Gear privacy policy to understand how we collect, use, and protect your personal information.",
     image: "/images/seoThumbnail/home.png",
-    siteUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/privacy-policy`,
+    siteUrl: `${siteUrl}/privacy-policy`,
     keywords: [
       "VE Gear",
       "Privacy Policy",
@@ -142,7 +145,7 @@ export const SeoContent: SeoContentType = {
     description:
       "Read the VE Gear terms and conditions covering accounts, products, pricing, shipping, returns, and intellectual property.",
     image: "/images/seoThumbnail/home.png",
-    siteUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/terms-of-service`,
+    siteUrl: `${siteUrl}/terms-of-service`,
     keywords: [
       "VE Gear",
       "Terms and Conditions",
@@ -157,7 +160,7 @@ export const SeoContent: SeoContentType = {
     description:
       "Learn about VE Gear shipping and return policy. Find information about shipping options, delivery times, order tracking, and returns.",
     image: "/images/seoThumbnail/home.png",
-    siteUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/refund-policy`,
+    siteUrl: `${siteUrl}/refund-policy`,
     keywords: [
       "VE Gear",
       "Shipping Policy",

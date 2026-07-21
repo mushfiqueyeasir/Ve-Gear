@@ -1,6 +1,7 @@
 "use client";
 
 import emailjs from "@emailjs/browser";
+import { appConfig } from "@/lib/config";
 
 interface SendEmailParams {
   subject: string;
@@ -15,9 +16,9 @@ export async function sendEmail({
   emailJsTemplateId,
   toEmail,
 }: SendEmailParams): Promise<void> {
-  const emailJsServiceId = process.env.NEXT_PUBLIC_EMAIL_SERVICE_ID;
-  const emailJsPublicKey = process.env.NEXT_PUBLIC_EMAIL_PUBLIC_KEY;
-  const clientEmail = process.env.NEXT_PUBLIC_EMAIL_ADDRESS || "";
+  const emailJsServiceId = appConfig.email.serviceId;
+  const emailJsPublicKey = appConfig.email.publicKey;
+  const clientEmail = appConfig.email.address;
 
   // Email notifications are optional. If EmailJS isn't configured, no-op
   // silently so order/contact flows are unaffected.

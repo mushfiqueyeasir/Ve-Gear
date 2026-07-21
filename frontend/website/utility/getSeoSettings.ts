@@ -3,6 +3,7 @@ import { readCmsBlob } from "@/lib/cms/jsonStore";
 import { DEFAULT_SEO, type CmsSeo } from "@/lib/cms/types";
 import type { SeoItemType } from "@/type/seoType";
 import { SeoContent } from "@/SeoContent/SeoContent";
+import { appConfig } from "@/lib/config";
 
 export async function getSeoConfig(): Promise<CmsSeo> {
   try {
@@ -33,7 +34,7 @@ export async function getBaseSeoItem(): Promise<SeoItemType> {
     title: seo.title?.trim() || fallback.title,
     description: seo.description?.trim() || fallback.description,
     image,
-    siteUrl: fallback.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || "",
+    siteUrl: fallback.siteUrl || appConfig.siteUrl || "",
     keywords,
   };
 }

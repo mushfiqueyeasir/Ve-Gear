@@ -11,6 +11,7 @@ import { submitOrder } from "@/utility/submitOrder";
 import { sendEmail } from "@/utility/sendEmail";
 import { trackPurchase } from "@/utility/analytics/facebookPixelEvents";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
+import { appConfig } from "@/lib/config";
 
 export default function CheckoutForm() {
   const router = useRouter();
@@ -80,8 +81,7 @@ export default function CheckoutForm() {
         saveDeliveryInfo();
       }
 
-      const checkoutTemplateId =
-        process.env.NEXT_PUBLIC_EMAIL_CHECKOUT_TEMPLATE || "";
+      const checkoutTemplateId = appConfig.email.checkoutTemplate;
 
       if (checkoutTemplateId) {
         try {

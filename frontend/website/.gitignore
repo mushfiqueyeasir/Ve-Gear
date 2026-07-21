@@ -30,6 +30,7 @@
 *.provision.env
 .provision.env
 .admin-credentials.txt
+config.json
 
 # debug
 npm-debug.log*

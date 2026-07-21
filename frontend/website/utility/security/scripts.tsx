@@ -1,6 +1,7 @@
 import React from "react";
+import { appConfig } from "@/lib/config";
 
-const securityEnabled = process.env.SECURITY_ENABLED === "true";
+const securityEnabled = appConfig.securityEnabled;
 
 export const DisableRightClickScript: React.FC = () => (
   <script

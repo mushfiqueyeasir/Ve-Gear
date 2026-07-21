@@ -13,23 +13,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 const assetsDir = path.resolve(root, "../test/src/assets");
 
-function loadEnv() {
-  const envPath = path.join(root, ".env");
-  const raw = fs.readFileSync(envPath, "utf8");
-  const out = {};
-  for (const line of raw.split(/\r?\n/)) {
-    const m = line.match(/^([^#=]+)=(.*)$/);
-    if (m) out[m[1].trim()] = m[2].trim();
-  }
-  return out;
+function loadConfig() {
+  return JSON.parse(fs.readFileSync(path.join(root, "config.json"), "utf8"));
 }
 
-const env = loadEnv();
-const url = env.NEXT_PUBLIC_SUPABASE_URL;
-const key = env.SUPABASE_SERVICE_ROLE_KEY;
+const config = loadConfig();
+const url = config.NEXT_PUBLIC_SUPABASE_URL;
+const key = config.SUPABASE_SERVICE_ROLE_KEY;
 if (!url || !key) {
   console.error(
-    "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY",
+    "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in config.json",
   );
   process.exit(1);
 }

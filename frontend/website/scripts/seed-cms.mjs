@@ -13,20 +13,14 @@ import { randomUUID } from "crypto";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 
-function loadEnv() {
-  const raw = fs.readFileSync(path.join(root, ".env"), "utf8");
-  const out = {};
-  for (const line of raw.split(/\r?\n/)) {
-    const m = line.match(/^([^#=]+)=(.*)$/);
-    if (m) out[m[1].trim()] = m[2].trim();
-  }
-  return out;
+function loadConfig() {
+  return JSON.parse(fs.readFileSync(path.join(root, "config.json"), "utf8"));
 }
 
-const env = loadEnv();
+const config = loadConfig();
 const sb = createClient(
-  env.NEXT_PUBLIC_SUPABASE_URL,
-  env.SUPABASE_SERVICE_ROLE_KEY,
+  config.NEXT_PUBLIC_SUPABASE_URL,
+  config.SUPABASE_SERVICE_ROLE_KEY,
   {
     auth: { persistSession: false },
   },
