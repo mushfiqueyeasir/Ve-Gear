@@ -1,0 +1,427 @@
+import Image from "next/image";
+import Link from "next/link";
+import {
+  ArrowRight,
+  Award,
+  Layers,
+  Scissors,
+  Shirt,
+  Sparkles,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
+import type {
+  AboutCraftItem,
+  AboutSectionRow,
+  AboutStatItem,
+  AboutValueItem,
+} from "@/lib/cms/aboutSections";
+import { bannerImageUrl, brandingImageUrl } from "@/utility/imageUrl";
+
+const CRAFT_ICONS: Record<string, LucideIcon> = {
+  Layers,
+  Shirt,
+  Scissors,
+  Zap,
+  Sparkles,
+  Award,
+};
+
+function cfgStr(config: Record<string, unknown>, key: string, fallback = "") {
+  const v = config[key];
+  return typeof v === "string" ? v : fallback;
+}
+
+function imageUrl(config: Record<string, unknown>, fallback?: string | null) {
+  const path = cfgStr(config, "image_path");
+  if (!path) return fallback ?? null;
+  const bucket = cfgStr(config, "image_bucket", "banner");
+  return bucket === "branding"
+    ? brandingImageUrl(path)
+    : bannerImageUrl(path);
+}
+
+function asStats(config: Record<string, unknown>): AboutStatItem[] {
+  const raw = config.items;
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const o = item as Record<string, unknown>;
+      return {
+        label: typeof o.label === "string" ? o.label : "",
+        value: typeof o.value === "string" ? o.value : "",
+      };
+    })
+    .filter((x): x is AboutStatItem => Boolean(x && (x.label || x.value)));
+}
+
+function asValues(config: Record<string, unknown>): AboutValueItem[] {
+  const raw = config.items;
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const o = item as Record<string, unknown>;
+      return {
+        title: typeof o.title === "string" ? o.title : "",
+        body: typeof o.body === "string" ? o.body : "",
+      };
+    })
+    .filter((x): x is AboutValueItem => Boolean(x && (x.title || x.body)));
+}
+
+function asCraft(config: Record<string, unknown>): AboutCraftItem[] {
+  const raw = config.items;
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const o = item as Record<string, unknown>;
+      return {
+        label: typeof o.label === "string" ? o.label : "",
+        sub: typeof o.sub === "string" ? o.sub : "",
+        icon: typeof o.icon === "string" ? o.icon : "Layers",
+      };
+    })
+    .filter((x): x is AboutCraftItem => Boolean(x && x.label));
+}
+
+function HeroSection({ config }: { config: Record<string, unknown> }) {
+  const heroUrl =
+    imageUrl(config) ??
+    bannerImageUrl("lovable/hero-biker.jpg") ??
+    "/images/lovable/hero-biker.jpg";
+  const line1 = cfgStr(config, "headline_line1", "Not just ride.");
+  const line2 = cfgStr(config, "headline_line2", "Ride with style.");
+
+  return (
+    <section className="relative isolate min-h-[72vh] overflow-hidden md:min-h-[80vh]">
+      <Image
+        src={heroUrl}
+        alt="VE Gear — made for riders"
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-center"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/55 to-background/25" />
+      <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/30 to-transparent" />
+
+      <div className="relative z-10 mx-auto flex min-h-[72vh] max-w-[1600px] flex-col justify-end px-6 pb-16 pt-32 md:min-h-[80vh] md:px-10 md:pb-24">
+        {cfgStr(config, "eyebrow") ? (
+          <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
+            {cfgStr(config, "eyebrow")}
+          </p>
+        ) : null}
+        <h1 className="mt-3 max-w-3xl font-display text-[clamp(2.5rem,7vw,5.5rem)] font-bold leading-[0.92] tracking-[-0.04em] text-foreground">
+          {line1}
+          {line2 ? (
+            <>
+              <br />
+              <span className="text-primary">{line2}</span>
+            </>
+          ) : null}
+        </h1>
+        {cfgStr(config, "subtitle") ? (
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+            {cfgStr(config, "subtitle")}
+          </p>
+        ) : null}
+        <div className="mt-8 flex flex-wrap gap-3">
+          {cfgStr(config, "cta_primary_label") ? (
+            <Link
+              href={cfgStr(config, "cta_primary_url", "/product")}
+              className="group inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-background transition hover:pl-7 hover:pr-5"
+            >
+              {cfgStr(config, "cta_primary_label")}
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          ) : null}
+          {cfgStr(config, "cta_secondary_label") ? (
+            <Link
+              href={cfgStr(config, "cta_secondary_url", "/contact-us")}
+              className="inline-flex items-center gap-2 rounded-full border border-border px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-foreground transition hover:border-primary hover:text-primary"
+            >
+              {cfgStr(config, "cta_secondary_label")}
+            </Link>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StatsSection({ config }: { config: Record<string, unknown> }) {
+  const items = asStats(config);
+  if (!items.length) return null;
+  return (
+    <section className="border-y border-border bg-card/40">
+      <div className="mx-auto grid max-w-[1600px] grid-cols-2 gap-px md:grid-cols-4">
+        {items.map((item) => (
+          <div
+            key={`${item.label}-${item.value}`}
+            className="px-6 py-8 text-center md:px-10 md:py-10"
+          >
+            <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
+              {item.label}
+            </p>
+            <p className="mt-2 font-display text-2xl font-semibold tracking-tight md:text-3xl">
+              {item.value}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function StorySection({ config }: { config: Record<string, unknown> }) {
+  const lifestyleUrl =
+    imageUrl(config) ??
+    bannerImageUrl("lovable/void-oversized.jpg") ??
+    bannerImageUrl("lovable/hero-biker.jpg");
+  const bodyHtml = cfgStr(config, "body_html");
+  const extra = cfgStr(config, "extra");
+
+  return (
+    <section className="mx-auto max-w-[1600px] px-6 py-20 md:px-10 md:py-28">
+      <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+        {lifestyleUrl ? (
+          <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-border">
+            <Image
+              src={lifestyleUrl}
+              alt="VE Gear oversized essentials"
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent" />
+          </div>
+        ) : null}
+
+        <div>
+          {cfgStr(config, "eyebrow") ? (
+            <div className="mb-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
+              <span className="h-px w-8 bg-primary" />
+              {cfgStr(config, "eyebrow")}
+            </div>
+          ) : null}
+          {cfgStr(config, "title") ? (
+            <h2 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
+              {cfgStr(config, "title")}
+            </h2>
+          ) : null}
+          {bodyHtml ? (
+            <div
+              className="prose prose-invert mt-6 max-w-none text-muted-foreground prose-p:leading-relaxed prose-a:text-primary"
+              dangerouslySetInnerHTML={{ __html: bodyHtml }}
+            />
+          ) : null}
+          {extra ? (
+            <p className="mt-5 text-base leading-relaxed text-muted-foreground">
+              {extra}
+            </p>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ValuesSection({ config }: { config: Record<string, unknown> }) {
+  const values = asValues(config);
+  if (!values.length) return null;
+  return (
+    <section className="border-y border-border bg-card/30 py-20 md:py-28">
+      <div className="mx-auto max-w-[1600px] px-6 md:px-10">
+        <div className="max-w-2xl">
+          {cfgStr(config, "eyebrow") ? (
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
+              {cfgStr(config, "eyebrow")}
+            </p>
+          ) : null}
+          {cfgStr(config, "title") ? (
+            <h2 className="mt-3 font-display text-4xl font-bold tracking-tight md:text-5xl">
+              {cfgStr(config, "title")}
+            </h2>
+          ) : null}
+        </div>
+        <div className="mt-12 grid gap-5 md:grid-cols-3">
+          {values.map((value) => (
+            <div
+              key={value.title}
+              className="rounded-3xl border border-border bg-background/60 p-7 transition hover:border-primary/40"
+            >
+              <h3 className="font-display text-2xl font-semibold tracking-tight">
+                {value.title}
+              </h3>
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground md:text-base">
+                {value.body}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CraftSection({ config }: { config: Record<string, unknown> }) {
+  const fabricUrl =
+    imageUrl(config) ??
+    brandingImageUrl("lovable/fabric-texture.jpg") ??
+    "/images/lovable/fabric-texture.jpg";
+  const craft = asCraft(config);
+
+  return (
+    <section className="mx-auto max-w-[1600px] px-6 py-20 md:px-10 md:py-28">
+      <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+        <div className="order-2 lg:order-1">
+          {cfgStr(config, "eyebrow") ? (
+            <div className="mb-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
+              <span className="h-px w-8 bg-primary" />
+              {cfgStr(config, "eyebrow")}
+            </div>
+          ) : null}
+          <h2 className="font-display text-4xl font-bold leading-[0.95] tracking-tight md:text-5xl">
+            {cfgStr(config, "title_line1", "Every thread")}
+            <br />
+            {cfgStr(config, "title_line2", "engineered.")}
+          </h2>
+          {cfgStr(config, "body") ? (
+            <p className="mt-6 max-w-md text-base leading-relaxed text-muted-foreground">
+              {cfgStr(config, "body")}
+            </p>
+          ) : null}
+          {craft.length ? (
+            <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {craft.map((item) => {
+                const Icon = CRAFT_ICONS[item.icon] ?? Layers;
+                return (
+                  <div
+                    key={item.label}
+                    className="group rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40"
+                  >
+                    <Icon className="h-5 w-5 text-primary transition-transform group-hover:scale-110" />
+                    <div className="mt-4 font-display text-lg font-semibold tracking-tight">
+                      {item.label}
+                    </div>
+                    <div className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                      {item.sub}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="relative order-1 aspect-[5/6] overflow-hidden rounded-3xl border border-border lg:order-2">
+          <Image
+            src={fabricUrl}
+            alt={cfgStr(config, "fabric_value", "240 GSM cotton fabric")}
+            fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent" />
+          <div className="glass absolute bottom-6 left-6 right-6 flex items-center justify-between rounded-2xl px-5 py-4">
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                {cfgStr(config, "fabric_label", "Fabric")}
+              </div>
+              <div className="mt-1 font-display text-xl font-semibold">
+                {cfgStr(config, "fabric_value", "240 GSM Cotton")}
+              </div>
+            </div>
+            <div className="font-mono text-xs text-primary">
+              {cfgStr(config, "fabric_tag", "// LAB 04")}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CtaSection({ config }: { config: Record<string, unknown> }) {
+  return (
+    <section className="mx-auto max-w-[1600px] px-6 md:px-10">
+      <div className="relative overflow-hidden rounded-[2rem] border border-border bg-card px-8 py-14 md:px-16 md:py-20">
+        <div
+          className="pointer-events-none absolute -right-20 top-0 h-64 w-64 rounded-full opacity-40"
+          style={{
+            background:
+              "radial-gradient(circle, rgb(var(--primary-rgb) / 0.35) 0%, transparent 70%)",
+          }}
+          aria-hidden
+        />
+        <div className="relative max-w-2xl">
+          {cfgStr(config, "eyebrow") ? (
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
+              {cfgStr(config, "eyebrow")}
+            </p>
+          ) : null}
+          {cfgStr(config, "title") ? (
+            <h2 className="mt-3 font-display text-4xl font-bold tracking-tight md:text-5xl">
+              {cfgStr(config, "title")}
+            </h2>
+          ) : null}
+          {cfgStr(config, "body") ? (
+            <p className="mt-5 text-base leading-relaxed text-muted-foreground">
+              {cfgStr(config, "body")}
+            </p>
+          ) : null}
+          <div className="mt-8 flex flex-wrap gap-3">
+            {cfgStr(config, "cta_primary_label") ? (
+              <Link
+                href={cfgStr(config, "cta_primary_url", "/product")}
+                className="group inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-primary-foreground transition hover:brightness-110"
+              >
+                {cfgStr(config, "cta_primary_label")}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            ) : null}
+            {cfgStr(config, "cta_secondary_label") ? (
+              <Link
+                href={cfgStr(config, "cta_secondary_url", "/reviews")}
+                className="inline-flex items-center gap-2 rounded-full border border-border px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-foreground transition hover:border-primary hover:text-primary"
+              >
+                {cfgStr(config, "cta_secondary_label")}
+              </Link>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function renderSection(section: AboutSectionRow) {
+  const config = section.config ?? {};
+  switch (section.type) {
+    case "hero":
+      return <HeroSection key={section.id} config={config} />;
+    case "stats":
+      return <StatsSection key={section.id} config={config} />;
+    case "story":
+      return <StorySection key={section.id} config={config} />;
+    case "values":
+      return <ValuesSection key={section.id} config={config} />;
+    case "craft":
+      return <CraftSection key={section.id} config={config} />;
+    case "cta":
+      return <CtaSection key={section.id} config={config} />;
+    default:
+      return null;
+  }
+}
+
+export default function AboutPageScreen({
+  sections,
+}: {
+  sections: AboutSectionRow[];
+}) {
+  return <div className="pb-24">{sections.map(renderSection)}</div>;
+}

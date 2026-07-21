@@ -1,0 +1,408 @@
+"use client";
+
+import { useCallback, useRef, useState } from "react";
+import Image from "next/image";
+import { Upload, X, Star, ImagePlus } from "lucide-react";
+import { toast } from "sonner";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { storagePublicUrl } from "@/utility/imageUrl";
+import type { BucketName } from "@/lib/supabase/config";
+import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ImageCropDialog } from "./ImageCropDialog";
+
+export interface UploadedImage {
+  path: string;
+  alt?: string | null;
+  isMain?: boolean;
+}
+
+const checkerboardStyle = {
+  backgroundColor: "#1a1a1a",
+  backgroundImage:
+    "linear-gradient(45deg, #2a2a2a 25%, transparent 25%), linear-gradient(-45deg, #2a2a2a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2a2a2a 75%), linear-gradient(-45deg, transparent 75%, #2a2a2a 75%)",
+  backgroundSize: "12px 12px",
+  backgroundPosition: "0 0, 0 6px, 6px -6px, -6px 0",
+} as const;
+
+export function ImageUploader({
+  bucket,
+  value,
+  onChange,
+  multiple = false,
+  label = "Drop image here or click to browse",
+  aspect,
+  enableCrop = false,
+  /** Single-image preview shape — logo = wide, favicon = square. */
+  preview = "wide",
+}: {
+  bucket: BucketName;
+  value: UploadedImage[];
+  onChange: (images: UploadedImage[]) => void;
+  multiple?: boolean;
+  label?: string;
+  /** Optional locked aspect (width/height). Omit for freeform crop. */
+  aspect?: number;
+  /** Enable crop dialog before upload (e.g. logo / favicon). */
+  enableCrop?: boolean;
+  preview?: "wide" | "square";
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+
+  const singlePreview = !multiple && value[0] ? value[0] : null;
+  const singleUrl = singlePreview
+    ? storagePublicUrl(bucket, singlePreview.path)
+    : null;
+
+  const uploadFiles = async (files: File[]) => {
+    if (!files.length) return;
+    setUploading(true);
+    const supabase = createSupabaseBrowserClient();
+    const uploaded: UploadedImage[] = [];
+
+    try {
+      for (const file of files) {
+        const ext = file.name.split(".").pop() ?? "jpg";
+        const key = `${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage
+          .from(bucket)
+          .upload(key, file, { cacheControl: "3600", upsert: false });
+        if (error) {
+          toast.error(`Upload failed: ${error.message}`);
+          continue;
+        }
+        uploaded.push({ path: key, alt: file.name });
+      }
+
+      if (uploaded.length) {
+        const next = multiple ? [...value, ...uploaded] : uploaded.slice(0, 1);
+        if (multiple && !next.some((i) => i.isMain) && next.length) {
+          next[0].isMain = true;
+        }
+        onChange(next);
+        toast.success(
+          `${uploaded.length} image${uploaded.length > 1 ? "s" : ""} uploaded`,
+        );
+      }
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
+  const startCropQueue = (files: File[]) => {
+    const images = files.filter((f) => f.type.startsWith("image/"));
+    if (!images.length) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+
+    if (!enableCrop) {
+      void uploadFiles(images);
+      return;
+    }
+
+    const [first, ...rest] = images;
+    const url = URL.createObjectURL(first);
+    setPendingFiles(rest);
+    setCropSrc(url);
+  };
+
+  const handleFiles = (list: FileList | null) => {
+    if (!list?.length) return;
+    startCropQueue(Array.from(list));
+  };
+
+  const onCropComplete = async (file: File) => {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+    await uploadFiles([file]);
+    if (pendingFiles.length) {
+      const [next, ...rest] = pendingFiles;
+      setPendingFiles(rest);
+      setCropSrc(URL.createObjectURL(next));
+    }
+  };
+
+  const onCropCancel = () => {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+    setPendingFiles([]);
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const onDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragOver(false);
+      if (uploading) return;
+      handleFiles(e.dataTransfer.files);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [uploading, enableCrop, value, multiple],
+  );
+
+  const remove = (path: string) => {
+    const next = value.filter((i) => i.path !== path);
+    if (multiple && next.length && !next.some((i) => i.isMain)) {
+      next[0].isMain = true;
+    }
+    onChange(next);
+  };
+
+  const setMain = (path: string) => {
+    onChange(value.map((i) => ({ ...i, isMain: i.path === path })));
+  };
+
+  const openPicker = () => inputRef.current?.click();
+
+  return (
+    <div className="space-y-3">
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple={multiple}
+        className="hidden"
+        onChange={(e) => handleFiles(e.target.files)}
+      />
+
+      {/* Single-image: preview + upload merged in one drop zone */}
+      {!multiple ? (
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => !uploading && openPicker()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              if (!uploading) openPicker();
+            }
+          }}
+          onDragEnter={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            setDragOver(false);
+          }}
+          onDrop={onDrop}
+          className={cn(
+            "relative overflow-hidden rounded-2xl border border-dashed text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+            preview === "square" ? "w-40 sm:w-44" : "w-full max-w-md",
+            dragOver
+              ? "border-primary bg-primary/10"
+              : "border-border bg-background/40 hover:border-primary/40",
+            uploading && "pointer-events-none opacity-60",
+            !singleUrl && (preview === "square" ? "aspect-square p-4" : "px-4 py-10"),
+          )}
+          style={singleUrl && enableCrop ? checkerboardStyle : undefined}
+        >
+          {uploading ? (
+            <div
+              className={cn(
+                "relative overflow-hidden",
+                preview === "square" ? "aspect-square" : "aspect-[5/2]",
+              )}
+            >
+              <Skeleton className="absolute inset-0 rounded-none" />
+            </div>
+          ) : singleUrl ? (
+            <div
+              className={cn(
+                "relative flex flex-col",
+                preview === "square" ? "aspect-square" : "aspect-[5/2]",
+              )}
+            >
+              <div className="flex flex-1 items-center justify-center p-4">
+                <Image
+                  src={singleUrl}
+                  alt={singlePreview?.alt ?? "Uploaded image"}
+                  width={preview === "square" ? 160 : 400}
+                  height={preview === "square" ? 160 : 160}
+                  className={cn(
+                    "object-contain",
+                    preview === "square"
+                      ? "size-full max-h-28 max-w-28"
+                      : "max-h-16 w-auto sm:max-h-20",
+                  )}
+                />
+              </div>
+              <div className="mt-auto flex items-center justify-between gap-2 border-t border-border/60 bg-background/85 px-2.5 py-2 backdrop-blur-md">
+                <span className="truncate text-[10px] text-muted-foreground sm:text-xs">
+                  {dragOver ? "Drop to replace" : "Replace"}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    remove(singlePreview!.path);
+                  }}
+                  className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground transition hover:border-destructive hover:text-destructive sm:text-xs"
+                  aria-label="Remove image"
+                >
+                  <X className="size-3" />
+                  Remove
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div
+              className={cn(
+                "flex h-full flex-col items-center justify-center gap-2 text-center",
+                dragOver ? "text-foreground" : "text-muted-foreground",
+              )}
+            >
+              <span className="grid size-9 place-items-center rounded-full bg-white/5">
+                {dragOver ? (
+                  <ImagePlus className="size-4 text-primary" />
+                ) : (
+                  <Upload className="size-4" />
+                )}
+              </span>
+              <span className="px-1 text-xs font-medium leading-snug sm:text-sm">
+                {dragOver
+                  ? enableCrop
+                    ? "Drop to crop"
+                    : "Drop to upload"
+                  : label}
+              </span>
+              {preview !== "square" && (
+                <span className="text-xs text-muted-foreground">
+                  {enableCrop
+                    ? "PNG, JPG — freeform crop"
+                    : "PNG, JPG"}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={openPicker}
+            disabled={uploading}
+            onDragEnter={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+            }}
+            onDrop={onDrop}
+            className={cn(
+              "flex w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-4 py-8 text-sm transition-colors disabled:opacity-60",
+              dragOver
+                ? "border-primary bg-primary/10 text-foreground"
+                : "border-border bg-background/40 text-muted-foreground hover:border-primary/40 hover:text-foreground",
+            )}
+          >
+            {uploading ? (
+              <Skeleton className="size-10 rounded-full" />
+            ) : (
+              <span className="grid size-10 place-items-center rounded-full bg-white/5">
+                {dragOver ? (
+                  <ImagePlus className="size-4 text-primary" />
+                ) : (
+                  <Upload className="size-4" />
+                )}
+              </span>
+            )}
+            {uploading ? (
+              <div className="flex w-full max-w-xs flex-col items-center gap-2">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            ) : (
+              <>
+                <span className="font-medium">
+                  {dragOver
+                    ? "Drop to upload"
+                    : value.length
+                      ? "Add more images"
+                      : label}
+                </span>
+                <span className="text-xs text-muted-foreground">PNG, JPG</span>
+              </>
+            )}
+          </button>
+
+          {value.length > 0 && (
+            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+              {value.map((img) => {
+                const url = storagePublicUrl(bucket, img.path);
+                return (
+                  <div
+                    key={img.path}
+                    className={cn(
+                      "group relative aspect-square overflow-hidden rounded-xl border bg-muted",
+                      img.isMain
+                        ? "border-primary ring-2 ring-primary/30"
+                        : "border-border",
+                    )}
+                  >
+                    {url && (
+                      <Image
+                        src={url}
+                        alt={img.alt ?? ""}
+                        fill
+                        sizes="150px"
+                        className="object-cover"
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => remove(img.path)}
+                      className="absolute right-1.5 top-1.5 flex size-7 items-center justify-center rounded-full bg-black/70 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                      aria-label="Remove"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMain(img.path)}
+                      className={cn(
+                        "absolute left-1.5 top-1.5 flex size-7 items-center justify-center rounded-full text-white transition-opacity",
+                        img.isMain
+                          ? "bg-primary"
+                          : "bg-black/70 opacity-0 group-hover:opacity-100",
+                      )}
+                      aria-label="Set as main image"
+                      title="Set as main image"
+                    >
+                      <Star className="size-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      <ImageCropDialog
+        open={Boolean(cropSrc)}
+        imageSrc={cropSrc}
+        aspect={aspect}
+        outputMimeType="image/png"
+        onCancel={onCropCancel}
+        onComplete={onCropComplete}
+      />
+    </div>
+  );
+}

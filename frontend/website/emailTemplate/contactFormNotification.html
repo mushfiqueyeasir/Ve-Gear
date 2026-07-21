@@ -1,0 +1,259 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      font-family:
+        -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto,
+        &quot;Helvetica Neue&quot;, Arial, sans-serif;
+      background-color: #fafafa;
+    "
+  >
+    <table role="presentation" style="width: 100%; border-collapse: collapse">
+      <tr>
+        <td style="padding: 50px 20px">
+          <!-- Main Container -->
+          <table
+            role="presentation"
+            style="
+              width: 100%;
+              max-width: 600px;
+              margin: 0 auto;
+              border-collapse: collapse;
+              background-color: #ffffff;
+              border: 1px solid #e8e8e8;
+            "
+          >
+            <!-- Logo -->
+            <tr>
+              <td
+                style="
+                  padding: 40px 40px 35px 40px;
+                  text-align: center;
+                  border-bottom: 1px solid #f0f0f0;
+                "
+              >
+                <img
+                  src="https://www.atorsbd.com/images/logo/logo.png"
+                  alt="ATORS"
+                  style="
+                    max-width: 160px;
+                    height: auto;
+                    display: block;
+                    margin: 0 auto;
+                  "
+                />
+              </td>
+            </tr>
+
+            <!-- Name -->
+            <tr>
+              <td style="padding: 35px 40px 25px 40px; text-align: left">
+                <table
+                  role="presentation"
+                  style="width: 100%; border-collapse: collapse"
+                >
+                  <tr>
+                    <td style="padding: 0 0 10px 0">
+                      <span
+                        style="
+                          color: #999999;
+                          font-size: 11px;
+                          font-weight: 500;
+                          text-transform: uppercase;
+                          letter-spacing: 1px;
+                        "
+                        >Name</span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span
+                        style="
+                          color: #000000;
+                          font-size: 18px;
+                          font-weight: 400;
+                          letter-spacing: -0.3px;
+                        "
+                        >{{from_name}}</span
+                      >
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Email and Phone Side by Side -->
+            <tr>
+              <td style="padding: 0 40px 25px 40px; text-align: left">
+                <table
+                  role="presentation"
+                  style="width: 100%; border-collapse: collapse"
+                >
+                  <tr>
+                    <!-- Email -->
+                    <td
+                      style="width: 48%; padding-right: 2%; vertical-align: top"
+                    >
+                      <table
+                        role="presentation"
+                        style="width: 100%; border-collapse: collapse"
+                      >
+                        <tr>
+                          <td style="padding: 0 0 10px 0">
+                            <span
+                              style="
+                                color: #999999;
+                                font-size: 11px;
+                                font-weight: 500;
+                                text-transform: uppercase;
+                                letter-spacing: 1px;
+                              "
+                              >Email</span
+                            >
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <a
+                              href="mailto:{{from_email}}"
+                              style="
+                                color: #000000;
+                                font-size: 18px;
+                                font-weight: 400;
+                                text-decoration: none;
+                                letter-spacing: -0.3px;
+                              "
+                              >{{from_email}}</a
+                            >
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                    <!-- Phone -->
+                    <td
+                      style="width: 48%; padding-left: 2%; vertical-align: top"
+                    >
+                      <table
+                        role="presentation"
+                        style="width: 100%; border-collapse: collapse"
+                      >
+                        <tr>
+                          <td style="padding: 0 0 10px 0">
+                            <span
+                              style="
+                                color: #999999;
+                                font-size: 11px;
+                                font-weight: 500;
+                                text-transform: uppercase;
+                                letter-spacing: 1px;
+                              "
+                              >Phone</span
+                            >
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <span
+                              style="
+                                color: #000000;
+                                font-size: 18px;
+                                font-weight: 400;
+                                letter-spacing: -0.3px;
+                              "
+                              >{{from_phone}}</span
+                            >
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Message Full Width -->
+            <tr>
+              <td style="padding: 0 40px 40px 40px; text-align: left">
+                <table
+                  role="presentation"
+                  style="width: 100%; border-collapse: collapse"
+                >
+                  <tr>
+                    <td style="padding: 0 0 10px 0">
+                      <span
+                        style="
+                          color: #999999;
+                          font-size: 11px;
+                          font-weight: 500;
+                          text-transform: uppercase;
+                          letter-spacing: 1px;
+                        "
+                        >Message</span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div
+                        style="
+                          padding: 24px;
+                          background-color: #fafafa;
+                          border: 1px solid #e8e8e8;
+                          border-left: 3px solid #000000;
+                        "
+                      >
+                        <div
+                          style="
+                            color: #000000;
+                            font-size: 16px;
+                            line-height: 1.8;
+                            white-space: pre-wrap;
+                            font-weight: 300;
+                            letter-spacing: -0.2px;
+                          "
+                        >
+                          {{message_html}}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td
+                style="
+                  padding: 30px 40px;
+                  border-top: 1px solid #f0f0f0;
+                  text-align: center;
+                  background-color: #fafafa;
+                "
+              >
+                <p
+                  style="
+                    margin: 0;
+                    color: #999999;
+                    font-size: 12px;
+                    font-weight: 300;
+                    letter-spacing: 0.3px;
+                  "
+                >
+                  © 2024 ATORS. All rights reserved.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

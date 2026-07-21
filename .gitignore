@@ -1,0 +1,6 @@
+# Provisioning secrets — never commit the Supabase Management API token
+.provision.env
+*.provision.env
+
+# node
+node_modules/

@@ -1,0 +1,52 @@
+"use client";
+
+import { useEffect } from "react";
+import { useCartStore } from "@/store/cartStore";
+import CheckoutOrderSummary from "./CheckoutOrderSummary";
+import CheckoutForm from "./CheckoutForm";
+import Link from "next/link";
+import { trackInitiateCheckout } from "@/utility/analytics/facebookPixelEvents";
+
+export default function CheckoutPageScreen() {
+  const { items, getTotal, getItemCount } = useCartStore();
+
+  useEffect(() => {
+    if (items.length > 0) {
+      const productIds = items.map((item) => item.id);
+      const totalValue = getTotal();
+      const numItems = getItemCount();
+      trackInitiateCheckout(productIds, totalValue, "USD", numItems);
+    }
+  }, [items, getTotal, getItemCount]);
+
+  if (items.length === 0) {
+    return (
+      <section className="mx-auto max-w-[1600px] px-6 pb-24 pt-28 md:px-10 md:pt-36">
+        <h1 className="mb-6 font-display text-4xl font-bold tracking-tight sm:text-5xl">
+          Checkout
+        </h1>
+        <div className="py-16 text-center">
+          <p className="mb-4 text-lg text-muted-foreground">Your cart is empty</p>
+          <Link
+            href="/product"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Continue shopping
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="mx-auto max-w-[1600px] px-6 pb-24 pt-28 md:px-10 md:pt-36">
+      <h1 className="mb-8 font-display text-4xl font-bold tracking-tight sm:text-5xl">
+        Checkout
+      </h1>
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-14">
+        <CheckoutForm />
+        <CheckoutOrderSummary />
+      </div>
+    </section>
+  );
+}
