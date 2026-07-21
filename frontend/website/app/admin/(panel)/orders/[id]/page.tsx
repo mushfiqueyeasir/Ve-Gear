@@ -62,7 +62,10 @@ export default async function OrderDetailPage({
   ]);
 
   const orderItems = (items as OrderItemRow[] | null) ?? [];
-  const customer = customerRes.data as { id: string; name: string | null } | null;
+  const customer = customerRes.data as {
+    id: string;
+    name: string | null;
+  } | null;
 
   const customerName =
     [o.delivery?.firstName, o.delivery?.lastName].filter(Boolean).join(" ") ||

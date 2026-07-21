@@ -12,7 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatMoney, formatDate, ORDER_STATUS_STYLES } from "@/lib/admin/format";
+import {
+  formatMoney,
+  formatDate,
+  ORDER_STATUS_STYLES,
+} from "@/lib/admin/format";
 import { cn } from "@/lib/utils";
 import { ORDER_STATUSES, type OrderStatus } from "@/type/db";
 
@@ -81,9 +85,7 @@ export function OrdersTable({
           >
             {item.status}
           </Badge>
-          <Badge variant="secondary">
-            {formatMoney(item.total, symbol)}
-          </Badge>
+          <Badge variant="secondary">{formatMoney(item.total, symbol)}</Badge>
         </>
       )}
       renderTrailing={(item) => (

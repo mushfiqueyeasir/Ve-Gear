@@ -109,6 +109,7 @@ export async function saveProduct(
   }
 
   if (productError) return { error: productError.message };
+  if (!product) return { error: "Failed to save product." };
   const productId = product.id as string;
 
   // 2. Sync images (delete-all + re-insert reflects the desired end state).
@@ -143,9 +144,7 @@ export async function saveProduct(
       product_id: productId,
       category_id,
     }));
-    const { error } = await supabase
-      .from("product_categories")
-      .insert(catRows);
+    const { error } = await supabase.from("product_categories").insert(catRows);
     if (error) return { error: error.message };
   }
 

@@ -40,7 +40,9 @@ export function CurrencyProvider({
   }, [currencies.default, currencies.enabled]);
 
   return (
-    <CurrencyContext.Provider value={value}>{children}</CurrencyContext.Provider>
+    <CurrencyContext.Provider value={value}>
+      {children}
+    </CurrencyContext.Provider>
   );
 }
 

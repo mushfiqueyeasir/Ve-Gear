@@ -1,12 +1,7 @@
 import { ABOUT_INTRO_HTML } from "./defaultPageContent";
 
 export type AboutSectionType =
-  | "hero"
-  | "stats"
-  | "story"
-  | "values"
-  | "craft"
-  | "cta";
+  "hero" | "stats" | "story" | "values" | "craft" | "cta";
 
 export const ABOUT_SECTION_TYPES: AboutSectionType[] = [
   "hero",
@@ -149,7 +144,11 @@ export const DEFAULT_ABOUT_SECTIONS: AboutSectionRow[] = [
       fabric_tag: "// LAB 04",
       items: [
         { icon: "Layers", label: "240 GSM", sub: "Heavyweight hand" },
-        { icon: "Shirt", label: "Long-staple cotton", sub: "Soft, strong fibre" },
+        {
+          icon: "Shirt",
+          label: "Long-staple cotton",
+          sub: "Soft, strong fibre",
+        },
         { icon: "Scissors", label: "Drop shoulder", sub: "Signature cut" },
         { icon: "Zap", label: "Boxy oversized", sub: "Room to move" },
         { icon: "Sparkles", label: "Pre-shrunk", sub: "Stable after wash" },

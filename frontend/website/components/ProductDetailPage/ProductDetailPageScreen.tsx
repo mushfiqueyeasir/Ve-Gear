@@ -33,9 +33,7 @@ export default function ProductDetailPageScreen({
       </div>
 
       <div className="mx-auto max-w-3xl space-y-12">
-        {description?.html && (
-          <ProductDescription description={description} />
-        )}
+        {description?.html && <ProductDescription description={description} />}
         {hasSizeChart && <SizeChart sizeChart={product.sizeChart} />}
       </div>
     </section>

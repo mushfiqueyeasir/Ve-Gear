@@ -8,10 +8,7 @@ import { toast } from "sonner";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  FormField,
-  adminInputClass,
-} from "@/components/admin/FormField";
+import { FormField, adminInputClass } from "@/components/admin/FormField";
 
 function LoginForm() {
   const router = useRouter();

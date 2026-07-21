@@ -26,9 +26,8 @@ export async function exportOrdersCsv(): Promise<{
     date: formatDate(o.created_at),
     status: o.status,
     customer:
-      [o.delivery?.firstName, o.delivery?.lastName]
-        .filter(Boolean)
-        .join(" ") || "Guest",
+      [o.delivery?.firstName, o.delivery?.lastName].filter(Boolean).join(" ") ||
+      "Guest",
     phone: o.delivery?.phone ?? "",
     subtotal: o.totals?.subtotal ?? 0,
     shipping: o.totals?.shipping ?? 0,
@@ -59,10 +58,8 @@ export async function exportProductsCsv(): Promise<{
   if (vErr) return { error: vErr.message };
 
   const stockByProduct = new Map<string, number>();
-  for (const v of (variants as Pick<
-    ProductVariantRow,
-    "product_id" | "stock_quantity"
-  >[] | null) ?? []) {
+  for (const v of (variants as
+    Pick<ProductVariantRow, "product_id" | "stock_quantity">[] | null) ?? []) {
     stockByProduct.set(
       v.product_id,
       (stockByProduct.get(v.product_id) ?? 0) + (v.stock_quantity ?? 0),

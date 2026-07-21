@@ -39,9 +39,7 @@ export async function requireAdminSession(): Promise<AdminSession> {
 }
 
 // Requires one of the allowed roles; redirects to the dashboard if not allowed.
-export async function requireRole(
-  allowed: UserRole[],
-): Promise<AdminSession> {
+export async function requireRole(allowed: UserRole[]): Promise<AdminSession> {
   const session = await requireAdminSession();
   if (!allowed.includes(session.role)) redirect("/admin?denied=1");
   return session;

@@ -64,8 +64,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   ).length;
 
   const lowStockCount = (variants ?? []).filter(
-    (v) =>
-      (v.stock_quantity as number) <= (v.low_stock_threshold as number),
+    (v) => (v.stock_quantity as number) <= (v.low_stock_threshold as number),
   ).length;
 
   const pendingCount = allOrders.filter((o) => o.status === "pending").length;

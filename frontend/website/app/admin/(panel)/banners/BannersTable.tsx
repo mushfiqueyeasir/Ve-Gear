@@ -99,24 +99,13 @@ export function BannersTable({
         );
       }}
       renderTitle={(item) =>
-        item.title || (
-          <span className="text-muted-foreground">No headline</span>
-        )
+        item.title || <span className="text-muted-foreground">No headline</span>
       }
       renderSubtitle={(item) => item.subtitle || null}
       renderTrailing={(item) => (
         <>
-          <ActiveToggle
-            id={item.id}
-            active={item.active}
-            canWrite={canWrite}
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            asChild
-            className="rounded-full"
-          >
+          <ActiveToggle id={item.id} active={item.active} canWrite={canWrite} />
+          <Button variant="ghost" size="icon" asChild className="rounded-full">
             <Link href={editHref(item.id)} aria-label="Edit">
               <Pencil className="size-4" />
             </Link>

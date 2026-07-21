@@ -8,7 +8,11 @@ import {
   WeeklySalesChart,
 } from "@/components/admin/DashboardCharts";
 import { Badge } from "@/components/ui/badge";
-import { formatMoney, formatDate, ORDER_STATUS_STYLES } from "@/lib/admin/format";
+import {
+  formatMoney,
+  formatDate,
+  ORDER_STATUS_STYLES,
+} from "@/lib/admin/format";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -107,7 +111,9 @@ export default async function DashboardPage() {
                 className="flex items-center justify-between px-5 py-3 transition-colors hover:bg-white/5"
               >
                 <div className="min-w-0">
-                  <p className="font-medium text-foreground">{o.order_number}</p>
+                  <p className="font-medium text-foreground">
+                    {o.order_number}
+                  </p>
                   <p className="truncate text-sm text-muted-foreground">
                     {[o.delivery?.firstName, o.delivery?.lastName]
                       .filter(Boolean)

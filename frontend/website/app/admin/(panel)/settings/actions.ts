@@ -5,10 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, isAdmin } from "@/lib/admin/auth";
 import type { CmsSeo, CurrencySettings } from "@/lib/cms/types";
 import { getCurrencyMeta, normalizeCurrencySettings } from "@/lib/currency";
-import {
-  normalizePalette,
-  type ThemePalette,
-} from "@/lib/theme/palette";
+import { normalizePalette, type ThemePalette } from "@/lib/theme/palette";
 
 export interface SettingsInput {
   store_name: string;

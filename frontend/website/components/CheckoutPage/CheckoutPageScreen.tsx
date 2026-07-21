@@ -26,7 +26,9 @@ export default function CheckoutPageScreen() {
           Checkout
         </h1>
         <div className="py-16 text-center">
-          <p className="mb-4 text-lg text-muted-foreground">Your cart is empty</p>
+          <p className="mb-4 text-lg text-muted-foreground">
+            Your cart is empty
+          </p>
           <Link
             href="/product"
             className="font-medium text-primary underline-offset-4 hover:underline"

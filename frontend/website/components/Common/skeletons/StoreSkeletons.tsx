@@ -2,7 +2,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function HomePageSkeleton() {
   return (
-    <div className="bg-background text-foreground" aria-busy="true" aria-label="Loading">
+    <div
+      className="bg-background text-foreground"
+      aria-busy="true"
+      aria-label="Loading"
+    >
       <div className="relative h-[100dvh] w-full overflow-hidden">
         <Skeleton className="absolute inset-0 rounded-none" />
         <div className="relative z-10 mx-auto flex h-full max-w-[1600px] flex-col justify-between px-6 pb-8 pt-28 md:px-10">
@@ -101,7 +105,10 @@ export function ProductDetailSkeleton() {
           <Skeleton className="aspect-[4/5] w-full rounded-2xl" />
           <div className="flex gap-2">
             {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="aspect-square w-[30%] max-w-[120px] rounded-xl" />
+              <Skeleton
+                key={i}
+                className="aspect-square w-[30%] max-w-[120px] rounded-xl"
+              />
             ))}
           </div>
         </div>
@@ -184,7 +191,11 @@ export function GenericPageSkeleton() {
       </div>
       <div className="space-y-4">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-4 w-full" style={{ width: `${92 - i * 6}%` }} />
+          <Skeleton
+            key={i}
+            className="h-4 w-full"
+            style={{ width: `${92 - i * 6}%` }}
+          />
         ))}
       </div>
     </section>

@@ -37,7 +37,9 @@ export default function CartItem({ item }: CartItemProps) {
           <p className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">
             VE Gear
           </p>
-          <h3 className="mb-1 text-sm font-medium md:text-base">{item.title}</h3>
+          <h3 className="mb-1 text-sm font-medium md:text-base">
+            {item.title}
+          </h3>
           <p className="mb-1 text-xs text-muted-foreground">
             {format(item.currentPrice)}
           </p>

@@ -107,9 +107,7 @@ export async function listSections(): Promise<HomepageSectionRow[]> {
   const ensured = ensurePredefined(existing);
   const missing = ensured.filter(
     (row) =>
-      !existing.some(
-        (e) => normalizeSectionType(String(e.type)) === row.type,
-      ),
+      !existing.some((e) => normalizeSectionType(String(e.type)) === row.type),
   );
   const needsMigrate = existing.some((e) => String(e.type) === "hero");
 
@@ -195,7 +193,8 @@ export async function saveSection(
 
 export async function deleteSection(): Promise<{ error?: string }> {
   return {
-    error: "Homepage sections are predefined and cannot be deleted. Hide them instead.",
+    error:
+      "Homepage sections are predefined and cannot be deleted. Hide them instead.",
   };
 }
 

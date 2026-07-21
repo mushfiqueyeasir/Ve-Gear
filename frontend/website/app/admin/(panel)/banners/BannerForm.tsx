@@ -56,7 +56,9 @@ export function BannerForm({
   const [startsAt, setStartsAt] = useState(
     isoToLocalInput(banner?.starts_at ?? null),
   );
-  const [endsAt, setEndsAt] = useState(isoToLocalInput(banner?.ends_at ?? null));
+  const [endsAt, setEndsAt] = useState(
+    isoToLocalInput(banner?.ends_at ?? null),
+  );
   const [images, setImages] = useState<UploadedImage[]>(
     banner?.image_path ? [{ path: banner.image_path }] : [],
   );
@@ -213,7 +215,6 @@ export function BannerForm({
               />
             </div>
           </AdminCard>
-
         </div>
       </div>
 

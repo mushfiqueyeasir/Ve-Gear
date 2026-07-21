@@ -35,8 +35,7 @@ export default async function EditSectionPage({
 
   const promotions = (
     (promotionsRes.data as
-      | { id: string; title: string; active: boolean }[]
-      | null) ?? []
+      { id: string; title: string; active: boolean }[] | null) ?? []
   ).map((p) => ({ id: p.id, title: p.title, active: p.active }));
 
   const initialTab =

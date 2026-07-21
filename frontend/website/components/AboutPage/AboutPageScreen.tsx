@@ -36,9 +36,7 @@ function imageUrl(config: Record<string, unknown>, fallback?: string | null) {
   const path = cfgStr(config, "image_path");
   if (!path) return fallback ?? null;
   const bucket = cfgStr(config, "image_bucket", "banner");
-  return bucket === "branding"
-    ? brandingImageUrl(path)
-    : bannerImageUrl(path);
+  return bucket === "branding" ? brandingImageUrl(path) : bannerImageUrl(path);
 }
 
 function asStats(config: Record<string, unknown>): AboutStatItem[] {

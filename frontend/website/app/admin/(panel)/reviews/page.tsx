@@ -23,7 +23,9 @@ export default async function ReviewsPage() {
 
   // Resolve product titles for the referenced products.
   const productIds = [
-    ...new Set(reviews.map((r) => r.product_id).filter((v): v is string => !!v)),
+    ...new Set(
+      reviews.map((r) => r.product_id).filter((v): v is string => !!v),
+    ),
   ];
   const titleMap = new Map<string, string>();
   if (productIds.length) {
@@ -38,7 +40,7 @@ export default async function ReviewsPage() {
 
   const rows: ReviewWithProduct[] = reviews.map((r) => ({
     ...r,
-    productTitle: r.product_id ? titleMap.get(r.product_id) ?? null : null,
+    productTitle: r.product_id ? (titleMap.get(r.product_id) ?? null) : null,
   }));
 
   return (

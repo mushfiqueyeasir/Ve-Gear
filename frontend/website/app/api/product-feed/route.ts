@@ -55,9 +55,10 @@ export async function GET(request: NextRequest) {
       ];
     });
 
-    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join(
-      "\n",
-    );
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((r) => r.join(",")),
+    ].join("\n");
 
     return new NextResponse(csvContent, {
       status: 200,

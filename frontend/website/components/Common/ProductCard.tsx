@@ -91,7 +91,9 @@ export default function ProductCard({
 
           <button
             type="button"
-            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            aria-label={
+              isFavorite ? "Remove from favorites" : "Add to favorites"
+            }
             aria-pressed={isFavorite}
             onClick={(e) => {
               e.preventDefault();

@@ -131,9 +131,7 @@ export function InventoryTable({
         if (low) return <Badge variant="warning">Low stock</Badge>;
         return <Badge variant="success">In stock</Badge>;
       }}
-      renderTrailing={(item) => (
-        <StockEditor row={item} canWrite={canWrite} />
-      )}
+      renderTrailing={(item) => <StockEditor row={item} canWrite={canWrite} />}
     />
   );
 }

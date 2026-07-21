@@ -65,8 +65,12 @@ export function SettingsForm({
   const [favicon, setFavicon] = useState<UploadedImage[]>(
     settings.favicon_path ? [{ path: settings.favicon_path }] : [],
   );
-  const [contactEmail, setContactEmail] = useState(settings.contact_email ?? "");
-  const [contactPhone, setContactPhone] = useState(settings.contact_phone ?? "");
+  const [contactEmail, setContactEmail] = useState(
+    settings.contact_email ?? "",
+  );
+  const [contactPhone, setContactPhone] = useState(
+    settings.contact_phone ?? "",
+  );
   const [address, setAddress] = useState(settings.address ?? "");
 
   const currencyState = normalizeCurrencySettings(
@@ -321,10 +325,16 @@ export function SettingsForm({
                   borderColor: palette.border,
                 }}
               >
-                <p className="text-sm font-medium" style={{ color: palette.foreground }}>
+                <p
+                  className="text-sm font-medium"
+                  style={{ color: palette.foreground }}
+                >
                   Product card
                 </p>
-                <p className="mt-1 text-xs" style={{ color: palette.mutedForeground }}>
+                <p
+                  className="mt-1 text-xs"
+                  style={{ color: palette.mutedForeground }}
+                >
                   Supporting copy uses muted text.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -354,26 +364,18 @@ export function SettingsForm({
 
           <div className="grid gap-4 sm:grid-cols-2">
             {PALETTE_FIELDS.map((field) => (
-              <FormField
-                key={field.key}
-                label={field.label}
-                hint={field.hint}
-              >
+              <FormField key={field.key} label={field.label} hint={field.hint}>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
                     value={palette[field.key]}
-                    onChange={(e) =>
-                      setPaletteColor(field.key, e.target.value)
-                    }
+                    onChange={(e) => setPaletteColor(field.key, e.target.value)}
                     className="h-10 w-12 cursor-pointer rounded-lg border border-border bg-transparent p-1"
                     aria-label={field.label}
                   />
                   <Input
                     value={palette[field.key]}
-                    onChange={(e) =>
-                      setPaletteColor(field.key, e.target.value)
-                    }
+                    onChange={(e) => setPaletteColor(field.key, e.target.value)}
                     className={cn(adminInputClass, "font-mono uppercase")}
                     maxLength={7}
                     spellCheck={false}
@@ -417,8 +419,8 @@ export function SettingsForm({
 
         <TabsContent value="currency" className="space-y-5">
           <p className="text-sm text-muted-foreground">
-            Enable the currencies you use locally. Pick one as the store
-            default — prices display with that symbol.
+            Enable the currencies you use locally. Pick one as the store default
+            — prices display with that symbol.
           </p>
           <div className="space-y-3">
             {SUPPORTED_CURRENCIES.map((c) => {
@@ -429,7 +431,9 @@ export function SettingsForm({
                   key={c.code}
                   className={cn(
                     "flex flex-col gap-3 rounded-2xl border px-4 py-4 sm:flex-row sm:items-center sm:justify-between",
-                    enabled ? "border-border bg-card/60" : "border-border/60 opacity-70",
+                    enabled
+                      ? "border-border bg-card/60"
+                      : "border-border/60 opacity-70",
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -439,7 +443,9 @@ export function SettingsForm({
                     <div>
                       <p className="font-medium text-foreground">
                         {c.code}{" "}
-                        <span className="text-muted-foreground">({c.symbol})</span>
+                        <span className="text-muted-foreground">
+                          ({c.symbol})
+                        </span>
                       </p>
                       <p className="text-xs text-muted-foreground">{c.label}</p>
                     </div>
@@ -565,7 +571,10 @@ export function SettingsForm({
               {seoTitle.length}/80
             </p>
           </FormField>
-          <FormField label="Meta description" hint="Keep under ~160 characters.">
+          <FormField
+            label="Meta description"
+            hint="Keep under ~160 characters."
+          >
             <Textarea
               value={seoDescription}
               onChange={(e) => setSeoDescription(e.target.value)}

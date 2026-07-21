@@ -56,9 +56,7 @@ export default async function ProductsPage() {
 
   const symbol = settings.currency_symbol || "$";
 
-  const rows: ProductTableRow[] = (
-    rawRows as ProductQueryRow[]
-  ).map((p) => {
+  const rows: ProductTableRow[] = (rawRows as ProductQueryRow[]).map((p) => {
     const images = [...(p.product_images ?? [])].sort(
       (a, b) => a.sort - b.sort,
     );

@@ -14,10 +14,9 @@ export default async function NewProductPage() {
     .select("id, name")
     .order("sort", { ascending: true });
 
-  const categories: CategoryOption[] = ((data ?? []) as Pick<
-    CategoryRow,
-    "id" | "name"
-  >[]).map((c) => ({ id: c.id, name: c.name }));
+  const categories: CategoryOption[] = (
+    (data ?? []) as Pick<CategoryRow, "id" | "name">[]
+  ).map((c) => ({ id: c.id, name: c.name }));
 
   return (
     <div>

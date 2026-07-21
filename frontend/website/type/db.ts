@@ -212,12 +212,7 @@ export interface BannerRow {
 }
 
 export type HomepageSectionType =
-  | "banner"
-  | "categories"
-  | "featured"
-  | "reviews"
-  | "promo"
-  | "richtext";
+  "banner" | "categories" | "featured" | "reviews" | "promo" | "richtext";
 
 export const HOMEPAGE_SECTION_TYPES: HomepageSectionType[] = [
   "banner",

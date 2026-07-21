@@ -12,12 +12,7 @@ interface CategoryProps {
   ctaHref?: string;
 }
 
-const spans = [
-  "lg:col-span-2 lg:row-span-2",
-  "",
-  "",
-  "lg:col-span-2",
-];
+const spans = ["lg:col-span-2 lg:row-span-2", "", "", "lg:col-span-2"];
 
 export default function Category({
   categories,
@@ -40,7 +35,9 @@ export default function Category({
             <span className="italic text-primary">
               {subtitle?.split(" ")[0] || "chapters"}
             </span>
-            {subtitle ? `, ${subtitle.split(" ").slice(1).join(" ")}` : ", engineered to ride."}
+            {subtitle
+              ? `, ${subtitle.split(" ").slice(1).join(" ")}`
+              : ", engineered to ride."}
           </h2>
         </div>
 

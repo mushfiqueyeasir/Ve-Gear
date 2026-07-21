@@ -142,11 +142,11 @@ export default function TermsOfServicePageScreen() {
             9. Limitation of Liability
           </h2>
           <p className="text-sm lg:text-base text-muted-foreground leading-relaxed">
-            In no event shall VE Gear, nor its directors, employees,
-            partners, agents, suppliers, or affiliates, be liable for any
-            indirect, incidental, special, consequential, or punitive damages,
-            including without limitation, loss of profits, data, use, goodwill,
-            or other intangible losses, resulting from your use of the Service.
+            In no event shall VE Gear, nor its directors, employees, partners,
+            agents, suppliers, or affiliates, be liable for any indirect,
+            incidental, special, consequential, or punitive damages, including
+            without limitation, loss of profits, data, use, goodwill, or other
+            intangible losses, resulting from your use of the Service.
           </p>
         </div>
 

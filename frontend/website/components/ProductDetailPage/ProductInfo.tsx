@@ -36,9 +36,7 @@ const FALLBACK_SIZES = ["M", "L", "XL", "2XL"] as const;
 
 export default function ProductInfo({ product, stock }: ProductInfoProps) {
   const sizeOptions =
-    stock && stock.length > 0
-      ? stock.map((s) => s.size)
-      : [...FALLBACK_SIZES];
+    stock && stock.length > 0 ? stock.map((s) => s.size) : [...FALLBACK_SIZES];
 
   const isFullyOutOfStock = (() => {
     if (!stock || stock.length === 0) return true;
@@ -191,7 +189,9 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
           })}
         </div>
         {!selectedSize && isFullyOutOfStock && (
-          <p className="mt-2 text-xs text-red-500">All sizes are out of stock</p>
+          <p className="mt-2 text-xs text-red-500">
+            All sizes are out of stock
+          </p>
         )}
       </div>
 

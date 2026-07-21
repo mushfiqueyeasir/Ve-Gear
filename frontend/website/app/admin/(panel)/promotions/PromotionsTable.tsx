@@ -96,17 +96,8 @@ export function PromotionsTable({
       }
       renderTrailing={(item) => (
         <>
-          <ActiveToggle
-            id={item.id}
-            active={item.active}
-            canWrite={canWrite}
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            asChild
-            className="rounded-full"
-          >
+          <ActiveToggle id={item.id} active={item.active} canWrite={canWrite} />
+          <Button variant="ghost" size="icon" asChild className="rounded-full">
             <Link href={`/admin/promotions/${item.id}`} aria-label="Edit">
               <Pencil className="size-4" />
             </Link>

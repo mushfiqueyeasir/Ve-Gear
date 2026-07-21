@@ -29,9 +29,7 @@ export default function NavMenu({ menuData }: NavMenuProps) {
             aria-current={active ? "page" : undefined}
             className={cn(
               linkBase,
-              active
-                ? "text-primary"
-                : "text-foreground/70 hover:text-primary",
+              active ? "text-primary" : "text-foreground/70 hover:text-primary",
             )}
           >
             {menu.label}

@@ -28,9 +28,7 @@ export async function listAboutSections(): Promise<AboutSectionRow[]> {
   const needsWrite =
     !Array.isArray(cms.about_sections) ||
     cms.about_sections.length !== ensured.length ||
-    ensured.some(
-      (row) => !cms.about_sections.some((e) => e.type === row.type),
-    );
+    ensured.some((row) => !cms.about_sections.some((e) => e.type === row.type));
   if (needsWrite) {
     await persist(ensured);
   }
@@ -89,9 +87,7 @@ export async function toggleAboutSection(
 
   const rows = await listAboutSections();
   const next = rows.map((r) =>
-    r.id === id
-      ? { ...r, active, updated_at: new Date().toISOString() }
-      : r,
+    r.id === id ? { ...r, active, updated_at: new Date().toISOString() } : r,
   );
   const res = await persist(next);
   if (res.error) return { error: res.error };

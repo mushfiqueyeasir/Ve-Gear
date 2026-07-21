@@ -5,10 +5,7 @@ import { Loader2, Trash2, Ban } from "lucide-react";
 import { toast } from "sonner";
 import { AdminList } from "@/components/admin/AdminList";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
-import {
-  FormField,
-  adminInputClass,
-} from "@/components/admin/FormField";
+import { FormField, adminInputClass } from "@/components/admin/FormField";
 import { AdminCard } from "@/components/admin/AdminCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,7 +52,11 @@ export function BlockedIpsTable({ data }: { data: BlockedIpRow[] }) {
               className={`${adminInputClass} font-mono`}
             />
           </FormField>
-          <FormField label="Reason (optional)" htmlFor="reason" className="flex-1">
+          <FormField
+            label="Reason (optional)"
+            htmlFor="reason"
+            className="flex-1"
+          >
             <Input
               id="reason"
               value={reason}

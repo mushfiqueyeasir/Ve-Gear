@@ -176,7 +176,9 @@ export default function ProductModal({
               </div>
 
               <div className="space-y-3">
-                <label className="block text-sm text-foreground">Quantity</label>
+                <label className="block text-sm text-foreground">
+                  Quantity
+                </label>
                 <div className="flex w-fit items-center rounded-full border border-border">
                   <button
                     onClick={() => handleQuantityChange(-1)}

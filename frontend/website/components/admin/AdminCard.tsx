@@ -29,7 +29,9 @@ export function AdminCard({
               </h2>
             )}
             {description && (
-              <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {description}
+              </p>
             )}
           </div>
           {action}

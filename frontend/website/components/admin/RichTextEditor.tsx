@@ -127,7 +127,11 @@ export function RichTextEditor({
         >
           <ListOrdered className="size-3.5" />
         </ToolbarBtn>
-        <ToolbarBtn active={editor.isActive("link")} onClick={setLink} label="Link">
+        <ToolbarBtn
+          active={editor.isActive("link")}
+          onClick={setLink}
+          label="Link"
+        >
           <Link2 className="size-3.5" />
         </ToolbarBtn>
         <span className="mx-1 h-4 w-px bg-border" />

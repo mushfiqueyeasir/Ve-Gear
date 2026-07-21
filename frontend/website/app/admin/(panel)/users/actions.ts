@@ -79,9 +79,7 @@ export async function updateUserRole(
 }
 
 // Delete a user (auth + cascading profile). An admin cannot delete themselves.
-export async function deleteUser(
-  userId: string,
-): Promise<{ error?: string }> {
+export async function deleteUser(userId: string): Promise<{ error?: string }> {
   const s = await requireAdminSession();
   if (!isAdmin(s.role)) {
     return { error: "You do not have permission to manage users." };

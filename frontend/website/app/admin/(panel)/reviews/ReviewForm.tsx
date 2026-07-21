@@ -48,9 +48,7 @@ export function ReviewForm({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
-  const [customerName, setCustomerName] = useState(
-    review?.customer_name ?? "",
-  );
+  const [customerName, setCustomerName] = useState(review?.customer_name ?? "");
   const [rating, setRating] = useState(
     review?.rating != null ? String(review.rating) : "5",
   );

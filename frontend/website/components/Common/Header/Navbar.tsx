@@ -30,9 +30,7 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
   useEffect(() => {
     // Storefront scrolls inside Radix ScrollArea, not window
     const viewport =
-      headerRef.current?.closest(
-        "[data-radix-scroll-area-viewport]",
-      ) ??
+      headerRef.current?.closest("[data-radix-scroll-area-viewport]") ??
       document.querySelector("[data-radix-scroll-area-viewport]");
 
     const getScrollTop = () => {
@@ -62,7 +60,11 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
         }`}
       >
         <div className="mx-auto flex h-20 max-w-[1600px] items-center justify-between px-6 md:px-10">
-          <Link href="/" className="flex items-center gap-2" aria-label={storeName}>
+          <Link
+            href="/"
+            className="flex items-center gap-2"
+            aria-label={storeName}
+          >
             <Image
               src={logoUrl}
               alt={storeName}
@@ -134,7 +136,9 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
             <Link
               href="/cart"
               aria-label="Cart"
-              aria-current={isActivePath(pathname, "/cart") ? "page" : undefined}
+              aria-current={
+                isActivePath(pathname, "/cart") ? "page" : undefined
+              }
               className={cn(
                 "relative grid h-10 w-10 place-items-center rounded-full transition hover:bg-white/5",
                 isActivePath(pathname, "/cart")

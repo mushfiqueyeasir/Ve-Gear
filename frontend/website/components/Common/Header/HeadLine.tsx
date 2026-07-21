@@ -10,9 +10,7 @@ export default function HeadLine({ text, active, url }: HeadLineProps) {
   if (!active || !text?.trim()) return null;
 
   const content = (
-    <p className="font-mono text-[11px] uppercase tracking-[0.25em]">
-      {text}
-    </p>
+    <p className="font-mono text-[11px] uppercase tracking-[0.25em]">{text}</p>
   );
 
   return (

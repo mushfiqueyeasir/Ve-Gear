@@ -19,7 +19,10 @@ export default async function UsersPage() {
     supabase.from("profiles").select("id, full_name, role"),
   ]);
 
-  const profileMap = new Map<string, { full_name: string | null; role: UserRole }>();
+  const profileMap = new Map<
+    string,
+    { full_name: string | null; role: UserRole }
+  >();
   for (const p of profiles ?? []) {
     profileMap.set(p.id, {
       full_name: (p.full_name as string | null) ?? null,

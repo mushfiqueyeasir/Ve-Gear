@@ -88,7 +88,8 @@ function SortableRow({
       }}
       className={cn(
         "flex items-center gap-3 rounded-2xl border border-border bg-card/80 px-3 py-3 sm:px-4",
-        isDragging && "z-10 border-primary/50 bg-card shadow-lg shadow-black/40",
+        isDragging &&
+          "z-10 border-primary/50 bg-card shadow-lg shadow-black/40",
       )}
     >
       {canWrite ? (

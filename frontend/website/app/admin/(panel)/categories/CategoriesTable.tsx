@@ -67,12 +67,7 @@ export function CategoriesTable({
       )}
       renderTrailing={(item) => (
         <>
-          <Button
-            asChild
-            variant="ghost"
-            size="icon"
-            className="rounded-full"
-          >
+          <Button asChild variant="ghost" size="icon" className="rounded-full">
             <Link href={`/admin/categories/${item.id}`} aria-label="Edit">
               <Pencil className="size-4" />
             </Link>

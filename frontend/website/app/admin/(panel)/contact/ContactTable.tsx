@@ -131,7 +131,9 @@ export function ContactTable({
           {selected && (
             <>
               <DialogHeader>
-                <DialogTitle className="font-display">{selected.name}</DialogTitle>
+                <DialogTitle className="font-display">
+                  {selected.name}
+                </DialogTitle>
                 <DialogDescription>
                   {selected.email}
                   {selected.phone ? ` · ${selected.phone}` : ""} ·{" "}

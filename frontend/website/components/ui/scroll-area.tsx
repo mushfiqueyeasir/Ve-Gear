@@ -36,34 +36,39 @@ const ScrollBar = React.forwardRef<
   > & {
     variant?: "default" | "brand";
   }
->(({ className, orientation = "vertical", variant = "default", ...props }, ref) => (
-  <ScrollAreaPrimitive.ScrollAreaScrollbar
-    ref={ref}
-    orientation={orientation}
-    className={cn(
-      "flex touch-none select-none transition-colors",
-      orientation === "vertical" &&
-        cn(
-          "h-full border-l border-l-transparent p-px",
-          variant === "brand" ? "w-1.5" : "w-2.5",
-        ),
-      orientation === "horizontal" &&
-        "h-2.5 flex-col border-t border-t-transparent p-px",
-      variant === "brand" && "bg-transparent",
-      className,
-    )}
-    {...props}
-  >
-    <ScrollAreaPrimitive.ScrollAreaThumb
+>(
+  (
+    { className, orientation = "vertical", variant = "default", ...props },
+    ref,
+  ) => (
+    <ScrollAreaPrimitive.ScrollAreaScrollbar
+      ref={ref}
+      orientation={orientation}
       className={cn(
-        "relative flex-1 rounded-full transition-colors",
-        variant === "brand"
-          ? "bg-white/18 hover:bg-primary/80 active:bg-primary"
-          : "bg-white/15 hover:bg-white/30",
+        "flex touch-none select-none transition-colors",
+        orientation === "vertical" &&
+          cn(
+            "h-full border-l border-l-transparent p-px",
+            variant === "brand" ? "w-1.5" : "w-2.5",
+          ),
+        orientation === "horizontal" &&
+          "h-2.5 flex-col border-t border-t-transparent p-px",
+        variant === "brand" && "bg-transparent",
+        className,
       )}
-    />
-  </ScrollAreaPrimitive.ScrollAreaScrollbar>
-));
+      {...props}
+    >
+      <ScrollAreaPrimitive.ScrollAreaThumb
+        className={cn(
+          "relative flex-1 rounded-full transition-colors",
+          variant === "brand"
+            ? "bg-white/18 hover:bg-primary/80 active:bg-primary"
+            : "bg-white/15 hover:bg-white/30",
+        )}
+      />
+    </ScrollAreaPrimitive.ScrollAreaScrollbar>
+  ),
+);
 ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName;
 
 export { ScrollArea, ScrollBar };

@@ -108,6 +108,9 @@ export function ProductForm({
   const [variants, setVariants] = useState<VariantRow[]>(
     product?.variants?.length ? product.variants : [emptyVariant()],
   );
+  const [sizeChart, setSizeChart] = useState<SizeChartFormRow[]>(
+    product?.size_chart?.length ? product.size_chart : [],
+  );
 
   const onTitleChange = (v: string) => {
     setTitle(v);

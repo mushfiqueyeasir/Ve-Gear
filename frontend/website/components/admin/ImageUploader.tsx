@@ -203,7 +203,8 @@ export function ImageUploader({
               ? "border-primary bg-primary/10"
               : "border-border bg-background/40 hover:border-primary/40",
             uploading && "pointer-events-none opacity-60",
-            !singleUrl && (preview === "square" ? "aspect-square p-4" : "px-4 py-10"),
+            !singleUrl &&
+              (preview === "square" ? "aspect-square p-4" : "px-4 py-10"),
           )}
           style={singleUrl && enableCrop ? checkerboardStyle : undefined}
         >
@@ -278,9 +279,7 @@ export function ImageUploader({
               </span>
               {preview !== "square" && (
                 <span className="text-xs text-muted-foreground">
-                  {enableCrop
-                    ? "PNG, JPG — freeform crop"
-                    : "PNG, JPG"}
+                  {enableCrop ? "PNG, JPG — freeform crop" : "PNG, JPG"}
                 </span>
               )}
             </div>

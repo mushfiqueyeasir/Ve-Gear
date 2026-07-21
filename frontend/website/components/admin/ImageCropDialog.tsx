@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useRef,
-  useState,
-  type SyntheticEvent,
-} from "react";
+import { useCallback, useRef, useState, type SyntheticEvent } from "react";
 import ReactCrop, {
   centerCrop,
   convertToPixelCrop,
@@ -124,7 +119,6 @@ export function ImageCropDialog({
               ruleOfThirds
               className="max-w-full"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 ref={imgRef}
                 src={imageSrc}
@@ -154,9 +148,7 @@ export function ImageCropDialog({
             <Button
               type="button"
               onClick={apply}
-              disabled={
-                busy || !completedCrop?.width || !completedCrop?.height
-              }
+              disabled={busy || !completedCrop?.width || !completedCrop?.height}
               className="rounded-full"
             >
               {busy && <Loader2 className="mr-2 size-4 animate-spin" />}

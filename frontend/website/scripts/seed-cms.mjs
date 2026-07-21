@@ -24,9 +24,13 @@ function loadEnv() {
 }
 
 const env = loadEnv();
-const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { persistSession: false },
-});
+const sb = createClient(
+  env.NEXT_PUBLIC_SUPABASE_URL,
+  env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: { persistSession: false },
+  },
+);
 
 const now = new Date().toISOString();
 
@@ -193,7 +197,10 @@ async function main() {
   console.log("seeded CMS blob into site_settings.socials._cms");
 
   // Contact messages
-  await sb.from("contact_submissions").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await sb
+    .from("contact_submissions")
+    .delete()
+    .neq("id", "00000000-0000-0000-0000-000000000000");
   const { error: cErr } = await sb.from("contact_submissions").insert([
     {
       name: "Amina Rahman",

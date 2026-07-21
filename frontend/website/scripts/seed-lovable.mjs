@@ -28,7 +28,9 @@ const env = loadEnv();
 const url = env.NEXT_PUBLIC_SUPABASE_URL;
 const key = env.SUPABASE_SERVICE_ROLE_KEY;
 if (!url || !key) {
-  console.error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+  console.error(
+    "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY",
+  );
   process.exit(1);
 }
 
@@ -43,14 +45,20 @@ async function ensureBucket(name) {
   }
 }
 
-async function upload(bucket, objectPath, filePath, contentType = "image/jpeg") {
+async function upload(
+  bucket,
+  objectPath,
+  filePath,
+  contentType = "image/jpeg",
+) {
   const body = fs.readFileSync(filePath);
   const { error } = await sb.storage.from(bucket).upload(objectPath, body, {
     contentType,
     upsert: true,
     cacheControl: "3600",
   });
-  if (error) throw new Error(`upload ${bucket}/${objectPath}: ${error.message}`);
+  if (error)
+    throw new Error(`upload ${bucket}/${objectPath}: ${error.message}`);
   console.log("uploaded", `${bucket}/${objectPath}`);
   return objectPath;
 }
@@ -93,8 +101,17 @@ async function main() {
     logoBlack: path.join(assetsDir, "logo-black.png"),
   };
 
-  const heroPath = await upload("banner-images", "lovable/hero-biker.jpg", files.hero);
-  await upload("branding", "lovable/logo-white.png", files.logoWhite, "image/png");
+  const heroPath = await upload(
+    "banner-images",
+    "lovable/hero-biker.jpg",
+    files.hero,
+  );
+  await upload(
+    "branding",
+    "lovable/logo-white.png",
+    files.logoWhite,
+    "image/png",
+  );
   const logoBlackPath = await upload(
     "branding",
     "lovable/logo-black.png",
@@ -137,7 +154,11 @@ async function main() {
       "lovable/void-oversized.jpg",
       files.p2,
     ),
-    "bone-rider": await upload("product-images", "lovable/bone-rider.jpg", files.p3),
+    "bone-rider": await upload(
+      "product-images",
+      "lovable/bone-rider.jpg",
+      files.p3,
+    ),
     "coral-signal": await upload(
       "product-images",
       "lovable/coral-signal.jpg",
@@ -182,30 +203,31 @@ async function main() {
   console.log("mirrored assets into public/images/");
 
   // --- Site settings ---
-  const { error: settingsErr } = await sb
-    .from("site_settings")
-    .upsert({
-      id: 1,
-      store_name: "VE Gear",
-      logo_path: logoBlackPath,
-      contact_email: "hello@vegear.com",
-      currency: "USD",
-      currency_symbol: "$",
-      shipping_flat: 5,
-      free_shipping_threshold: 100,
-      announcement_text: "DROP 04 · LIVE NOW — Free shipping over $100",
-      announcement_active: true,
-      announcement_url: "/product",
-      socials: {
-        instagram: "https://instagram.com/vegear",
-        twitter: "https://x.com/vegear",
-        youtube: "https://youtube.com/@vegear",
-      },
-      updated_at: new Date().toISOString(),
-    });
+  const { error: settingsErr } = await sb.from("site_settings").upsert({
+    id: 1,
+    store_name: "VE Gear",
+    logo_path: logoBlackPath,
+    contact_email: "hello@vegear.com",
+    currency: "USD",
+    currency_symbol: "$",
+    shipping_flat: 5,
+    free_shipping_threshold: 100,
+    announcement_text: "DROP 04 · LIVE NOW — Free shipping over $100",
+    announcement_active: true,
+    announcement_url: "/product",
+    socials: {
+      instagram: "https://instagram.com/vegear",
+      twitter: "https://x.com/vegear",
+      youtube: "https://youtube.com/@vegear",
+    },
+    updated_at: new Date().toISOString(),
+  });
   if (settingsErr) {
     // announcement columns may not exist yet — retry without them
-    console.warn("settings upsert with announcement failed:", settingsErr.message);
+    console.warn(
+      "settings upsert with announcement failed:",
+      settingsErr.message,
+    );
     const { error: e2 } = await sb.from("site_settings").upsert({
       id: 1,
       store_name: "VE Gear",
@@ -260,7 +282,9 @@ async function main() {
   ];
 
   for (const c of categories) {
-    const { error } = await sb.from("categories").upsert(c, { onConflict: "slug" });
+    const { error } = await sb
+      .from("categories")
+      .upsert(c, { onConflict: "slug" });
     if (error) throw new Error(`category ${c.slug}: ${error.message}`);
   }
   console.log("seeded categories");
@@ -269,7 +293,9 @@ async function main() {
     .from("categories")
     .select("id, slug");
   if (catFetchErr) throw catFetchErr;
-  const catBySlug = Object.fromEntries((catRows || []).map((c) => [c.slug, c.id]));
+  const catBySlug = Object.fromEntries(
+    (catRows || []).map((c) => [c.slug, c.id]),
+  );
 
   const teeSizeChart = [
     { size: "M", chest: "22", length: "28" },
@@ -483,13 +509,19 @@ async function main() {
   ];
 
   // Clear previous published reviews then insert (demo seed)
-  await sb.from("reviews").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await sb
+    .from("reviews")
+    .delete()
+    .neq("id", "00000000-0000-0000-0000-000000000000");
   const { error: revErr } = await sb.from("reviews").insert(reviews);
   if (revErr) throw new Error(`reviews: ${revErr.message}`);
   console.log("seeded reviews");
 
   // --- Promotion ---
-  await sb.from("promotions").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await sb
+    .from("promotions")
+    .delete()
+    .neq("id", "00000000-0000-0000-0000-000000000000");
   const { error: promoErr } = await sb.from("promotions").insert({
     title: "Drop 04 · Live Now",
     description:
@@ -503,7 +535,10 @@ async function main() {
 
   // --- CMS tables (if migration applied) ---
   if (await tableExists("banners")) {
-    await sb.from("banners").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await sb
+      .from("banners")
+      .delete()
+      .neq("id", "00000000-0000-0000-0000-000000000000");
     const { error } = await sb.from("banners").insert({
       title: "NOT JUST RIDE. RIDE WITH STYLE.",
       subtitle: "Drop 04 · Live Now",
@@ -599,7 +634,9 @@ async function main() {
     await sb.from("categories").delete().in("id", ids);
   }
 
-  console.log("\nDone. Lovable mock data is in Supabase Storage + catalog tables.");
+  console.log(
+    "\nDone. Lovable mock data is in Supabase Storage + catalog tables.",
+  );
   console.log(
     "If banners/homepage_sections were skipped, run backend/supabase/migrations/0006_cms.sql in the Supabase SQL Editor, then re-run this script.",
   );

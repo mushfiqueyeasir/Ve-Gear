@@ -36,7 +36,11 @@ export default function FeaturedProducts({
                   {title.split(".")[0]}
                   {title.includes(".") && (
                     <>
-                      . <span className="text-primary">{title.split(".").slice(1).join(".").trim() || "Worn everywhere."}</span>
+                      .{" "}
+                      <span className="text-primary">
+                        {title.split(".").slice(1).join(".").trim() ||
+                          "Worn everywhere."}
+                      </span>
                     </>
                   )}
                 </>

@@ -45,7 +45,8 @@ export default function ReviewSlider({
                 </>
               ) : (
                 <>
-                  Worn by the <span className="italic text-primary">riders</span>.
+                  Worn by the{" "}
+                  <span className="italic text-primary">riders</span>.
                 </>
               )}
             </h2>

@@ -82,8 +82,7 @@ export default async function EditProductPage({
       size: v.size ?? "",
       color: v.color ?? "",
       sku: v.sku ?? "",
-      price_override:
-        v.price_override === null ? "" : String(v.price_override),
+      price_override: v.price_override === null ? "" : String(v.price_override),
       stock_quantity: String(v.stock_quantity),
       low_stock_threshold: String(v.low_stock_threshold),
     })),

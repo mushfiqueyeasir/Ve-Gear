@@ -55,7 +55,9 @@ export default function RichTextSection({
                       240 GSM Cotton
                     </div>
                   </div>
-                  <div className="font-mono text-xs text-primary">// LAB 04</div>
+                  <div className="font-mono text-xs text-primary">
+                    // LAB 04
+                  </div>
                 </div>
               </div>
             </div>
@@ -66,10 +68,15 @@ export default function RichTextSection({
                 {subtitle || "Material Study"}
               </div>
               <h2 className="font-display text-5xl font-bold leading-[0.9] tracking-tight md:text-6xl">
-                {(title || "Every thread engineered.").split(" ").slice(0, 2).join(" ")}
+                {(title || "Every thread engineered.")
+                  .split(" ")
+                  .slice(0, 2)
+                  .join(" ")}
                 <br />
-                {(title || "Every thread engineered.").split(" ").slice(2).join(" ") ||
-                  "engineered."}
+                {(title || "Every thread engineered.")
+                  .split(" ")
+                  .slice(2)
+                  .join(" ") || "engineered."}
               </h2>
               {body && (
                 <p className="mt-6 max-w-md text-muted-foreground">{body}</p>

@@ -1,6 +1,4 @@
-import {
-  DEFAULT_BANNER_MARQUEE,
-} from "@/type/db";
+import { DEFAULT_BANNER_MARQUEE } from "@/type/db";
 
 export default function Marquee({
   items = DEFAULT_BANNER_MARQUEE,
@@ -14,7 +12,10 @@ export default function Marquee({
     <div className="relative overflow-hidden border-y border-border bg-surface/40 py-6">
       <div className="flex animate-marquee whitespace-nowrap">
         {row.map((t, i) => (
-          <div key={`${t}-${i}`} className="flex shrink-0 items-center gap-8 px-8">
+          <div
+            key={`${t}-${i}`}
+            className="flex shrink-0 items-center gap-8 px-8"
+          >
             <span className="font-display text-3xl font-bold tracking-tight text-foreground/90 md:text-4xl">
               {t}
             </span>

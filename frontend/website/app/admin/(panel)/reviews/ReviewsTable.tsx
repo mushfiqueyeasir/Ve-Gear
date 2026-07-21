@@ -131,12 +131,7 @@ export function ReviewsTable({
             isPublished={item.is_published}
             canWrite={canWrite}
           />
-          <Button
-            variant="ghost"
-            size="icon"
-            asChild
-            className="rounded-full"
-          >
+          <Button variant="ghost" size="icon" asChild className="rounded-full">
             <Link href={`/admin/reviews/${item.id}`} aria-label="Edit">
               <Pencil className="size-4" />
             </Link>

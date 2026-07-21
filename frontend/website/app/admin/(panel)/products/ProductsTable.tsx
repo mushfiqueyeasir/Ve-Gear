@@ -78,10 +78,7 @@ export function ProductsTable({
       renderSubtitle={(item) => item.slug}
       renderMeta={(item) => (
         <>
-          <Badge
-            variant={STATUS_VARIANT[item.status]}
-            className="capitalize"
-          >
+          <Badge variant={STATUS_VARIANT[item.status]} className="capitalize">
             {item.status}
           </Badge>
           <Badge variant="outline">
@@ -97,12 +94,7 @@ export function ProductsTable({
       )}
       renderTrailing={(item) => (
         <>
-          <Button
-            asChild
-            variant="ghost"
-            size="icon"
-            className="rounded-full"
-          >
+          <Button asChild variant="ghost" size="icon" className="rounded-full">
             <Link href={`/admin/products/${item.id}`} aria-label="Edit">
               <Pencil className="size-4" />
             </Link>

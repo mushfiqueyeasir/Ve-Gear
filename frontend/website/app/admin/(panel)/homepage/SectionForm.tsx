@@ -148,7 +148,9 @@ export function SectionForm({
       section.type === "promo" ? "Shop the drop" : "",
     ),
   );
-  const [ctaUrl, setCtaUrl] = useState(strConfig(config, "cta_url", "/product"));
+  const [ctaUrl, setCtaUrl] = useState(
+    strConfig(config, "cta_url", "/product"),
+  );
   const [showMarquee, setShowMarquee] = useState(
     boolConfig(config, "show_marquee", true),
   );
@@ -257,11 +259,7 @@ export function SectionForm({
       >
         Cancel
       </Button>
-      <Button
-        onClick={submit}
-        disabled={pending}
-        className="rounded-full px-6"
-      >
+      <Button onClick={submit} disabled={pending} className="rounded-full px-6">
         {pending ? (
           <Loader2 className="mr-2 size-4 animate-spin" />
         ) : (

@@ -28,10 +28,7 @@ export default async function EditPromotionPage({
   return (
     <div>
       <BackLink href="/admin/promotions" label="Back to promotions" />
-      <PageHeader
-        title="Edit promotion"
-        description={promotion.title}
-      />
+      <PageHeader title="Edit promotion" description={promotion.title} />
       <PromotionForm promotion={promotion} />
     </div>
   );

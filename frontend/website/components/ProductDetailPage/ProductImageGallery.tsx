@@ -38,8 +38,7 @@ export default function ProductImageGallery({
     if (!container) return;
     setCanScrollLeft(container.scrollLeft > 0);
     setCanScrollRight(
-      container.scrollLeft <
-        container.scrollWidth - container.clientWidth - 1,
+      container.scrollLeft < container.scrollWidth - container.clientWidth - 1,
     );
   };
 

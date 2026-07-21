@@ -40,17 +40,12 @@ export function normalizeCurrencySettings(
   );
   const unique = Array.from(new Set(enabled.length ? enabled : ["BDT"]));
   const def = (
-    unique.includes(raw?.default as CurrencyCode)
-      ? raw!.default
-      : unique[0]
+    unique.includes(raw?.default as CurrencyCode) ? raw!.default : unique[0]
   ) as CurrencyCode;
   return { enabled: unique as CurrencyCode[], default: def };
 }
 
-export function formatMoney(
-  value: number,
-  symbolOrCode: string = "৳",
-): string {
+export function formatMoney(value: number, symbolOrCode: string = "৳"): string {
   const meta = getCurrencyMeta(symbolOrCode);
   const symbol = meta.code === symbolOrCode ? meta.symbol : symbolOrCode;
   const n = Number.isFinite(value) ? value : 0;

@@ -29,7 +29,12 @@ export default async function PagesAdminPage() {
           title="About Us"
           description="Hero, story, values, craft, and CTA"
           action={
-            <Button asChild size="sm" variant="outline" className="rounded-full">
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              className="rounded-full"
+            >
               <Link href="/admin/about">Manage sections</Link>
             </Button>
           }

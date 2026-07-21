@@ -14,19 +14,14 @@ export default async function ReportsPage() {
   await requireAdminSession();
   const supabase = await createSupabaseServerClient();
 
-  const [
-    ordersCount,
-    productsCount,
-    customersCount,
-    salesRes,
-    settings,
-  ] = await Promise.all([
-    supabase.from("orders").select("id", { count: "exact", head: true }),
-    supabase.from("products").select("id", { count: "exact", head: true }),
-    supabase.from("customers").select("id", { count: "exact", head: true }),
-    supabase.from("orders").select("totals, status"),
-    getSiteSettings(),
-  ]);
+  const [ordersCount, productsCount, customersCount, salesRes, settings] =
+    await Promise.all([
+      supabase.from("orders").select("id", { count: "exact", head: true }),
+      supabase.from("products").select("id", { count: "exact", head: true }),
+      supabase.from("customers").select("id", { count: "exact", head: true }),
+      supabase.from("orders").select("totals, status"),
+      getSiteSettings(),
+    ]);
 
   const symbol = settings.currency_symbol || "$";
 
@@ -35,7 +30,9 @@ export default async function ReportsPage() {
   const totalCustomers = customersCount.count ?? 0;
 
   // Total sales = sum of totals.total for non-cancelled orders.
-  const totalSales = ((salesRes.data as Pick<OrderRow, "totals" | "status">[] | null) ?? [])
+  const totalSales = (
+    (salesRes.data as Pick<OrderRow, "totals" | "status">[] | null) ?? []
+  )
     .filter((o) => o.status !== "cancelled")
     .reduce((sum, o) => sum + (o.totals?.total ?? 0), 0);
 
