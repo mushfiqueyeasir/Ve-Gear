@@ -62,7 +62,7 @@ export default function Hero({ banners, description, stats }: HeroProps) {
   const ctaUrl = banner.ctaUrl?.trim() || "/product";
 
   return (
-    <section className="relative isolate h-[100dvh] max-h-[100dvh] w-full overflow-hidden bg-background">
+    <section className="relative isolate min-h-[100dvh] w-full overflow-x-hidden bg-background">
       {/* Grid + noise */}
       <div
         className="absolute inset-0 bg-grid opacity-40 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]"
@@ -152,96 +152,98 @@ export default function Hero({ banners, description, stats }: HeroProps) {
         ))}
       </div>
 
-      {/* Content — copy sits at the bottom of the hero */}
-      <div className="relative z-10 mx-auto flex h-full max-w-[1600px] flex-col justify-end gap-6 px-5 pb-4 pt-20 sm:gap-8 sm:px-6 sm:pb-6 sm:pt-24 md:gap-10 md:px-10 md:pb-8 md:pt-28">
-        <div key={banner.id} className="max-w-3xl">
-          {subtitle ? (
+      {/* Content — copy + stats flow together; hero grows on short viewports instead of overlapping */}
+      <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[1600px] flex-col px-5 pb-4 pt-20 sm:px-6 sm:pb-6 sm:pt-24 md:px-10 md:pb-8 md:pt-28">
+        <div className="mt-auto flex flex-col gap-6 sm:gap-8 md:gap-10">
+          <div key={banner.id} className="max-w-3xl">
+            {subtitle ? (
+              <div
+                className="mb-3 inline-flex max-w-full animate-hero-in items-center gap-2.5 truncate rounded-full border border-border bg-surface/60 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-md sm:mb-4 sm:gap-3 sm:px-3.5 md:mb-6 md:px-4 md:py-1.5 md:text-[11px] md:tracking-[0.25em]"
+                style={{ animationDelay: "0.05s" }}
+              >
+                <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-primary" />
+                <span className="truncate">{subtitle}</span>
+              </div>
+            ) : null}
+
+            <h1
+              className="animate-hero-in font-display text-[clamp(2.35rem,9vw,5.75rem)] font-bold leading-[0.88] tracking-[-0.045em] text-foreground md:text-[clamp(3rem,8vw,6.5rem)]"
+              style={{ animationDelay: "0.12s" }}
+            >
+              {renderTitle(title)}
+            </h1>
+
+            {blurb ? (
+              <p
+                className="mt-3 line-clamp-3 max-w-md animate-hero-in text-sm leading-relaxed text-muted-foreground sm:mt-4 sm:line-clamp-none md:mt-6 md:text-base"
+                style={{ animationDelay: "0.22s" }}
+              >
+                {blurb}
+              </p>
+            ) : null}
+
             <div
-              className="mb-3 inline-flex max-w-full animate-hero-in items-center gap-2.5 truncate rounded-full border border-border bg-surface/60 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-md sm:mb-4 sm:gap-3 sm:px-3.5 md:mb-6 md:px-4 md:py-1.5 md:text-[11px] md:tracking-[0.25em]"
-              style={{ animationDelay: "0.05s" }}
+              className="mt-5 flex w-full animate-hero-in flex-col gap-2.5 sm:mt-6 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center md:mt-8 md:gap-3"
+              style={{ animationDelay: "0.32s" }}
             >
-              <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-primary" />
-              <span className="truncate">{subtitle}</span>
+              <Link
+                href={ctaUrl}
+                className="group relative inline-flex h-12 w-full items-center justify-center gap-2.5 overflow-hidden rounded-full bg-foreground px-6 text-[12px] font-semibold uppercase tracking-[0.18em] text-background transition-all hover:bg-primary hover:text-primary-foreground sm:h-auto sm:w-auto sm:justify-start sm:py-3 sm:hover:pl-7 sm:hover:pr-5 md:px-8 md:py-3.5 md:text-[13px]"
+              >
+                {ctaLabel}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+              <Link
+                href="/product"
+                className="group inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-full border border-border bg-transparent px-6 text-[12px] font-semibold uppercase tracking-[0.18em] text-foreground transition hover:border-primary hover:text-primary sm:h-auto sm:w-auto sm:justify-start sm:py-3 md:px-8 md:py-3.5 md:text-[13px]"
+              >
+                Explore New Drop
+                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+              </Link>
             </div>
-          ) : null}
-
-          <h1
-            className="animate-hero-in font-display text-[clamp(2.35rem,9vw,5.75rem)] font-bold leading-[0.88] tracking-[-0.045em] text-foreground md:text-[clamp(3rem,8vw,6.5rem)]"
-            style={{ animationDelay: "0.12s" }}
-          >
-            {renderTitle(title)}
-          </h1>
-
-          {blurb ? (
-            <p
-              className="mt-3 line-clamp-3 max-w-md animate-hero-in text-sm leading-relaxed text-muted-foreground sm:mt-4 sm:line-clamp-none md:mt-6 md:text-base"
-              style={{ animationDelay: "0.22s" }}
-            >
-              {blurb}
-            </p>
-          ) : null}
+          </div>
 
           <div
-            className="mt-5 flex w-full animate-hero-in flex-col gap-2.5 sm:mt-6 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center md:mt-8 md:gap-3"
-            style={{ animationDelay: "0.32s" }}
+            className="flex min-w-0 animate-float-up flex-col gap-3 border-t border-border/80 pt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:pt-4 sm:tracking-[0.22em] md:pt-5 md:text-[11px]"
+            style={{ animationDelay: "0.45s" }}
           >
-            <Link
-              href={ctaUrl}
-              className="group relative inline-flex h-12 w-full items-center justify-center gap-2.5 overflow-hidden rounded-full bg-foreground px-6 text-[12px] font-semibold uppercase tracking-[0.18em] text-background transition-all hover:bg-primary hover:text-primary-foreground sm:h-auto sm:w-auto sm:justify-start sm:py-3 sm:hover:pl-7 sm:hover:pr-5 md:px-8 md:py-3.5 md:text-[13px]"
-            >
-              {ctaLabel}
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Link>
-            <Link
-              href="/product"
-              className="group inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-full border border-border bg-transparent px-6 text-[12px] font-semibold uppercase tracking-[0.18em] text-foreground transition hover:border-primary hover:text-primary sm:h-auto sm:w-auto sm:justify-start sm:py-3 md:px-8 md:py-3.5 md:text-[13px]"
-            >
-              Explore New Drop
-              <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-            </Link>
-          </div>
-        </div>
-
-        <div
-          className="flex min-w-0 shrink-0 animate-float-up flex-col gap-3 border-t border-border/80 pt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:pt-4 sm:tracking-[0.22em] md:pt-5 md:text-[11px]"
-          style={{ animationDelay: "0.45s" }}
-        >
-          <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-2 md:grid-cols-4 md:gap-x-10">
-            {statItems.map((s) => (
-              <Stat key={`${s.label}-${s.value}`} k={s.label} v={s.value} />
-            ))}
-          </div>
-          {multiple ? (
-            <div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end">
-              <span className="tabular-nums text-foreground/80">
-                {String(index + 1).padStart(2, "0")} /{" "}
-                {String(count).padStart(2, "0")}
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => go(-1)}
-                  aria-label="Previous slide"
-                  className="grid size-11 place-items-center rounded-full border border-border transition hover:border-primary"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => go(1)}
-                  aria-label="Next slide"
-                  className="grid size-11 place-items-center rounded-full border border-border transition hover:border-primary"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
+            <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-2 md:grid-cols-4 md:gap-x-10">
+              {statItems.map((s) => (
+                <Stat key={`${s.label}-${s.value}`} k={s.label} v={s.value} />
+              ))}
+            </div>
+            {multiple ? (
+              <div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end">
+                <span className="tabular-nums text-foreground/80">
+                  {String(index + 1).padStart(2, "0")} /{" "}
+                  {String(count).padStart(2, "0")}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => go(-1)}
+                    aria-label="Previous slide"
+                    className="grid size-11 place-items-center rounded-full border border-border transition hover:border-primary"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => go(1)}
+                    aria-label="Next slide"
+                    className="grid size-11 place-items-center rounded-full border border-border transition hover:border-primary"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="hidden items-center gap-2 md:flex">
-              <span>Scroll</span>
-              <span className="block h-6 w-px bg-border" />
-            </div>
-          )}
+            ) : (
+              <div className="hidden items-center gap-2 md:flex">
+                <span>Scroll</span>
+                <span className="block h-6 w-px bg-border" />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>
