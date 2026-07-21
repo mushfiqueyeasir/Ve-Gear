@@ -8,6 +8,11 @@ import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetad
 import { getBaseSeoItem } from "@/utility/getSeoSettings";
 import { getSiteSettings } from "@/utility/getSettings";
 
+// Settings / palette / SEO must always reflect the latest admin edits.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],

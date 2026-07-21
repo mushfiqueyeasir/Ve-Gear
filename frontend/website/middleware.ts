@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/config";
+import { noStoreFetch } from "@/lib/supabase/noStoreFetch";
 
 // Refreshes the Supabase auth session on every /admin request and gates access:
 // unauthenticated users are bounced to /admin/login; authenticated users hitting
@@ -14,6 +15,7 @@ export async function middleware(request: NextRequest) {
   }
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { fetch: noStoreFetch },
     cookies: {
       getAll() {
         return request.cookies.getAll();

@@ -3,6 +3,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { OrderFormData } from "@/type/orderType";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 export async function POST(request: NextRequest) {
   try {

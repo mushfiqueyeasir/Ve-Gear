@@ -4,7 +4,9 @@ import { SeoContent } from "@/SeoContent/SeoContent";
 import { getReviews, transformReview } from "@/utility/getReview";
 
 export const metadata = generateSeoMetadata(SeoContent.reviewsSeo);
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 export default async function ReviewsPage() {
   const reviews = await getReviews();

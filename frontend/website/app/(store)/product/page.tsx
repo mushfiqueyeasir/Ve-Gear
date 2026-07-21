@@ -5,7 +5,9 @@ import { getProducts, transformProduct } from "@/utility/getProducts";
 import { getCategories } from "@/utility/getCategory";
 
 export const metadata = generateSeoMetadata(SeoContent.productSeo);
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 type ProductSearchParams = {
   category?: string | string[];

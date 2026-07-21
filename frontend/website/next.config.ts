@@ -16,6 +16,21 @@ const supabaseHost = (() => {
 })();
 
 const nextConfig: NextConfig = {
+  // Prefer fresh HTML/RSC over CDN caches (catalog updates frequently).
+  // Exclude hashed static assets so JS/CSS/images can still be cached.
+  async headers() {
+    return [
+      {
+        source: "/((?!_next/static|_next/image|favicon.ico|images/).*)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "private, no-cache, no-store, max-age=0, must-revalidate",
+          },
+        ],
+      },
+    ];
+  },
   // Map public config.json values into the Next.js env so client + server
   // code can read them via lib/config.ts (appConfig).
   env: {
