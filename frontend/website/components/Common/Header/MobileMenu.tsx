@@ -43,8 +43,12 @@ export default function MobileMenu({
         side="left"
         className="flex w-[min(100vw-2.5rem,22rem)] flex-col border-border bg-background p-0 text-foreground"
       >
-        <div className="border-b border-border px-5 py-5">
-          <Link href="/" onClick={() => setIsSheetOpen(false)}>
+        <div className="flex items-center border-b border-border py-5 pl-5 pr-16">
+          <Link
+            href="/"
+            onClick={() => setIsSheetOpen(false)}
+            className="inline-flex min-h-11 items-center"
+          >
             <Image
               src={logoUrl}
               alt={storeName}
