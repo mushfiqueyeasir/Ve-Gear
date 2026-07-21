@@ -24,13 +24,7 @@
 .DS_Store
 *.pem
 
-# local env / secrets
-.env
-.env*.local
-*.provision.env
-.provision.env
-.admin-credentials.txt
-config.json
+
 
 # debug
 npm-debug.log*
