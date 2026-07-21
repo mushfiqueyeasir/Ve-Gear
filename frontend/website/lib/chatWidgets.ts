@@ -5,7 +5,10 @@ export interface ChatWidgets {
   provider: ChatProvider;
   /** Digits with country code, e.g. 8801712345678 (no + or spaces required). */
   whatsappNumber: string;
-  /** Numeric Facebook Page ID for the on-site Messenger chat plugin. */
+  /**
+   * Facebook Page ID or username for m.me (Meta retired the on-site Chat Plugin).
+   * Examples: 378400148906020 or vegearofficial
+   */
   messengerPageId: string;
 }
 
@@ -17,6 +20,16 @@ export const DEFAULT_CHAT_WIDGETS: ChatWidgets = {
 
 function digitsOnly(value: string): string {
   return value.replace(/\D/g, "");
+}
+
+/** Strip m.me URLs / @ so we store a clean page id or username. */
+export function normalizeMessengerTarget(raw: string): string {
+  let s = raw.trim();
+  s = s.replace(/^https?:\/\//i, "");
+  s = s.replace(/^(www\.)?m\.me\//i, "");
+  s = s.replace(/^@/, "");
+  s = (s.split(/[/?#]/)[0] ?? "").trim();
+  return s;
 }
 
 export function normalizeChatWidgets(raw: unknown): ChatWidgets {
@@ -46,7 +59,7 @@ export function normalizeChatWidgets(raw: unknown): ChatWidgets {
         : base.whatsappNumber,
     messengerPageId:
       typeof o.messengerPageId === "string"
-        ? o.messengerPageId.trim().replace(/^@/, "")
+        ? normalizeMessengerTarget(o.messengerPageId)
         : base.messengerPageId,
   };
 }
@@ -57,9 +70,12 @@ export function chatWhatsappHref(number: string): string | null {
   return `https://wa.me/${digits}`;
 }
 
-/** Messenger Customer Chat needs a numeric Page ID. */
-export function isNumericPageId(pageId: string): boolean {
-  return /^\d{5,}$/.test(pageId.trim());
+/** Opens Messenger via m.me (on-site Customer Chat Plugin was shut down by Meta). */
+export function chatMessengerHref(pageIdOrUsername: string): string | null {
+  const id = normalizeMessengerTarget(pageIdOrUsername);
+  if (id.length < 2) return null;
+  if (!/^[\w.]+$/.test(id)) return null;
+  return `https://m.me/${id}`;
 }
 
 export function hasChatWidgets(
@@ -69,5 +85,5 @@ export function hasChatWidgets(
   if (widgets.provider === "whatsapp") {
     return Boolean(chatWhatsappHref(widgets.whatsappNumber));
   }
-  return isNumericPageId(widgets.messengerPageId);
+  return Boolean(chatMessengerHref(widgets.messengerPageId));
 }

@@ -1,23 +1,12 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import type { ReactNode } from "react";
 import type { ChatWidgets } from "@/lib/chatWidgets";
 import {
+  chatMessengerHref,
   chatWhatsappHref,
   hasChatWidgets,
-  isNumericPageId,
 } from "@/lib/chatWidgets";
-import { cn } from "@/lib/utils";
-
-declare global {
-  interface Window {
-    fbAsyncInit?: () => void;
-    FB?: {
-      init: (opts: { xfbml: boolean; version: string }) => void;
-      XFBML?: { parse: (el?: HTMLElement) => void };
-    };
-  }
-}
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -32,100 +21,76 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
-function WhatsAppButton({ number }: { number: string }) {
-  const href = chatWhatsappHref(number);
-  if (!href) return null;
+function MessengerIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      aria-hidden
+      fill="currentColor"
+    >
+      <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.19 5.44 3.14 7.17V22l3.45-1.89c1.09.3 2.24.46 3.41.46 5.64 0 10.2-4.13 10.2-9.87C22.2 6.13 17.64 2 12 2zm1.01 13.28l-2.61-2.78-5.09 2.78 5.6-5.95 2.68 2.78 5.02-2.78-5.6 5.95z" />
+    </svg>
+  );
+}
 
+function FloatingChatLink({
+  href,
+  label,
+  title,
+  className,
+  children,
+}: {
+  href: string;
+  label: string;
+  title: string;
+  className: string;
+  children: ReactNode;
+}) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Chat on WhatsApp"
-      title="Opens WhatsApp"
-      className="fixed bottom-4 right-4 z-100 flex size-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition hover:scale-105 hover:bg-[#1ebe57] sm:bottom-6 sm:right-6"
+      aria-label={label}
+      title={title}
+      className={className}
     >
-      <WhatsAppIcon className="size-7" />
-      <span className="sr-only">Chat on WhatsApp</span>
+      {children}
+      <span className="sr-only">{label}</span>
     </a>
   );
 }
 
-function MessengerCustomerChat({ pageId }: { pageId: string }) {
-  const hostId = useId().replace(/:/g, "");
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    if (!isNumericPageId(pageId)) return;
-
-    let cancelled = false;
-    const host = document.getElementById(`fb-chat-host-${hostId}`);
-    if (!host) return;
-
-    // Ensure fb-root exists once.
-    if (!document.getElementById("fb-root")) {
-      const root = document.createElement("div");
-      root.id = "fb-root";
-      document.body.appendChild(root);
-    }
-
-    host.innerHTML = "";
-    const chat = document.createElement("div");
-    chat.className = "fb-customerchat";
-    chat.setAttribute("attribution", "biz_inbox");
-    chat.setAttribute("page_id", pageId.trim());
-    chat.setAttribute("greeting_dialog_display", "fade");
-    chat.setAttribute("greeting_dialog_delay", "3");
-    host.appendChild(chat);
-
-    const initAndParse = () => {
-      if (cancelled) return;
-      try {
-        window.FB?.init({ xfbml: true, version: "v21.0" });
-        window.FB?.XFBML?.parse(host);
-        setReady(true);
-      } catch {
-        // SDK may still be loading
-      }
-    };
-
-    window.fbAsyncInit = initAndParse;
-
-    const existing = document.getElementById("facebook-jssdk");
-    if (existing) {
-      if (window.FB) initAndParse();
-      return () => {
-        cancelled = true;
-        host.innerHTML = "";
-      };
-    }
-
-    const script = document.createElement("script");
-    script.id = "facebook-jssdk";
-    script.async = true;
-    script.src = "https://connect.facebook.net/en_US/sdk/xfbml.customerchat.js";
-    script.onload = initAndParse;
-    document.body.appendChild(script);
-
-    return () => {
-      cancelled = true;
-      host.innerHTML = "";
-    };
-  }, [pageId, hostId]);
+function WhatsAppButton({ number }: { number: string }) {
+  const href = chatWhatsappHref(number);
+  if (!href) return null;
 
   return (
-    <>
-      <div id={`fb-chat-host-${hostId}`} className="contents" />
-      {/* Fallback while Meta widget loads / if domain not whitelisted */}
-      {!ready ? (
-        <div
-          className={cn(
-            "pointer-events-none fixed bottom-4 right-4 z-90 size-14 sm:bottom-6 sm:right-6",
-          )}
-          aria-hidden
-        />
-      ) : null}
-    </>
+    <FloatingChatLink
+      href={href}
+      label="Chat on WhatsApp"
+      title="Opens WhatsApp"
+      className="fixed bottom-4 right-4 z-100 flex size-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition hover:scale-105 hover:bg-[#1ebe57] sm:bottom-6 sm:right-6"
+    >
+      <WhatsAppIcon className="size-7" />
+    </FloatingChatLink>
+  );
+}
+
+function MessengerButton({ pageId }: { pageId: string }) {
+  const href = chatMessengerHref(pageId);
+  if (!href) return null;
+
+  return (
+    <FloatingChatLink
+      href={href}
+      label="Chat on Messenger"
+      title="Opens Messenger"
+      className="fixed bottom-4 right-4 z-100 flex size-14 items-center justify-center rounded-full bg-[#0084FF] text-white shadow-lg transition hover:scale-105 hover:bg-[#006fd6] sm:bottom-6 sm:right-6"
+    >
+      <MessengerIcon className="size-7" />
+    </FloatingChatLink>
   );
 }
 
@@ -137,7 +102,7 @@ export default function ChatPlugins({ widgets }: { widgets: ChatWidgets }) {
   }
 
   if (widgets.provider === "messenger") {
-    return <MessengerCustomerChat pageId={widgets.messengerPageId} />;
+    return <MessengerButton pageId={widgets.messengerPageId} />;
   }
 
   return null;

@@ -35,6 +35,7 @@ import {
   type DeliveryCharges,
 } from "@/lib/delivery";
 import {
+  chatMessengerHref,
   DEFAULT_CHAT_WIDGETS,
   normalizeChatWidgets,
   type ChatProvider,
@@ -48,24 +49,11 @@ import {
   type ThemePalette,
 } from "@/lib/theme/palette";
 import { cn } from "@/lib/utils";
-import { appConfig } from "@/lib/config";
 import { saveSettings, type SettingsInput } from "./actions";
 
 function orNull(v: string): string | null {
   const t = v.trim();
   return t === "" ? null : t;
-}
-
-function siteHostLabel(siteUrl: string): string {
-  const raw = siteUrl.trim();
-  if (!raw) return "your store domain";
-  try {
-    return new URL(raw).host;
-  } catch {
-    return (
-      raw.replace(/^https?:\/\//, "").replace(/\/$/, "") || "your store domain"
-    );
-  }
 }
 
 export function SettingsForm({
@@ -230,13 +218,14 @@ export function SettingsForm({
       toast.error("Enter a WhatsApp number with country code.");
       return;
     }
-    if (chatWidgets.provider === "messenger") {
-      if (!/^\d{5,}$/.test(chatWidgets.messengerPageId)) {
-        toast.error(
-          "Enter your numeric Facebook Page ID (digits only) for on-site chat.",
-        );
-        return;
-      }
+    if (
+      chatWidgets.provider === "messenger" &&
+      !chatMessengerHref(chatWidgets.messengerPageId)
+    ) {
+      toast.error(
+        "Enter your Facebook Page ID or username (e.g. 378400148906020).",
+      );
+      return;
     }
 
     const input: SettingsInput = {
@@ -621,9 +610,8 @@ export function SettingsForm({
 
         <TabsContent value="chat" className="space-y-5">
           <p className="text-sm text-muted-foreground">
-            Pick one chat option. Messenger can chat on your website; WhatsApp
-            always opens the WhatsApp app (Meta does not allow in-page WhatsApp
-            chat).
+            Pick one chat option. Meta retired the on-site Messenger Chat Plugin
+            — both options open their app or messenger.com in a new tab.
           </p>
 
           <div className="space-y-2">
@@ -636,12 +624,12 @@ export function SettingsForm({
                 },
                 {
                   value: "messenger" as const,
-                  label: "Messenger (on website)",
-                  hint: "Customers chat in a popup on your store",
+                  label: "Messenger",
+                  hint: "Opens m.me — Messenger app or messenger.com",
                 },
                 {
                   value: "whatsapp" as const,
-                  label: "WhatsApp (opens app)",
+                  label: "WhatsApp",
                   hint: "Opens WhatsApp — cannot stay on the website",
                 },
               ] as const
@@ -693,29 +681,17 @@ export function SettingsForm({
           ) : null}
 
           {chatProvider === "messenger" ? (
-            <>
-              <FormField
-                label="Facebook Page ID"
-                hint="Numeric Page ID only (not the username). Find it in Page Settings → About / Page transparency."
-              >
-                <Input
-                  value={messengerPageId}
-                  onChange={(e) => setMessengerPageId(e.target.value)}
-                  placeholder="123456789012345"
-                  inputMode="numeric"
-                  className={adminInputClass}
-                />
-              </FormField>
-              <p className="rounded-xl border border-border bg-card/60 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-                In Meta Business / Page settings, enable messaging and add your
-                store domain (
-                <span className="text-foreground">
-                  {siteHostLabel(appConfig.siteUrl)}
-                </span>{" "}
-                and localhost for local testing) to the allowed websites for the
-                chat plugin. Without that, the bubble will not appear.
-              </p>
-            </>
+            <FormField
+              label="Facebook Page ID or username"
+              hint="Use your Page ID (e.g. 378400148906020) or username. You can also paste an m.me link."
+            >
+              <Input
+                value={messengerPageId}
+                onChange={(e) => setMessengerPageId(e.target.value)}
+                placeholder="378400148906020"
+                className={adminInputClass}
+              />
+            </FormField>
           ) : null}
         </TabsContent>
 
