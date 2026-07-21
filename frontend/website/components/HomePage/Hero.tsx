@@ -152,8 +152,8 @@ export default function Hero({ banners, description, stats }: HeroProps) {
         ))}
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 mx-auto flex h-full max-w-[1600px] flex-col justify-between px-5 pb-4 pt-20 sm:px-6 sm:pb-6 sm:pt-24 md:px-10 md:pb-8 md:pt-28">
+      {/* Content — copy sits at the bottom of the hero */}
+      <div className="relative z-10 mx-auto flex h-full max-w-[1600px] flex-col justify-end gap-6 px-5 pb-4 pt-20 sm:gap-8 sm:px-6 sm:pb-6 sm:pt-24 md:gap-10 md:px-10 md:pb-8 md:pt-28">
         <div key={banner.id} className="max-w-3xl">
           {subtitle ? (
             <div
@@ -203,7 +203,7 @@ export default function Hero({ banners, description, stats }: HeroProps) {
         </div>
 
         <div
-          className="mt-3 flex min-w-0 shrink-0 animate-float-up flex-col gap-3 border-t border-border/80 pt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:mt-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:pt-4 sm:tracking-[0.22em] md:mt-6 md:pt-5 md:text-[11px]"
+          className="flex min-w-0 shrink-0 animate-float-up flex-col gap-3 border-t border-border/80 pt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:pt-4 sm:tracking-[0.22em] md:pt-5 md:text-[11px]"
           style={{ animationDelay: "0.45s" }}
         >
           <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-2 md:grid-cols-4 md:gap-x-10">
