@@ -12,6 +12,7 @@ import { ChevronDown } from "lucide-react";
 import type { TransformedProduct } from "@/type/productType";
 import type { Category } from "@/type/categoryType";
 import DropdownHeader from "./DropdownHeader";
+import { filterTriggerClass } from "./filterTrigger";
 
 interface CategoryFilterProps {
   products: TransformedProduct[];
@@ -63,11 +64,11 @@ export default function CategoryFilter({
 
   return (
     <DropdownMenu modal={false}>
-      <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-normal outline-none border-b border-transparent hover:border-foreground transition-colors">
+      <DropdownMenuTrigger className={filterTriggerClass}>
         Category
-        <ChevronDown className="w-4 h-4" />
+        <ChevronDown className="h-4 w-4" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 p-0 max-h-96 overflow-y-auto">
+      <DropdownMenuContent className="max-h-96 w-[min(16rem,calc(100vw-2rem))] overflow-y-auto p-0">
         <DropdownHeader
           selectedCount={selectedCount}
           onReset={resetCategoryFilter}
@@ -79,7 +80,7 @@ export default function CategoryFilter({
             return (
               <label
                 key={category.id}
-                className="flex items-center gap-2 px-2 py-2 cursor-pointer hover:bg-white/5 rounded"
+                className="flex cursor-pointer items-center gap-2 rounded px-2 py-3 hover:bg-foreground/5"
               >
                 <input
                   type="checkbox"

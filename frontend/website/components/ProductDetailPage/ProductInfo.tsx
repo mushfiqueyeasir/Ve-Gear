@@ -204,7 +204,7 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
             type="button"
             onClick={() => handleQuantityChange(-1)}
             disabled={quantity <= 1}
-            className="flex items-center justify-center px-4 py-2 text-base transition-colors hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+            className="grid size-11 place-items-center text-base transition-colors hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Minus className="size-4" />
           </button>
@@ -218,7 +218,7 @@ export default function ProductInfo({ product, stock }: ProductInfoProps) {
             type="button"
             onClick={() => handleQuantityChange(1)}
             disabled={maxQuantity > 0 && quantity >= maxQuantity}
-            className="flex items-center justify-center px-4 py-2 text-base transition-colors hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+            className="grid size-11 place-items-center text-base transition-colors hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus className="size-4" />
           </button>

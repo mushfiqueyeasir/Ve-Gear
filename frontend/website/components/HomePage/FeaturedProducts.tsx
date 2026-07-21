@@ -22,15 +22,15 @@ export default function FeaturedProducts({
   if (products.length === 0) return null;
 
   return (
-    <section id="drops" className="relative py-24 md:py-40">
-      <div className="mx-auto max-w-[1600px] px-6 md:px-10">
-        <div className="mb-14 flex items-end justify-between">
-          <div>
+    <section id="drops" className="relative py-16 sm:py-24 md:py-40">
+      <div className="mx-auto max-w-[1600px] px-5 sm:px-6 md:px-10">
+        <div className="mb-8 flex flex-col gap-4 sm:mb-14 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
             <div className="mb-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
               <span className="h-px w-8 bg-primary" />
               {eyebrow || "Featured"}
             </div>
-            <h2 className="font-display text-5xl font-bold leading-[0.9] tracking-tight md:text-7xl">
+            <h2 className="font-display text-4xl font-bold leading-[0.9] tracking-tight sm:text-5xl md:text-7xl">
               {title ? (
                 <>
                   {title.split(".")[0]}
@@ -53,20 +53,22 @@ export default function FeaturedProducts({
               )}
             </h2>
             {subtitle && !title?.includes(subtitle) && (
-              <p className="mt-4 max-w-md text-muted-foreground">{subtitle}</p>
+              <p className="mt-4 max-w-md text-sm text-muted-foreground sm:text-base">
+                {subtitle}
+              </p>
             )}
           </div>
           {ctaLabel ? (
             <Link
               href={ctaHref}
-              className="hidden font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground transition hover:text-foreground md:block"
+              className="inline-flex min-h-11 shrink-0 items-center font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground transition hover:text-foreground"
             >
               {ctaLabel} →
             </Link>
           ) : null}
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
           {products.map((product) => (
             <ProductCard
               key={product.id}

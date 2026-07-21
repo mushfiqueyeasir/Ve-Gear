@@ -1,4 +1,5 @@
 import {
+  isLightPalette,
   normalizePalette,
   paletteToCssVars,
   type ThemePalette,
@@ -13,7 +14,9 @@ export default function ThemeStyle({
 }: {
   palette?: ThemePalette | null;
 }) {
-  const vars = paletteToCssVars(normalizePalette(palette));
+  const normalized = normalizePalette(palette);
+  const vars = paletteToCssVars(normalized);
+  const scheme = isLightPalette(normalized) ? "light" : "dark";
   const css = Object.entries(vars)
     .map(([key, value]) => `${key}:${value}`)
     .join(";");
@@ -22,7 +25,7 @@ export default function ThemeStyle({
     <style
       // Applied globally — must stay in <head>/<body> for cascade into all trees
       dangerouslySetInnerHTML={{
-        __html: `:root{${css}}`,
+        __html: `:root{color-scheme:${scheme};${css}}`,
       }}
     />
   );

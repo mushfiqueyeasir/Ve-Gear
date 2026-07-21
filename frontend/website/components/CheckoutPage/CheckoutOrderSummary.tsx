@@ -11,7 +11,7 @@ export default function CheckoutOrderSummary() {
   const subtotal = getTotal();
 
   return (
-    <div className="max-w-sm rounded-2xl border border-border bg-card p-6">
+    <div className="w-full max-w-none rounded-2xl border border-border bg-card p-5 sm:p-6 lg:max-w-sm">
       <h2 className="mb-6 font-display text-xl font-semibold">Order summary</h2>
 
       <div className="mb-6 space-y-4">
@@ -29,8 +29,8 @@ export default function CheckoutOrderSummary() {
                 {item.quantity}
               </div>
             </div>
-            <div className="flex-1">
-              <p className="mb-1 text-sm font-medium">{item.title}</p>
+            <div className="min-w-0 flex-1">
+              <p className="mb-1 truncate text-sm font-medium">{item.title}</p>
               <p className="mb-1 text-xs text-muted-foreground">
                 Size: {item.size}
               </p>

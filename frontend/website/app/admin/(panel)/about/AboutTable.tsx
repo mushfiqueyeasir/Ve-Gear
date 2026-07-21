@@ -95,7 +95,7 @@ function SortableRow({
       {canWrite ? (
         <button
           type="button"
-          className="flex size-9 shrink-0 cursor-grab items-center justify-center rounded-xl text-muted-foreground transition hover:bg-white/5 hover:text-foreground active:cursor-grabbing"
+          className="flex size-9 shrink-0 cursor-grab items-center justify-center rounded-xl text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground active:cursor-grabbing"
           aria-label="Drag to reorder"
           {...attributes}
           {...listeners}

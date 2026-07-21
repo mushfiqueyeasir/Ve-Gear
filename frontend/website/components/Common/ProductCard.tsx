@@ -58,7 +58,7 @@ export default function ProductCard({
 
   return (
     <>
-      <article className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-all duration-500 hover:border-white/20 hover:ring-glow">
+      <article className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-all duration-500 hover:border-foreground/20 hover:ring-glow">
         <div className="relative aspect-[4/5] overflow-hidden bg-surface">
           <Link href={href} className="block h-full w-full">
             <ImageLoader
@@ -83,8 +83,8 @@ export default function ProductCard({
 
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-90" />
 
-          <div className="absolute left-4 top-4 flex items-center gap-2">
-            <span className="rounded-full border border-border bg-background/60 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-foreground backdrop-blur-md">
+          <div className="absolute left-2.5 top-2.5 flex items-center gap-2 sm:left-4 sm:top-4">
+            <span className="rounded-full border border-border bg-background/60 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.18em] text-foreground backdrop-blur-md sm:px-3 sm:text-[10px] sm:tracking-[0.2em]">
               {badge}
             </span>
           </div>
@@ -111,7 +111,7 @@ export default function ProductCard({
               );
             }}
             className={cn(
-              "absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full border backdrop-blur-md transition",
+              "absolute right-2.5 top-2.5 grid size-11 place-items-center rounded-full border backdrop-blur-md transition sm:right-4 sm:top-4",
               isFavorite
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border bg-background/60 text-foreground hover:bg-primary hover:text-primary-foreground",
@@ -120,27 +120,37 @@ export default function ProductCard({
             <Heart className={cn("h-4 w-4", isFavorite && "fill-current")} />
           </button>
 
+          {/* Always visible on phone; hover-reveal from md up */}
           <button
+            type="button"
             onClick={() => !isOutOfStock && setIsModalOpen(true)}
             disabled={isOutOfStock}
-            className="absolute inset-x-4 bottom-4 flex translate-y-4 items-center justify-between rounded-full bg-foreground/95 px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.2em] text-background opacity-0 backdrop-blur-md transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-40"
+            className={cn(
+              "absolute inset-x-2.5 bottom-2.5 flex items-center justify-between rounded-full bg-foreground/95 px-3.5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-background backdrop-blur-md transition-all duration-500 sm:inset-x-4 sm:bottom-4 sm:px-5 sm:py-3 sm:text-[12px] sm:tracking-[0.2em]",
+              "translate-y-0 opacity-100",
+              "md:translate-y-4 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100",
+              "disabled:cursor-not-allowed disabled:opacity-40",
+            )}
           >
             {isOutOfStock ? "Sold Out" : "Quick Add"}
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4 shrink-0" />
           </button>
         </div>
 
-        <Link href={href} className="flex items-center justify-between p-5">
-          <div>
-            <h3 className="font-display text-lg font-semibold tracking-tight">
+        <Link
+          href={href}
+          className="flex items-start justify-between gap-3 p-3 sm:p-5"
+        >
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate font-display text-base font-semibold tracking-tight sm:text-lg">
               {title}
             </h3>
             <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
               VE Gear
             </p>
           </div>
-          <div className="text-right">
-            <div className="font-display text-xl font-semibold tracking-tight">
+          <div className="shrink-0 text-right">
+            <div className="font-display text-lg font-semibold tracking-tight sm:text-xl">
               {format(currentPrice)}
             </div>
             {originalPrice > currentPrice && (

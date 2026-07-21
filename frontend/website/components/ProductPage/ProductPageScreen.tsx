@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
 import { useProductStore } from "@/store/productStore";
 import type { TransformedProduct } from "@/type/productType";
 import type { Category } from "@/type/categoryType";
@@ -12,32 +11,26 @@ import ProductGrid from "./ProductGrid";
 interface ProductPageScreenProps {
   products: TransformedProduct[];
   categories: Category[];
+  /** From the server page URL (`?category=`). */
+  initialCategory?: string;
+  /** From the server page URL (`?search=`). */
+  initialSearch?: string;
 }
 
 export default function ProductPageScreen({
   products,
   categories,
+  initialCategory,
+  initialSearch,
 }: ProductPageScreenProps) {
-  const searchParams = useSearchParams();
   const { getFilteredProducts, filters, setCategories, setSearchQuery } =
     useProductStore();
 
+  // Seed filters from server URL props (no useSearchParams / Suspense).
   useEffect(() => {
-    const categoryParam = searchParams.get("category");
-    if (categoryParam) {
-      const categorySlug = categoryParam.trim();
-      if (categorySlug) {
-        setCategories([categorySlug]);
-      }
-    }
-
-    const searchParam = searchParams.get("search");
-    if (searchParam !== null) {
-      setSearchQuery(searchParam);
-    } else if (filters.searchQuery && !searchParam) {
-      setSearchQuery("");
-    }
-  }, [searchParams, setCategories, setSearchQuery, filters.searchQuery]);
+    if (initialCategory) setCategories([initialCategory]);
+    if (initialSearch != null) setSearchQuery(initialSearch);
+  }, [initialCategory, initialSearch, setCategories, setSearchQuery]);
 
   const filteredProducts = useMemo(() => {
     return getFilteredProducts(products);
@@ -45,12 +38,12 @@ export default function ProductPageScreen({
   }, [products, getFilteredProducts, filters]);
 
   return (
-    <section className="mx-auto max-w-[1600px] px-6 pb-24 pt-28 md:px-10 md:pt-36">
-      <div className="mb-10 border-b border-border pb-8">
+    <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-28 sm:px-6 md:px-10 md:pt-36">
+      <div className="mb-8 border-b border-border pb-6 sm:mb-10 sm:pb-8">
         <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
           The Collection
         </p>
-        <h1 className="mt-3 font-display text-5xl font-bold tracking-tight md:text-7xl">
+        <h1 className="mt-3 font-display text-4xl font-bold tracking-tight sm:text-5xl md:text-7xl">
           Shop all
         </h1>
       </div>
@@ -58,8 +51,12 @@ export default function ProductPageScreen({
         products={products}
         filteredProducts={filteredProducts}
         categories={categories}
+        preserveCategory={initialCategory}
       />
-      <ProductGrid products={filteredProducts} />
+      <ProductGrid
+        products={filteredProducts}
+        preserveCategory={initialCategory}
+      />
     </section>
   );
 }

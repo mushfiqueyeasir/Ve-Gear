@@ -32,7 +32,7 @@ export default function MobileMenu({
       <SheetTrigger asChild>
         {trigger || (
           <button
-            className="grid h-10 w-10 place-items-center rounded-full border border-border"
+            className="grid size-11 place-items-center rounded-full border border-border"
             aria-label="Open menu"
           >
             <Menu className="h-4 w-4" />
@@ -41,7 +41,7 @@ export default function MobileMenu({
       </SheetTrigger>
       <SheetContent
         side="left"
-        className="flex w-[300px] flex-col border-border bg-background p-0 text-foreground sm:w-[360px]"
+        className="flex w-[min(100vw-2.5rem,22rem)] flex-col border-border bg-background p-0 text-foreground"
       >
         <div className="border-b border-border px-5 py-5">
           <Link href="/" onClick={() => setIsSheetOpen(false)}>
@@ -67,7 +67,7 @@ export default function MobileMenu({
                 onClick={() => setIsSheetOpen(false)}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-white/5",
+                  "rounded-lg px-3 py-3.5 text-base font-medium transition-colors hover:bg-foreground/5",
                   active ? "bg-primary/10 text-primary" : "text-foreground",
                 )}
               >
@@ -78,7 +78,7 @@ export default function MobileMenu({
         </nav>
 
         <div className="mt-auto border-t border-border px-5 py-4">
-          <div className="flex items-center justify-center gap-5">
+          <div className="flex items-center justify-center gap-2">
             {socialLinks.map((social, index) => {
               const IconComponent = social.icon;
               return (
@@ -87,7 +87,7 @@ export default function MobileMenu({
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-muted-foreground transition-colors hover:text-primary"
+                  className="grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-primary"
                   aria-label={social.label}
                 >
                   <IconComponent size={22} />

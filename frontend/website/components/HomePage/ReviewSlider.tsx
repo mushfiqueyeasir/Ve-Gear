@@ -26,15 +26,15 @@ export default function ReviewSlider({
   const quotes = reviews.slice(0, 3);
 
   return (
-    <section className="relative py-24 md:py-40">
-      <div className="mx-auto max-w-[1600px] px-6 md:px-10">
-        <div className="mb-14 flex items-end justify-between">
-          <div>
+    <section className="relative py-16 sm:py-24 md:py-40">
+      <div className="mx-auto max-w-[1600px] px-5 sm:px-6 md:px-10">
+        <div className="mb-8 flex flex-col gap-4 sm:mb-14 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
             <div className="mb-4 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
               <span className="h-px w-8 bg-primary" />
               {eyebrow || subtitle || "Community"}
             </div>
-            <h2 className="font-display text-5xl font-bold leading-[0.9] tracking-tight md:text-6xl">
+            <h2 className="font-display text-4xl font-bold leading-[0.9] tracking-tight sm:text-5xl md:text-6xl">
               {title ? (
                 <>
                   {title.replace(/\.$/, "").split(" ").slice(0, -1).join(" ")}{" "}
@@ -54,14 +54,14 @@ export default function ReviewSlider({
           {ctaLabel ? (
             <Link
               href={ctaHref}
-              className="hidden font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground hover:text-foreground md:block"
+              className="inline-flex min-h-11 shrink-0 items-center font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground hover:text-foreground"
             >
               {ctaLabel} →
             </Link>
           ) : null}
         </div>
 
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-6">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-6">
           {grid.map((review) => (
             <div
               key={review.id}

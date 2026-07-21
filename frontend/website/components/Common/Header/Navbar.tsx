@@ -59,10 +59,10 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
             : "bg-transparent"
         }`}
       >
-        <div className="mx-auto flex h-20 max-w-[1600px] items-center justify-between px-6 md:px-10">
+        <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-2 px-4 sm:h-20 sm:px-6 md:px-10">
           <Link
             href="/"
-            className="flex items-center gap-2"
+            className="flex min-w-0 items-center gap-2"
             aria-label={storeName}
           >
             <Image
@@ -71,7 +71,7 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
               width={160}
               height={40}
               priority
-              className="h-8 w-auto"
+              className="h-7 w-auto sm:h-8"
             />
           </Link>
 
@@ -103,7 +103,7 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
             })}
           </nav>
 
-          <div className="flex items-center gap-1">
+          <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
             <IconBtn label="Search" onClick={() => setIsSearchOpen(true)}>
               <Search className="h-4 w-4" />
             </IconBtn>
@@ -114,7 +114,7 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
                 isActivePath(pathname, "/wishlist") ? "page" : undefined
               }
               className={cn(
-                "relative grid h-10 w-10 place-items-center rounded-full transition hover:bg-white/5",
+                "relative grid size-11 place-items-center rounded-full transition hover:bg-foreground/5",
                 isActivePath(pathname, "/wishlist")
                   ? "text-primary"
                   : "text-foreground/80 hover:text-foreground",
@@ -140,7 +140,7 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
                 isActivePath(pathname, "/cart") ? "page" : undefined
               }
               className={cn(
-                "relative grid h-10 w-10 place-items-center rounded-full transition hover:bg-white/5",
+                "relative grid size-11 place-items-center rounded-full transition hover:bg-foreground/5",
                 isActivePath(pathname, "/cart")
                   ? "text-primary"
                   : "text-foreground/80 hover:text-foreground",
@@ -153,14 +153,14 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
                 </span>
               )}
             </Link>
-            <div className="ml-1 md:hidden">
+            <div className="md:hidden">
               <MobileMenu
                 menuData={menuData}
                 logoUrl={logoUrl}
                 storeName={storeName}
                 trigger={
                   <button
-                    className="grid h-10 w-10 place-items-center rounded-full border border-border"
+                    className="grid size-11 place-items-center rounded-full border border-border"
                     aria-label="Menu"
                   >
                     <Menu className="h-4 w-4" />
@@ -189,7 +189,7 @@ function IconBtn({
     <button
       aria-label={label}
       onClick={onClick}
-      className="relative grid h-10 w-10 place-items-center rounded-full text-foreground/80 transition hover:bg-white/5 hover:text-foreground"
+      className="relative grid size-11 place-items-center rounded-full text-foreground/80 transition hover:bg-foreground/5 hover:text-foreground"
     >
       {children}
     </button>

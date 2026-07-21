@@ -34,6 +34,9 @@ const ROLE_LABEL: Record<string, string> = {
   viewer: "Viewer",
 };
 
+/** White mark → black on light palettes (Daylight) via html[data-theme]. */
+const logoToneClass = "transition-[filter] [[data-theme=light]_&]:brightness-0";
+
 export default function AdminShell({
   session,
   children,
@@ -105,7 +108,7 @@ export default function AdminShell({
                         "flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors",
                         active
                           ? "bg-primary/15 text-primary"
-                          : "text-sidebar-foreground/70 hover:bg-white/5 hover:text-foreground",
+                          : "text-sidebar-foreground/70 hover:bg-foreground/5 hover:text-foreground",
                         collapsed && "justify-center",
                       )}
                     >
@@ -123,10 +126,10 @@ export default function AdminShell({
   );
 
   const SidebarInner = () => (
-    <div className="flex h-full min-h-0 flex-col bg-[#0a0a0a] text-sidebar-foreground">
+    <div className="flex h-full min-h-0 flex-col bg-sidebar text-sidebar-foreground">
       <div
         className={cn(
-          "flex h-16 shrink-0 items-center gap-2 border-b border-border px-4",
+          "flex h-16 shrink-0 items-center gap-2 border-b border-sidebar-border px-4",
           collapsed && "justify-center px-2",
         )}
       >
@@ -136,7 +139,7 @@ export default function AdminShell({
             alt="VE Gear"
             width={64}
             height={64}
-            className="size-7"
+            className={cn("size-7", logoToneClass)}
           />
         ) : (
           <div>
@@ -145,7 +148,7 @@ export default function AdminShell({
               alt="VE Gear"
               width={400}
               height={160}
-              className="h-6 w-auto"
+              className={cn("h-6 w-auto", logoToneClass)}
             />
             <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
               Admin
@@ -154,12 +157,12 @@ export default function AdminShell({
         )}
       </div>
       <NavList />
-      <div className="shrink-0 border-t border-border p-3">
+      <div className="shrink-0 border-t border-sidebar-border p-3">
         <Link
           href="/"
           target="_blank"
           className={cn(
-            "flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm text-muted-foreground transition hover:bg-white/5 hover:text-foreground",
+            "flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground",
             collapsed && "justify-center",
           )}
           title="View storefront"
@@ -176,7 +179,7 @@ export default function AdminShell({
       <div className="flex h-svh overflow-hidden bg-background text-foreground">
         <aside
           className={cn(
-            "hidden h-full shrink-0 border-r border-border transition-all lg:block",
+            "hidden h-full shrink-0 border-r border-sidebar-border transition-all lg:block",
             collapsed ? "w-16" : "w-60",
           )}
         >
@@ -186,10 +189,10 @@ export default function AdminShell({
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <div
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+              className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
               onClick={() => setMobileOpen(false)}
             />
-            <div className="absolute left-0 top-0 h-full w-64 border-r border-border bg-[#0a0a0a]">
+            <div className="absolute left-0 top-0 h-full w-64 border-r border-sidebar-border bg-sidebar shadow-2xl">
               <SidebarInner />
               <button
                 className="absolute right-3 top-4 text-muted-foreground hover:text-foreground"
@@ -204,14 +207,14 @@ export default function AdminShell({
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <header className="z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background/90 px-4 backdrop-blur-md lg:px-6">
             <button
-              className="lg:hidden"
+              className="grid size-11 place-items-center rounded-lg text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground lg:hidden"
               onClick={() => setMobileOpen(true)}
               aria-label="Open menu"
             >
               <Menu className="size-5" />
             </button>
             <button
-              className="hidden text-muted-foreground transition hover:text-foreground lg:inline-flex"
+              className="hidden size-11 place-items-center rounded-lg text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground lg:grid"
               onClick={() => setCollapsed((c) => !c)}
               aria-label="Toggle sidebar"
             >
@@ -274,7 +277,9 @@ export default function AdminShell({
           </header>
 
           <ScrollArea className="min-h-0 flex-1">
-            <main className="admin-content p-4 lg:p-8">{children}</main>
+            <main className="admin-content relative p-4 lg:p-8">
+              {children}
+            </main>
           </ScrollArea>
         </div>
       </div>

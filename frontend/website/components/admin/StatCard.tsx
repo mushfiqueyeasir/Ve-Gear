@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+import Link from "next/link";
 import { Icon } from "./Icon";
 import { cn } from "@/lib/utils";
 
@@ -8,39 +10,78 @@ export function StatCard({
   icon,
   hint,
   accent = "primary",
+  href,
+  className,
+  style,
 }: {
   label: string;
   value: string | number;
   icon: string;
   hint?: string;
   accent?: "primary" | "green" | "amber" | "blue" | "red";
+  href?: string;
+  className?: string;
+  style?: CSSProperties;
 }) {
+  // Mid-tone accents stay readable on both dark shells and Daylight.
   const accents: Record<string, string> = {
     primary: "bg-primary/15 text-primary",
-    green: "bg-emerald-500/15 text-emerald-400",
-    amber: "bg-amber-500/15 text-amber-400",
-    blue: "bg-sky-500/15 text-sky-400",
-    red: "bg-red-500/15 text-red-400",
+    green: "bg-emerald-500/15 text-emerald-600",
+    amber: "bg-amber-500/15 text-amber-600",
+    blue: "bg-sky-500/15 text-sky-600",
+    red: "bg-red-500/15 text-red-600",
   };
-  return (
-    <div className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/30">
-      <div className="flex items-center justify-between">
+
+  const body = (
+    <>
+      <div className="flex items-center justify-between gap-3">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           {label}
         </p>
         <span
           className={cn(
-            "flex size-9 items-center justify-center rounded-full",
+            "flex size-10 items-center justify-center rounded-full",
             accents[accent],
           )}
         >
           <Icon name={icon} className="size-4" />
         </span>
       </div>
-      <p className="mt-3 font-display text-3xl font-bold tracking-tight text-foreground">
+      <p className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground">
         {value}
       </p>
-      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
+      {hint ? (
+        <p className="mt-1.5 text-xs text-muted-foreground">{hint}</p>
+      ) : null}
+    </>
+  );
+
+  const shellClass = cn(
+    "group relative overflow-hidden rounded-2xl border border-border bg-card/90 p-5 shadow-sm transition-all duration-300",
+    "hover:border-primary/35 hover:shadow-[0_20px_60px_-36px_rgb(var(--primary-rgb)/0.45)]",
+    href && "cursor-pointer",
+    className,
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className={shellClass} style={style}>
+        <span
+          className="pointer-events-none absolute -right-6 -top-6 size-24 rounded-full bg-primary/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          aria-hidden
+        />
+        {body}
+      </Link>
+    );
+  }
+
+  return (
+    <div className={shellClass} style={style}>
+      <span
+        className="pointer-events-none absolute -right-6 -top-6 size-24 rounded-full bg-primary/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        aria-hidden
+      />
+      {body}
     </div>
   );
 }

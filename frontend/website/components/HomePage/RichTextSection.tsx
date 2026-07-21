@@ -46,16 +46,16 @@ export default function RichTextSection({
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
-                <div className="glass absolute bottom-6 left-6 right-6 flex items-center justify-between rounded-2xl px-5 py-4">
-                  <div>
+                <div className="glass absolute bottom-4 left-4 right-4 flex items-start justify-between gap-3 rounded-2xl px-4 py-3 sm:bottom-6 sm:left-6 sm:right-6 sm:px-5 sm:py-4">
+                  <div className="min-w-0">
                     <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
                       Fabric
                     </div>
-                    <div className="mt-1 font-display text-xl font-semibold">
+                    <div className="mt-1 truncate font-display text-lg font-semibold sm:text-xl">
                       240 GSM Cotton
                     </div>
                   </div>
-                  <div className="font-mono text-xs text-primary">
+                  <div className="shrink-0 font-mono text-xs text-primary">
                     // LAB 04
                   </div>
                 </div>

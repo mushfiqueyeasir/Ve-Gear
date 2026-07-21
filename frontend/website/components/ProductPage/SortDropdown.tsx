@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 import DropdownHeader from "./DropdownHeader";
+import { filterTriggerClass } from "./filterTrigger";
+import { cn } from "@/lib/utils";
 
 export default function SortDropdown() {
   const { filters, setSortBy } = useProductStore();
@@ -37,22 +39,27 @@ export default function SortDropdown() {
 
   return (
     <DropdownMenu modal={false}>
-      <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-normal outline-none border-b border-transparent hover:border-black transition-colors">
-        Sort by: {getSortLabel()}
-        <ChevronDown className="w-4 h-4" />
+      <DropdownMenuTrigger
+        className={cn(filterTriggerClass, "max-w-[55vw] sm:max-w-none")}
+      >
+        <span className="truncate">
+          <span className="sm:hidden">Sort</span>
+          <span className="hidden sm:inline">Sort by: {getSortLabel()}</span>
+        </span>
+        <ChevronDown className="h-4 w-4 shrink-0" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 p-0">
+      <DropdownMenuContent className="w-[min(16rem,calc(100vw-2rem))] p-0">
         <DropdownHeader
           selectedCount={filters.sortBy !== "price-low" ? 1 : 0}
           onReset={() => setSortBy("price-low")}
           label="selected"
         />
         <DropdownMenuSeparator />
-        <div className="p-2 space-y-1">
+        <div className="space-y-1 p-2">
           {sortOptions.map((option) => (
             <label
               key={option.value}
-              className="flex items-center gap-2 px-2 py-2 cursor-pointer hover:bg-gray-50 rounded"
+              className="flex cursor-pointer items-center gap-2 rounded px-2 py-3 hover:bg-foreground/5"
             >
               <input
                 type="radio"
@@ -62,9 +69,9 @@ export default function SortDropdown() {
                 onChange={() =>
                   setSortBy(option.value as typeof filters.sortBy)
                 }
-                className="w-4 h-4 border border-gray-300 rounded-full text-black focus:ring-2 focus:ring-black focus:ring-offset-0"
+                className="h-4 w-4 rounded-full border border-border text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0"
               />
-              <span className="text-sm font-normal text-black">
+              <span className="text-sm font-normal text-foreground">
                 {option.label}
               </span>
             </label>

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 import type { TransformedProduct } from "@/type/productType";
+import { filterTriggerClass } from "./filterTrigger";
 
 interface PriceFilterProps {
   products: TransformedProduct[];
@@ -18,6 +19,7 @@ export default function PriceFilter({ products }: PriceFilterProps) {
   const { filters, setPriceRange } = useProductStore();
 
   const highestPrice = useMemo(() => {
+    if (products.length === 0) return 0;
     return Math.max(...products.map((p) => p.currentPrice));
   }, [products]);
 
@@ -36,43 +38,46 @@ export default function PriceFilter({ products }: PriceFilterProps) {
 
   return (
     <DropdownMenu modal={false}>
-      <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-normal outline-none border-b border-transparent hover:border-foreground transition-colors">
+      <DropdownMenuTrigger className={filterTriggerClass}>
         Price
-        <ChevronDown className="w-4 h-4" />
+        <ChevronDown className="h-4 w-4" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-80 p-0">
-        <div className="flex items-center justify-between px-3 py-2 border-b">
-          <span className="text-sm text-gray-600">
-            The highest price is Tk {highestPrice.toLocaleString()}.00
+      <DropdownMenuContent className="w-[min(20rem,calc(100vw-2rem))] p-0">
+        <div className="flex items-start justify-between gap-3 border-b border-border px-3 py-3">
+          <span className="min-w-0 text-sm text-muted-foreground">
+            Highest: ৳{highestPrice.toLocaleString()}
           </span>
           {isPriceFilterActive && (
             <button
+              type="button"
               onClick={() => setPriceRange(null, null)}
-              className="text-sm text-foreground underline hover:no-underline"
+              className="shrink-0 text-sm text-foreground underline hover:no-underline"
             >
               Reset
             </button>
           )}
         </div>
-        <div className="p-4 space-y-3">
+        <div className="space-y-3 p-4">
           <div className="flex items-center gap-2">
-            <span className="text-sm">৳</span>
+            <span className="text-sm text-muted-foreground">৳</span>
             <input
               type="number"
+              inputMode="numeric"
               placeholder="From"
               value={filters.priceRange.from ?? ""}
               onChange={(e) => handlePriceFrom(e.target.value)}
-              className="flex-1 px-3 py-2 border border-border rounded outline-none focus:border-black text-sm"
+              className="h-11 min-w-0 flex-1 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm">৳</span>
+            <span className="text-sm text-muted-foreground">৳</span>
             <input
               type="number"
+              inputMode="numeric"
               placeholder="To"
               value={filters.priceRange.to ?? ""}
               onChange={(e) => handlePriceTo(e.target.value)}
-              className="flex-1 px-3 py-2 border border-border rounded outline-none focus:border-black text-sm"
+              className="h-11 min-w-0 flex-1 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
         </div>

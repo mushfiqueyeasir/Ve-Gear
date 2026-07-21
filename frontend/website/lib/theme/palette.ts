@@ -134,6 +134,24 @@ export function hexToRgbChannels(hex: string): string {
   return `${r}, ${g}, ${b}`;
 }
 
+/** Relative luminance 0–1 (WCAG). */
+export function relativeLuminance(hex: string): number {
+  const normalized = normalizeHex(hex, DEFAULT_PALETTE.background).slice(1);
+  const n = Number.parseInt(normalized, 16);
+  const channels = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+
+/** True when the palette background is light (e.g. Daylight). */
+export function isLightPalette(
+  palette: ThemePalette | null | undefined,
+): boolean {
+  return relativeLuminance(normalizePalette(palette).background) > 0.45;
+}
+
 /** CSS custom properties applied on `:root` for the whole app. */
 export function paletteToCssVars(
   palette: ThemePalette,
@@ -174,7 +192,9 @@ export function paletteToCssVars(
     "--chart-3": p.mutedForeground,
     "--chart-4": p.border,
     "--chart-5": p.card,
-    "--sidebar": p.background,
+    // Surface gives the sidebar slight contrast vs page background on every preset
+    // (including Daylight: cream page + white sidebar).
+    "--sidebar": p.surface,
     "--sidebar-foreground": p.foreground,
     "--sidebar-primary": p.primary,
     "--sidebar-primary-foreground": p.primaryForeground,

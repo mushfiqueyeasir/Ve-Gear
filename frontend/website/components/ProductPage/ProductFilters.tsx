@@ -8,22 +8,24 @@ import SortDropdown from "./SortDropdown";
 import ProductCount from "./ProductCount";
 import type { TransformedProduct } from "@/type/productType";
 import type { Category } from "@/type/categoryType";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 interface ProductFiltersProps {
   products: TransformedProduct[];
   filteredProducts: TransformedProduct[];
   categories: Category[];
+  /** Keep this category in the URL when resetting other filters. */
+  preserveCategory?: string;
 }
 
 export default function ProductFilters({
   products,
   filteredProducts,
   categories,
+  preserveCategory,
 }: ProductFiltersProps) {
   const { resetFilters, filters } = useProductStore();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const hasActiveFilters =
     filters.availability.length > 0 ||
@@ -35,38 +37,40 @@ export default function ProductFilters({
 
   const handleResetAll = () => {
     resetFilters();
-    const newSearchParams = new URLSearchParams();
-    const categoryParam = searchParams.get("category");
-    if (categoryParam) {
-      newSearchParams.set("category", categoryParam);
+    if (preserveCategory) {
+      useProductStore.getState().setCategories([preserveCategory]);
+      router.push(`/product?category=${encodeURIComponent(preserveCategory)}`);
+      return;
     }
-    const newUrl = `/product${newSearchParams.toString() ? `?${newSearchParams.toString()}` : ""}`;
-    router.push(newUrl);
+    router.push("/product");
   };
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 lg:mb-8">
-      <div className="flex flex-wrap items-center gap-4">
-        <span className="text-sm font-normal">Filter:</span>
+    <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:gap-4">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide [-webkit-overflow-scrolling:touch] sm:flex-wrap sm:overflow-visible sm:pb-0">
+        <span className="hidden shrink-0 text-sm font-normal text-muted-foreground sm:inline">
+          Filter:
+        </span>
         <CategoryFilter products={products} categories={categories} />
         <AvailabilityFilter products={products} />
         <PriceFilter products={products} />
         <button
+          type="button"
           onClick={handleResetAll}
           disabled={!hasActiveFilters}
-          className={`text-sm font-normal border-b transition-colors ${
+          className={`inline-flex h-11 shrink-0 items-center px-2 text-sm font-normal transition-colors ${
             hasActiveFilters
-              ? "border-transparent hover:border-foreground cursor-pointer"
-              : "border-transparent opacity-50 cursor-not-allowed"
+              ? "cursor-pointer text-foreground underline-offset-4 hover:underline"
+              : "cursor-not-allowed text-muted-foreground opacity-50"
           }`}
         >
-          Reset all
+          Reset
         </button>
       </div>
 
-      <div className="flex items-center gap-4">
-        <SortDropdown />
+      <div className="flex min-w-0 items-center justify-between gap-3">
         <ProductCount count={filteredProducts.length} />
+        <SortDropdown />
       </div>
     </div>
   );

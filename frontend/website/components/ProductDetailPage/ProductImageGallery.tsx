@@ -94,7 +94,7 @@ export default function ProductImageGallery({
             onClick={() => scrollThumbnails("left")}
             disabled={!canScrollLeft}
             className={cn(
-              "absolute left-0 top-1/2 z-10 grid size-9 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-foreground backdrop-blur-md transition hover:border-primary",
+              "absolute left-0 top-1/2 z-10 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-foreground backdrop-blur-md transition hover:border-primary",
               !canScrollLeft && "pointer-events-none opacity-40",
             )}
             aria-label="Previous thumbnails"
@@ -106,7 +106,7 @@ export default function ProductImageGallery({
             onClick={() => scrollThumbnails("right")}
             disabled={!canScrollRight}
             className={cn(
-              "absolute right-0 top-1/2 z-10 grid size-9 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-foreground backdrop-blur-md transition hover:border-primary",
+              "absolute right-0 top-1/2 z-10 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-foreground backdrop-blur-md transition hover:border-primary",
               !canScrollRight && "pointer-events-none opacity-40",
             )}
             aria-label="Next thumbnails"

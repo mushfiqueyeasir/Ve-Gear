@@ -62,8 +62,8 @@ const ScrollBar = React.forwardRef<
         className={cn(
           "relative flex-1 rounded-full transition-colors",
           variant === "brand"
-            ? "bg-white/18 hover:bg-primary/80 active:bg-primary"
-            : "bg-white/15 hover:bg-white/30",
+            ? "bg-foreground/18 hover:bg-primary/80 active:bg-primary"
+            : "bg-foreground/15 hover:bg-foreground/30",
         )}
       />
     </ScrollAreaPrimitive.ScrollAreaScrollbar>

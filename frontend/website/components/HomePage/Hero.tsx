@@ -83,8 +83,9 @@ export default function Hero({ banners, description, stats }: HeroProps) {
       <div className="absolute inset-y-0 right-0 w-full overflow-hidden md:left-[36%] md:w-auto">
         <div className="relative h-full w-full">
           {slides.map((slide, i) => {
-            const src = slide.imageUrl ?? slide.mobileImageUrl;
-            if (!src) return null;
+            const desktopSrc = slide.imageUrl ?? slide.mobileImageUrl;
+            const mobileSrc = slide.mobileImageUrl ?? slide.imageUrl;
+            if (!desktopSrc && !mobileSrc) return null;
             const active = i === index;
             return (
               <div
@@ -95,29 +96,44 @@ export default function Hero({ banners, description, stats }: HeroProps) {
                 )}
                 aria-hidden={!active}
               >
-                <Image
-                  src={src}
-                  alt={slide.title?.trim() || "Banner slide"}
-                  fill
-                  priority={i === 0}
-                  sizes="(max-width: 768px) 100vw, 64vw"
-                  className={cn(
-                    "object-cover object-center opacity-70 transition-transform duration-[7000ms] ease-out will-change-transform md:opacity-100",
-                    active ? "scale-105" : "scale-[1.02]",
-                  )}
-                />
+                {mobileSrc ? (
+                  <Image
+                    src={mobileSrc}
+                    alt={slide.title?.trim() || "Banner slide"}
+                    fill
+                    priority={i === 0}
+                    sizes="100vw"
+                    className={cn(
+                      "object-cover object-center opacity-70 transition-transform duration-[7000ms] ease-out will-change-transform md:hidden",
+                      active ? "scale-105" : "scale-[1.02]",
+                    )}
+                  />
+                ) : null}
+                {desktopSrc ? (
+                  <Image
+                    src={desktopSrc}
+                    alt={slide.title?.trim() || "Banner slide"}
+                    fill
+                    priority={i === 0}
+                    sizes="64vw"
+                    className={cn(
+                      "hidden object-cover object-center transition-transform duration-[7000ms] ease-out will-change-transform md:block",
+                      active ? "scale-105" : "scale-[1.02]",
+                    )}
+                  />
+                ) : null}
               </div>
             );
           })}
-          {/* Wide soft fade — hard edge of the column sits under solid background */}
+          {/* Soft edge fade — lighter on mobile (full-bleed), stronger on desktop split */}
           <div
-            className="absolute inset-0 z-[2]"
+            className="absolute inset-0 z-[2] hidden md:block"
             style={{
               background:
                 "linear-gradient(90deg, var(--background) 0%, color-mix(in srgb, var(--background) 92%, transparent) 18%, color-mix(in srgb, var(--background) 55%, transparent) 38%, color-mix(in srgb, var(--background) 18%, transparent) 58%, transparent 78%)",
             }}
           />
-          <div className="absolute inset-0 z-[2] bg-gradient-to-t from-background via-transparent to-transparent" />
+          <div className="absolute inset-0 z-[2] bg-gradient-to-t from-background via-background/20 to-transparent md:via-transparent" />
         </div>
       </div>
 
@@ -137,20 +153,20 @@ export default function Hero({ banners, description, stats }: HeroProps) {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 mx-auto flex h-full max-w-[1600px] flex-col justify-between px-6 pb-6 pt-24 md:px-10 md:pb-8 md:pt-28">
+      <div className="relative z-10 mx-auto flex h-full max-w-[1600px] flex-col justify-between px-5 pb-4 pt-20 sm:px-6 sm:pb-6 sm:pt-24 md:px-10 md:pb-8 md:pt-28">
         <div key={banner.id} className="max-w-3xl">
           {subtitle ? (
             <div
-              className="mb-4 inline-flex animate-hero-in items-center gap-3 rounded-full border border-border bg-surface/60 px-3.5 py-1 text-[10px] font-medium uppercase tracking-[0.25em] text-muted-foreground backdrop-blur-md md:mb-6 md:px-4 md:py-1.5 md:text-[11px]"
+              className="mb-3 inline-flex max-w-full animate-hero-in items-center gap-2.5 truncate rounded-full border border-border bg-surface/60 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-md sm:mb-4 sm:gap-3 sm:px-3.5 md:mb-6 md:px-4 md:py-1.5 md:text-[11px] md:tracking-[0.25em]"
               style={{ animationDelay: "0.05s" }}
             >
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-              {subtitle}
+              <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-primary" />
+              <span className="truncate">{subtitle}</span>
             </div>
           ) : null}
 
           <h1
-            className="animate-hero-in font-display text-[clamp(2.6rem,7.5vw,5.75rem)] font-bold leading-[0.88] tracking-[-0.045em] text-foreground md:text-[clamp(3rem,8vw,6.5rem)]"
+            className="animate-hero-in font-display text-[clamp(2.35rem,9vw,5.75rem)] font-bold leading-[0.88] tracking-[-0.045em] text-foreground md:text-[clamp(3rem,8vw,6.5rem)]"
             style={{ animationDelay: "0.12s" }}
           >
             {renderTitle(title)}
@@ -158,7 +174,7 @@ export default function Hero({ banners, description, stats }: HeroProps) {
 
           {blurb ? (
             <p
-              className="mt-4 max-w-md animate-hero-in text-sm leading-relaxed text-muted-foreground md:mt-6 md:text-base"
+              className="mt-3 line-clamp-3 max-w-md animate-hero-in text-sm leading-relaxed text-muted-foreground sm:mt-4 sm:line-clamp-none md:mt-6 md:text-base"
               style={{ animationDelay: "0.22s" }}
             >
               {blurb}
@@ -166,19 +182,19 @@ export default function Hero({ banners, description, stats }: HeroProps) {
           ) : null}
 
           <div
-            className="mt-5 flex animate-hero-in flex-wrap items-center gap-2.5 md:mt-8 md:gap-3"
+            className="mt-5 flex w-full animate-hero-in flex-col gap-2.5 sm:mt-6 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center md:mt-8 md:gap-3"
             style={{ animationDelay: "0.32s" }}
           >
             <Link
               href={ctaUrl}
-              className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-full bg-foreground px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-background transition-all hover:pl-7 hover:pr-5 md:px-8 md:py-3.5 md:text-[13px]"
+              className="group relative inline-flex h-12 w-full items-center justify-center gap-2.5 overflow-hidden rounded-full bg-foreground px-6 text-[12px] font-semibold uppercase tracking-[0.18em] text-background transition-all hover:bg-primary hover:text-primary-foreground sm:h-auto sm:w-auto sm:justify-start sm:py-3 sm:hover:pl-7 sm:hover:pr-5 md:px-8 md:py-3.5 md:text-[13px]"
             >
               {ctaLabel}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
               href="/product"
-              className="group inline-flex items-center gap-2.5 rounded-full border border-border bg-transparent px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-foreground transition hover:border-primary hover:text-primary md:px-8 md:py-3.5 md:text-[13px]"
+              className="group inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-full border border-border bg-transparent px-6 text-[12px] font-semibold uppercase tracking-[0.18em] text-foreground transition hover:border-primary hover:text-primary sm:h-auto sm:w-auto sm:justify-start sm:py-3 md:px-8 md:py-3.5 md:text-[13px]"
             >
               Explore New Drop
               <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
@@ -187,36 +203,38 @@ export default function Hero({ banners, description, stats }: HeroProps) {
         </div>
 
         <div
-          className="mt-4 flex shrink-0 animate-float-up items-end justify-between border-t border-border/80 pt-4 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground md:mt-6 md:pt-5 md:text-[11px]"
+          className="mt-3 flex min-w-0 shrink-0 animate-float-up flex-col gap-3 border-t border-border/80 pt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:mt-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:pt-4 sm:tracking-[0.22em] md:mt-6 md:pt-5 md:text-[11px]"
           style={{ animationDelay: "0.45s" }}
         >
-          <div className="grid grid-cols-2 gap-x-8 gap-y-1.5 md:grid-cols-4 md:gap-x-10">
+          <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-4 gap-y-2 md:grid-cols-4 md:gap-x-10">
             {statItems.map((s) => (
               <Stat key={`${s.label}-${s.value}`} k={s.label} v={s.value} />
             ))}
           </div>
           {multiple ? (
-            <div className="hidden items-center gap-3 md:flex">
+            <div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end">
               <span className="tabular-nums text-foreground/80">
                 {String(index + 1).padStart(2, "0")} /{" "}
                 {String(count).padStart(2, "0")}
               </span>
-              <button
-                type="button"
-                onClick={() => go(-1)}
-                aria-label="Previous slide"
-                className="rounded-full border border-border p-2 transition hover:border-primary"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => go(1)}
-                aria-label="Next slide"
-                className="rounded-full border border-border p-2 transition hover:border-primary"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => go(-1)}
+                  aria-label="Previous slide"
+                  className="grid size-11 place-items-center rounded-full border border-border transition hover:border-primary"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => go(1)}
+                  aria-label="Next slide"
+                  className="grid size-11 place-items-center rounded-full border border-border transition hover:border-primary"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           ) : (
             <div className="hidden items-center gap-2 md:flex">
@@ -263,9 +281,9 @@ function renderTitle(title: string) {
 
 function Stat({ k, v }: { k: string; v: string }) {
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-muted-foreground/60">{k}</span>
-      <span className="text-foreground">{v}</span>
+    <div className="flex min-w-0 flex-col gap-1">
+      <span className="truncate text-muted-foreground/60">{k}</span>
+      <span className="truncate text-foreground">{v}</span>
     </div>
   );
 }
