@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "sonner";
+import AppToaster from "@/components/Common/AppToaster";
 import ThemeStyle from "@/components/Common/ThemeStyle";
 import { isLightPalette, normalizePalette } from "@/lib/theme/palette";
 import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetadata";
@@ -63,7 +63,7 @@ export default async function RootLayout({
       >
         <ThemeStyle palette={palette} />
         {children}
-        <Toaster position="bottom-right" theme={light ? "light" : "dark"} />
+        <AppToaster theme={light ? "light" : "dark"} />
       </body>
     </html>
   );
