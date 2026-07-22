@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,16 +18,20 @@ export function OrderStatusControl({
 }) {
   const { canWrite } = useAdmin();
   const [pending, startTransition] = useTransition();
+  const [pendingStatus, setPendingStatus] = useState<OrderStatus | null>(null);
   const next = ORDER_TRANSITIONS[status] ?? [];
 
   const change = (to: OrderStatus) => {
+    setPendingStatus(to);
     startTransition(async () => {
       const res = await updateOrderStatus(orderId, to);
       if (res.error) {
         toast.error(res.error);
+        setPendingStatus(null);
         return;
       }
       toast.success(`Order marked ${to}`);
+      setPendingStatus(null);
     });
   };
 
@@ -49,19 +53,22 @@ export function OrderStatusControl({
 
   return (
     <div className="flex flex-wrap gap-2">
-      {next.map((to) => (
-        <Button
-          key={to}
-          size="sm"
-          variant={to === "cancelled" ? "destructive" : "default"}
-          className="rounded-full capitalize"
-          disabled={pending}
-          onClick={() => change(to)}
-        >
-          {pending && <Loader2 className="mr-2 size-4 animate-spin" />}
-          Mark {to}
-        </Button>
-      ))}
+      {next.map((to) => {
+        const isLoading = pending && pendingStatus === to;
+        return (
+          <Button
+            key={to}
+            size="sm"
+            variant={to === "cancelled" ? "destructive" : "default"}
+            className="rounded-full capitalize"
+            disabled={pending}
+            onClick={() => change(to)}
+          >
+            {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
+            Mark {to}
+          </Button>
+        );
+      })}
     </div>
   );
 }

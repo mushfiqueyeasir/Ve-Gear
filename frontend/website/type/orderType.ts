@@ -37,3 +37,35 @@ export interface OrderFormResponse {
   message?: string;
   error?: string;
 }
+
+export interface TrackOrderItem {
+  title: string;
+  size: string | null;
+  color: string | null;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface TrackOrderResult {
+  orderNumber: string;
+  status:
+    | "pending"
+    | "confirmed"
+    | "processing"
+    | "shipped"
+    | "delivered"
+    | "cancelled";
+  createdAt: string;
+  paymentMethod: string;
+  items: TrackOrderItem[];
+  totals: {
+    subtotal: number;
+    shipping: number;
+    total: number;
+  };
+  delivery: {
+    name: string;
+    city: string | null;
+    zone: string;
+  };
+}

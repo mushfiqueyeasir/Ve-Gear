@@ -32,6 +32,7 @@ export default function Footer({ settings }: FooterProps) {
   ];
 
   const supportLinks: FooterLink[] = [
+    { label: "Track order", href: "/track-order" },
     { label: "Shipping & returns", href: "/refund-policy" },
     { label: "Contact", href: "/contact-us" },
   ];

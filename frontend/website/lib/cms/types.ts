@@ -29,6 +29,7 @@ export type SeoPageKey =
   | "cart"
   | "wishlist"
   | "checkout"
+  | "track"
   | "privacy"
   | "terms"
   | "refund";
@@ -42,6 +43,7 @@ export const SEO_PAGE_KEYS: SeoPageKey[] = [
   "cart",
   "wishlist",
   "checkout",
+  "track",
   "privacy",
   "terms",
   "refund",
@@ -59,6 +61,7 @@ export const SEO_PAGE_META: Record<
   cart: { label: "Cart", path: "/cart" },
   wishlist: { label: "Favorites", path: "/wishlist" },
   checkout: { label: "Checkout", path: "/checkout" },
+  track: { label: "Track Order", path: "/track-order" },
   privacy: { label: "Privacy Policy", path: "/privacy-policy" },
   terms: { label: "Terms of Service", path: "/terms-of-service" },
   refund: { label: "Refund Policy", path: "/refund-policy" },
@@ -121,6 +124,13 @@ export const DEFAULT_PAGES_SEO: Record<SeoPageKey, CmsSeo> = {
     description:
       "Complete your purchase at VE Gear with a fast, secure checkout.",
     keywords: "VE Gear, Checkout, Secure Checkout",
+    og_image_path: null,
+  },
+  track: {
+    title: "Track Order | VE Gear",
+    description:
+      "Track your VE Gear order status by entering your order number.",
+    keywords: "VE Gear, Track Order, Order Status, Order Tracking",
     og_image_path: null,
   },
   privacy: {

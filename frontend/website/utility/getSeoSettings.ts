@@ -57,6 +57,7 @@ const STATIC_FALLBACK: Record<SeoPageKey, SeoItemType> = {
   cart: SeoContent.cartSeo,
   wishlist: SeoContent.wishlistSeo,
   checkout: SeoContent.checkoutSeo,
+  track: SeoContent.trackOrderSeo,
   privacy: SeoContent.privacyPolicySeo,
   terms: SeoContent.termsOfServiceSeo,
   refund: SeoContent.refundPolicySeo,

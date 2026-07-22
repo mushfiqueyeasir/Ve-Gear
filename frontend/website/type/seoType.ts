@@ -23,6 +23,7 @@ export interface SeoContentType {
   checkoutSeo: SeoItemType;
   contactUsSeo: SeoItemType;
   reviewsSeo: SeoItemType;
+  trackOrderSeo: SeoItemType;
   privacyPolicySeo: SeoItemType;
   termsOfServiceSeo: SeoItemType;
   refundPolicySeo: SeoItemType;

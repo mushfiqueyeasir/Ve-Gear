@@ -124,6 +124,20 @@ export const SeoContent: SeoContentType = {
       "Community",
     ],
   },
+  trackOrderSeo: {
+    title: "Track Order | VE Gear",
+    description:
+      "Track your VE Gear order status by entering your order number from checkout or your confirmation email.",
+    image: "/images/seoThumbnail/home.png",
+    siteUrl: `${siteUrl}/track-order`,
+    keywords: [
+      "VE Gear",
+      "Track Order",
+      "Order Status",
+      "Order Tracking",
+      "Delivery Status",
+    ],
+  },
   privacyPolicySeo: {
     title: "Privacy Policy | VE Gear",
     description:
