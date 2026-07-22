@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Heart, ShoppingBag, Trash2 } from "lucide-react";
+import { Heart, Trash2 } from "lucide-react";
 import ImageLoader from "@/components/Common/ImageLoader";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
 import { useWishlistStore } from "@/store/wishlistStore";
@@ -67,59 +67,67 @@ export default function WishlistPageScreen() {
 
       <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
         {items.map((item) => (
-          <li
-            key={item.id}
-            className="group overflow-hidden rounded-2xl border border-border bg-card"
-          >
-            <Link href={item.href} className="relative block aspect-[4/5]">
-              <ImageLoader
-                src={item.image}
-                alt={item.title}
-                width={800}
-                height={1000}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-            </Link>
-            <div className="space-y-3 p-3 sm:p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <Link
-                    href={item.href}
-                    className="block truncate font-display text-base font-semibold tracking-tight hover:text-primary sm:text-lg"
-                  >
-                    {item.title}
-                  </Link>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="font-display text-base font-semibold">
-                      {format(item.currentPrice)}
-                    </span>
-                    {item.originalPrice > item.currentPrice && (
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground line-through">
-                        {format(item.originalPrice)}
-                      </span>
-                    )}
-                  </div>
-                </div>
+          <li key={item.id}>
+            <article className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-all duration-500 hover:border-foreground/20 hover:ring-glow">
+              <div className="relative aspect-[4/5] overflow-hidden bg-surface">
+                <Link href={item.href} className="block h-full w-full">
+                  <ImageLoader
+                    src={item.image}
+                    alt={item.title}
+                    width={800}
+                    height={1000}
+                    className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110"
+                  />
+                </Link>
+
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-90" />
+
                 <button
                   type="button"
                   aria-label="Remove from favorites"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     removeItem(item.id);
                     toast.success("Removed from favorites");
                   }}
-                  className="grid size-11 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition hover:border-primary hover:text-primary"
+                  className="absolute right-2.5 top-2.5 grid size-11 place-items-center rounded-full border border-border bg-background/60 text-foreground backdrop-blur-md transition hover:border-primary hover:bg-primary hover:text-primary-foreground sm:right-4 sm:top-4"
                 >
-                  <Trash2 className="size-4" />
+                  <Trash2 className="h-4 w-4" />
                 </button>
+
+                <Link
+                  href={item.href}
+                  className="absolute inset-x-2.5 bottom-2.5 flex items-center justify-center rounded-full bg-foreground/95 px-3.5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-background backdrop-blur-md transition-all duration-500 sm:inset-x-4 sm:bottom-4 sm:px-5 sm:py-3 sm:text-[12px] sm:tracking-[0.2em] md:translate-y-4 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100"
+                >
+                  View Product
+                </Link>
               </div>
+
               <Link
                 href={item.href}
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-foreground px-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-background transition hover:bg-primary hover:text-primary-foreground"
+                className="flex items-start justify-between gap-3 p-3 sm:p-5"
               >
-                <ShoppingBag className="size-3.5" />
-                View product
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate font-display text-base font-semibold tracking-tight sm:text-lg">
+                    {item.title}
+                  </h3>
+                  <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                    VE Gear
+                  </p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <div className="font-display text-lg font-semibold tracking-tight sm:text-xl">
+                    {format(item.currentPrice)}
+                  </div>
+                  {item.originalPrice > item.currentPrice && (
+                    <div className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground line-through">
+                      {format(item.originalPrice)}
+                    </div>
+                  )}
+                </div>
               </Link>
-            </div>
+            </article>
           </li>
         ))}
       </ul>
