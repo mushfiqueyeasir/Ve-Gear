@@ -142,6 +142,9 @@ export interface PromotionRow {
   description: string | null;
   image_path: string | null;
   discount_percent: number | null;
+  /** Storefront CTA — usually `/product/{slug}` */
+  cta_url: string | null;
+  cta_label: string | null;
   active: boolean;
   starts_at: string | null;
   ends_at: string | null;

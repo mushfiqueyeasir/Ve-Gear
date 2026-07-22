@@ -193,6 +193,29 @@
       animation-duration: 16s;
     }
   }
+  /* Review marquees — slow enough to read / watch photos */
+  .animate-marquee-reviews {
+    animation: marquee 90s linear infinite;
+  }
+  .animate-marquee-reviews-reverse {
+    animation: marquee-reverse 80s linear infinite;
+  }
+  @media (min-width: 640px) {
+    .animate-marquee-reviews {
+      animation-duration: 110s;
+    }
+    .animate-marquee-reviews-reverse {
+      animation-duration: 100s;
+    }
+  }
+  @media (min-width: 768px) {
+    .animate-marquee-reviews {
+      animation-duration: 140s;
+    }
+    .animate-marquee-reviews-reverse {
+      animation-duration: 120s;
+    }
+  }
   .animate-float-up {
     animation: float-up 1s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
@@ -235,6 +258,14 @@
   }
   to {
     transform: translateX(-50%);
+  }
+}
+@keyframes marquee-reverse {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
   }
 }
 @keyframes float-up {

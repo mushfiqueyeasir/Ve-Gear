@@ -16,6 +16,7 @@ import {
   type BannerStatItem,
 } from "@/type/db";
 import { cn } from "@/lib/utils";
+import { renderBannerTitle } from "@/utility/renderBannerTitle";
 
 interface HeroProps {
   banners: Banner[];
@@ -170,7 +171,7 @@ export default function Hero({ banners, description, stats }: HeroProps) {
               className="animate-hero-in font-display text-[clamp(2.35rem,9vw,5.75rem)] font-bold leading-[0.88] tracking-[-0.045em] text-foreground md:text-[clamp(3rem,8vw,6.5rem)]"
               style={{ animationDelay: "0.12s" }}
             >
-              {renderTitle(title)}
+              {renderBannerTitle(title)}
             </h1>
 
             {blurb ? (
@@ -247,37 +248,6 @@ export default function Hero({ banners, description, stats }: HeroProps) {
         </div>
       </div>
     </section>
-  );
-}
-
-function renderTitle(title: string) {
-  const parts = title.split(/(RIDE)/gi);
-  if (parts.length === 1) {
-    return title.split(/\n/).map((line, i) => (
-      <span key={i}>
-        {i > 0 && <br />}
-        {line}
-      </span>
-    ));
-  }
-  return parts.map((part, i) =>
-    /^ride$/i.test(part) ? (
-      <span key={i} className="text-glow-coral text-primary">
-        {part}
-      </span>
-    ) : (
-      <span key={i}>
-        {part.split(/(\. )/).map((chunk, j) =>
-          chunk === ". " ? (
-            <span key={j}>
-              .<br />
-            </span>
-          ) : (
-            <span key={j}>{chunk}</span>
-          ),
-        )}
-      </span>
-    ),
   );
 }
 

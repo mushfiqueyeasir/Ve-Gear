@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
@@ -15,13 +15,23 @@ import {
   FormActions,
   FormField,
   adminInputClass,
+  adminSelectClass,
   adminTextareaClass,
 } from "@/components/admin/FormField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { savePromotion } from "./actions";
+
+export type ProductOption = { id: string; title: string; slug: string };
 
 function isoToLocalInput(iso: string | null): string {
   if (!iso) return "";
@@ -40,7 +50,27 @@ function localInputToIso(local: string): string | null {
   return d.toISOString();
 }
 
-export function PromotionForm({ promotion }: { promotion?: PromotionRow }) {
+function productPath(slug: string) {
+  return `/product/${slug}`;
+}
+
+function matchProductId(
+  products: ProductOption[],
+  ctaUrl: string | null | undefined,
+): string {
+  if (!ctaUrl?.trim()) return products[0]?.id ?? "";
+  const normalized = ctaUrl.trim().replace(/\/+$/, "");
+  const match = products.find((p) => productPath(p.slug) === normalized);
+  return match?.id ?? products[0]?.id ?? "";
+}
+
+export function PromotionForm({
+  promotion,
+  products = [],
+}: {
+  promotion?: PromotionRow;
+  products?: ProductOption[];
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -61,10 +91,23 @@ export function PromotionForm({ promotion }: { promotion?: PromotionRow }) {
   const [images, setImages] = useState<UploadedImage[]>(
     promotion?.image_path ? [{ path: promotion.image_path }] : [],
   );
+  const [ctaLabel, setCtaLabel] = useState(promotion?.cta_label ?? "Shop Now");
+  const [productId, setProductId] = useState(() =>
+    matchProductId(products, promotion?.cta_url),
+  );
+
+  const resolvedCtaUrl = useMemo(() => {
+    const product = products.find((p) => p.id === productId);
+    return product ? productPath(product.slug) : null;
+  }, [productId, products]);
 
   const submit = () => {
     if (!title.trim()) {
       toast.error("Title is required.");
+      return;
+    }
+    if (!productId || !resolvedCtaUrl) {
+      toast.error("Select a product for the promo link.");
       return;
     }
     const discountNum = discount.trim() === "" ? null : Number(discount);
@@ -80,6 +123,8 @@ export function PromotionForm({ promotion }: { promotion?: PromotionRow }) {
         description: description.trim() || null,
         image_path: images[0]?.path ?? null,
         discount_percent: discountNum,
+        cta_url: resolvedCtaUrl,
+        cta_label: ctaLabel.trim() || null,
         active,
         starts_at: localInputToIso(startsAt),
         ends_at: localInputToIso(endsAt),
@@ -100,7 +145,7 @@ export function PromotionForm({ promotion }: { promotion?: PromotionRow }) {
         <div className="space-y-5 lg:col-span-2">
           <AdminCard
             title="Promotion"
-            description="Title, copy, discount, and schedule."
+            description="Title, copy, discount, link, and schedule."
           >
             <div className="space-y-5">
               <FormField label="Title" htmlFor="title">
@@ -135,6 +180,45 @@ export function PromotionForm({ promotion }: { promotion?: PromotionRow }) {
                   className={adminInputClass}
                 />
               </FormField>
+
+              <FormField
+                label="Product"
+                hint="Shop Now on the promo popup opens this product page."
+              >
+                <Select
+                  value={productId || undefined}
+                  onValueChange={setProductId}
+                  disabled={products.length === 0}
+                >
+                  <SelectTrigger className={adminSelectClass}>
+                    <SelectValue
+                      placeholder={
+                        products.length === 0
+                          ? "No active products"
+                          : "Select a product"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+
+              <FormField label="Button label" htmlFor="cta_label">
+                <Input
+                  id="cta_label"
+                  value={ctaLabel}
+                  onChange={(e) => setCtaLabel(e.target.value)}
+                  placeholder="Shop Now"
+                  className={adminInputClass}
+                />
+              </FormField>
+
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <FormField label="Starts at" htmlFor="starts_at">
                   <Input

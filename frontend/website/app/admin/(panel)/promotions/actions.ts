@@ -10,9 +10,18 @@ export interface PromotionInput {
   description: string | null;
   image_path: string | null;
   discount_percent: number | null;
+  cta_url: string | null;
+  cta_label: string | null;
   active: boolean;
   starts_at: string | null;
   ends_at: string | null;
+}
+
+function normalizeCtaUrl(raw: string | null): string | null {
+  if (!raw?.trim()) return null;
+  const value = raw.trim();
+  if (/^https?:\/\//i.test(value) || value.startsWith("/")) return value;
+  return `/${value.replace(/^\/+/, "")}`;
 }
 
 export async function savePromotion(
@@ -30,6 +39,8 @@ export async function savePromotion(
     description: input.description,
     image_path: input.image_path,
     discount_percent: input.discount_percent,
+    cta_url: normalizeCtaUrl(input.cta_url),
+    cta_label: input.cta_label?.trim() || null,
     active: input.active,
     starts_at: input.starts_at,
     ends_at: input.ends_at,
@@ -44,6 +55,7 @@ export async function savePromotion(
   if (error) return { error: error.message };
 
   revalidatePath("/admin/promotions");
+  revalidatePath("/");
   return { id: data.id as string };
 }
 

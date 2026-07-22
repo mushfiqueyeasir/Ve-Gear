@@ -150,7 +150,8 @@ export default async function HomePage() {
       }
 
       case "reviews": {
-        const limit = configNum(cfg, "limit", 6);
+        // Marquee works best with a fuller set; CMS limit still applies.
+        const limit = configNum(cfg, "limit", 24);
         const slice = transformedReviews.slice(0, limit);
         return slice.length > 0 ? (
           <ReviewSlider
@@ -174,8 +175,14 @@ export default async function HomePage() {
             promotion={promotion}
             title={section.title}
             subtitle={section.subtitle}
-            ctaHref={configStr(cfg, "cta_url") ?? "/product"}
-            ctaLabel={configStr(cfg, "cta_label") ?? "Shop the drop"}
+            ctaHref={
+              configStr(cfg, "cta_url") || promotion.ctaUrl || "/product"
+            }
+            ctaLabel={
+              configStr(cfg, "cta_label") ||
+              promotion.ctaLabel ||
+              "Shop the drop"
+            }
           />
         ) : null;
       }

@@ -15,10 +15,13 @@ import {
   FormActions,
   FormField,
   adminInputClass,
+  adminTextareaClass,
 } from "@/components/admin/FormField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { renderBannerTitle } from "@/utility/renderBannerTitle";
 import { saveBanner } from "./actions";
 
 function isoToLocalInput(iso: string | null): string {
@@ -110,17 +113,28 @@ export function BannerForm({
               <FormField
                 label="Headline"
                 htmlFor="title"
-                hint="Required — shown as the main banner title."
+                hint='Wrap words in *asterisks* to color them brand coral. Example: NOT JUST *RIDE*. *RIDE* WITH STYLE. Use ". " (period + space) or a new line for line breaks.'
               >
-                <Input
+                <Textarea
                   id="title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="NOT JUST RIDE. RIDE WITH STYLE."
+                  placeholder="NOT JUST *RIDE*. *RIDE* WITH STYLE."
                   required
-                  className={adminInputClass}
+                  rows={3}
+                  className={adminTextareaClass}
                 />
               </FormField>
+              {title.trim() ? (
+                <div className="rounded-xl border border-border bg-background/60 p-4">
+                  <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                    Preview
+                  </p>
+                  <p className="font-display text-2xl font-bold uppercase leading-[0.95] tracking-tight sm:text-3xl">
+                    {renderBannerTitle(title.trim())}
+                  </p>
+                </div>
+              ) : null}
               <FormField label="Eyebrow / subtitle" htmlFor="subtitle">
                 <Input
                   id="subtitle"

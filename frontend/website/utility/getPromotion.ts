@@ -10,6 +10,8 @@ function mapPromotion(row: PromotionRow): Promotion {
     description: row.description,
     imageUrl: promotionImageUrl(row.image_path),
     discountPercent: row.discount_percent,
+    ctaUrl: row.cta_url?.trim() || null,
+    ctaLabel: row.cta_label?.trim() || null,
   };
 }
 

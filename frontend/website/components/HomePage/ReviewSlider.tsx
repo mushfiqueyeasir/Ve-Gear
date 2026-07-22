@@ -12,6 +12,60 @@ interface ReviewSliderProps {
   ctaHref?: string;
 }
 
+function padAndLoop<T>(items: T[], min = 4): T[] {
+  if (items.length === 0) return [];
+  let base = [...items];
+  while (base.length < min) {
+    base = [...base, ...items];
+  }
+  return [...base, ...base];
+}
+
+/** Repeat photos until the track is wide enough to fill the container. */
+function padPhotosForMarquee(
+  items: TransformedReview[],
+  minTiles = 14,
+): TransformedReview[] {
+  if (items.length === 0) return [];
+  let base = [...items];
+  while (base.length < minTiles) {
+    base = [...base, ...items];
+  }
+  return [...base, ...base];
+}
+
+function QuoteCard({ review }: { review: TransformedReview }) {
+  const rating = Math.min(5, Math.max(0, Math.round(review.rating ?? 5)));
+  const name = review.customerName?.trim() || "VE Crew";
+  const body = review.body?.trim() || "Premium stitch, zero compromises.";
+
+  return (
+    <div className="w-[280px] shrink-0 rounded-2xl border border-border bg-card p-6 sm:w-[340px] sm:p-8">
+      <div
+        className="flex gap-0.5 text-primary"
+        aria-label={`${rating} out of 5 stars`}
+      >
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Star
+            key={i}
+            className={
+              i < rating
+                ? "h-4 w-4 fill-primary text-primary"
+                : "h-4 w-4 text-border"
+            }
+          />
+        ))}
+      </div>
+      <p className="mt-4 line-clamp-5 text-base leading-relaxed sm:text-lg">
+        &ldquo;{body}&rdquo;
+      </p>
+      <div className="mt-6 font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+        — {name}
+      </div>
+    </div>
+  );
+}
+
 export default function ReviewSlider({
   reviews,
   title,
@@ -22,8 +76,12 @@ export default function ReviewSlider({
 }: ReviewSliderProps) {
   if (reviews.length === 0) return null;
 
-  const grid = reviews;
-  const quotes = reviews.slice(0, 3);
+  const photos = reviews.filter((r) => r.image);
+  const quotes = reviews.filter((r) => r.body?.trim() || r.customerName);
+
+  const photoRow = padPhotosForMarquee(photos, 14);
+  const quoteSource = quotes.length > 0 ? quotes : reviews;
+  const quoteRow = padAndLoop(quoteSource, 4);
 
   return (
     <section className="relative py-16 sm:py-24 md:py-40">
@@ -61,48 +119,53 @@ export default function ReviewSlider({
           ) : null}
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-6">
-          {grid.map((review) => (
+        {photoRow.length > 0 && (
+          <div className="relative overflow-hidden">
             <div
-              key={review.id}
-              className="group relative aspect-square overflow-hidden rounded-2xl border border-border"
-            >
-              {review.image && (
-                <Image
-                  src={review.image}
-                  alt={review.customerName || "Review"}
-                  fill
-                  sizes="200px"
-                  className="object-cover transition-transform duration-1000 group-hover:scale-110"
-                />
-              )}
-              <div className="absolute inset-0 bg-black/0 transition group-hover:bg-black/40" />
+              className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-background to-transparent sm:w-12"
+              aria-hidden
+            />
+            <div
+              className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-background to-transparent sm:w-12"
+              aria-hidden
+            />
+            <div className="flex w-max animate-marquee-reviews-reverse gap-2 pe-2 hover:[animation-play-state:paused] sm:gap-3 sm:pe-3">
+              {photoRow.map((review, i) => (
+                <div
+                  key={`${review.id}-p-${i}`}
+                  className="group relative aspect-square w-40 shrink-0 overflow-hidden rounded-2xl border border-border sm:w-48 md:w-56 lg:w-64"
+                >
+                  <Image
+                    src={review.image}
+                    alt={review.customerName || "Review"}
+                    fill
+                    sizes="256px"
+                    className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-black/0 transition group-hover:bg-black/40" />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        )}
 
-        <div className="mt-16 grid grid-cols-1 gap-4 md:grid-cols-3">
-          {quotes.map((review) => (
+        {quoteRow.length > 0 && (
+          <div className="relative mt-12 overflow-hidden sm:mt-16">
             <div
-              key={`q-${review.id}`}
-              className="rounded-2xl border border-border bg-card p-8"
-            >
-              <div className="flex gap-0.5 text-primary">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-primary" />
-                ))}
-              </div>
-              <p className="mt-4 text-lg leading-relaxed">
-                &ldquo;
-                {review.body || "Premium stitch, zero compromises."}
-                &rdquo;
-              </p>
-              <div className="mt-6 font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-                — {review.customerName || "VE Crew"}
-              </div>
+              className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-background to-transparent sm:w-12"
+              aria-hidden
+            />
+            <div
+              className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-background to-transparent sm:w-12"
+              aria-hidden
+            />
+            <div className="flex w-max animate-marquee-reviews gap-3 pe-3 hover:[animation-play-state:paused] sm:gap-4 sm:pe-4">
+              {quoteRow.map((review, i) => (
+                <QuoteCard key={`${review.id}-q-${i}`} review={review} />
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
     </section>
   );

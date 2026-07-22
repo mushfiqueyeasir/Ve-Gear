@@ -6,4 +6,7 @@ export interface Promotion {
   description?: string | null;
   imageUrl: string | null;
   discountPercent?: number | null;
+  /** Where Shop Now goes — e.g. `/product/shadow-drop-tee` */
+  ctaUrl?: string | null;
+  ctaLabel?: string | null;
 }

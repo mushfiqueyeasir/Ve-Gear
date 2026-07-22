@@ -50,7 +50,8 @@ export default function PromotionModal({ promotion }: PromotionModalProps) {
 
   const handleShopNow = () => {
     handleClose();
-    router.push("/product");
+    const href = promotion.ctaUrl?.trim() || "/product";
+    router.push(href);
   };
 
   if (!promotion) {
@@ -129,7 +130,7 @@ export default function PromotionModal({ promotion }: PromotionModalProps) {
               onClick={handleShopNow}
               className="mt-auto w-full rounded-full bg-primary px-6 py-3.5 text-sm font-semibold uppercase tracking-[0.18em] text-primary-foreground transition hover:bg-primary/90"
             >
-              Shop Now
+              {promotion.ctaLabel?.trim() || "Shop Now"}
             </button>
           </div>
         </div>
