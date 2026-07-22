@@ -113,41 +113,25 @@
     overflow-x: hidden;
   }
 
-  /* Storefront uses branded ScrollArea — lock document scroll */
-  html.store-scroll,
-  html.store-scroll body {
-    height: 100%;
-    overflow: hidden;
-  }
-
-  /* Hide native bar inside Radix viewport (prevents double/buggy scrollbars) */
-  html.store-scroll [data-radix-scroll-area-viewport] {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  html.store-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Fallback native scrollbar outside storefront */
-  html:not(.store-scroll) {
+  /* Storefront: branded native scrollbar (smooth — no JS ScrollArea) */
+  html.store-scroll {
     scrollbar-width: auto;
-    scrollbar-color: rgb(var(--primary-rgb) / 0.55) rgba(255, 255, 255, 0.04);
+    scrollbar-color: rgb(var(--primary-rgb) / 0.7) rgba(255, 255, 255, 0.04);
   }
-  html:not(.store-scroll)::-webkit-scrollbar {
+  html.store-scroll::-webkit-scrollbar {
     width: 12px;
   }
-  html:not(.store-scroll)::-webkit-scrollbar-track {
+  html.store-scroll::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.04);
   }
-  html:not(.store-scroll)::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.22);
+  html.store-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.28);
     border-radius: 999px;
     border: 3px solid transparent;
     background-clip: padding-box;
   }
-  html:not(.store-scroll)::-webkit-scrollbar-thumb:hover {
-    background: rgb(var(--primary-rgb) / 0.8);
+  html.store-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--primary-rgb) / 0.85);
     background-clip: padding-box;
   }
   button {

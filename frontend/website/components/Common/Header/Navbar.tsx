@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -25,39 +25,24 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
   const wishlistCount = useWishlistStore((state) => state.getItemCount());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    // Storefront scrolls inside Radix ScrollArea, not window
-    const viewport =
-      headerRef.current?.closest("[data-radix-scroll-area-viewport]") ??
-      document.querySelector("[data-radix-scroll-area-viewport]");
-
-    const getScrollTop = () => {
-      if (viewport instanceof HTMLElement) return viewport.scrollTop;
-      return window.scrollY || document.documentElement.scrollTop;
+    const onScroll = () => {
+      setScrolled((window.scrollY || document.documentElement.scrollTop) > 20);
     };
-
-    const onScroll = () => setScrolled(getScrollTop() > 20);
     onScroll();
-
-    viewport?.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      viewport?.removeEventListener("scroll", onScroll);
-      window.removeEventListener("scroll", onScroll);
-    };
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
     <>
       <header
-        ref={headerRef}
         className={cn(
           "z-50 bg-transparent transition-all duration-500",
           // Phone: overlays hero, scrolls away (not sticky). Desktop: fixed + blur on scroll.
           "absolute inset-x-0 top-0",
-          "md:fixed md:left-0 md:right-3 md:top-0",
+          "md:fixed md:inset-x-0 md:top-0",
           scrolled &&
             "md:border-b md:border-border md:bg-background/60 md:backdrop-blur-xl md:backdrop-saturate-150",
         )}

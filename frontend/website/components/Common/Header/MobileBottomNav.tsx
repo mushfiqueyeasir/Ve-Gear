@@ -56,17 +56,17 @@ export default function MobileBottomNav({
           )}
         >
           <div className="grid h-16 grid-cols-5 items-center px-1">
-            <button
-              type="button"
-              aria-label="Search"
-              onClick={onSearchOpen}
-              className="flex h-full w-full flex-col items-center justify-center gap-0.5 text-muted-foreground transition active:text-foreground"
-            >
-              <Search className="size-5" strokeWidth={1.75} />
-              <span className="text-[10px] font-medium tracking-wide">
-                Search
-              </span>
-            </button>
+            <TabLink
+              href="/contact-us"
+              label="Contact"
+              active={contactActive}
+              icon={
+                <MessageCircle
+                  className="size-5"
+                  strokeWidth={contactActive ? 2.25 : 1.75}
+                />
+              }
+            />
 
             <TabLink
               href="/cart"
@@ -97,17 +97,17 @@ export default function MobileBottomNav({
               }
             />
 
-            <TabLink
-              href="/contact-us"
-              label="Contact"
-              active={contactActive}
-              icon={
-                <MessageCircle
-                  className="size-5"
-                  strokeWidth={contactActive ? 2.25 : 1.75}
-                />
-              }
-            />
+            <button
+              type="button"
+              aria-label="Search"
+              onClick={onSearchOpen}
+              className="flex h-full w-full flex-col items-center justify-center gap-0.5 text-muted-foreground transition active:text-foreground"
+            >
+              <Search className="size-5" strokeWidth={1.75} />
+              <span className="text-[10px] font-medium tracking-wide">
+                Search
+              </span>
+            </button>
           </div>
         </div>
       </div>
