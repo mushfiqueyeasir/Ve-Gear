@@ -49,8 +49,9 @@ export default function PromotionModal({ promotion }: PromotionModalProps) {
   const handleClose = () => handleOpenChange(false);
 
   const handleShopNow = () => {
-    handleClose();
+    if (!promotion) return;
     const href = promotion.ctaUrl?.trim() || "/product";
+    handleClose();
     router.push(href);
   };
 
