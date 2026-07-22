@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSiteSettings } from "@/utility/getSettings";
-import { shippingCostForZone, type DeliveryZone } from "@/lib/delivery";
+import {
+  deliveryZoneLabel,
+  shippingCostForZone,
+  type DeliveryZone,
+} from "@/lib/delivery";
+import { sendOrderEmails } from "@/lib/email/sendOrderEmails";
 import type { OrderFormData } from "@/type/orderType";
 
 export const runtime = "nodejs";
@@ -10,6 +15,10 @@ export const fetchCache = "force-no-store";
 
 function resolveZone(value: string | undefined): DeliveryZone {
   return value === "outside-dhaka" ? "outside-dhaka" : "inside-dhaka";
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 export async function POST(request: NextRequest) {
@@ -24,9 +33,18 @@ export async function POST(request: NextRequest) {
     }
 
     const { firstName, lastName, address, city, phone } = body.delivery;
+    const customerEmail = (body.delivery.email ?? "").trim();
+
     if (!firstName || !lastName || !address || !city || !phone) {
       return NextResponse.json(
         { error: "Please complete all delivery information" },
+        { status: 400 },
+      );
+    }
+
+    if (!customerEmail || !isValidEmail(customerEmail)) {
+      return NextResponse.json(
+        { error: "A valid email address is required for order confirmation" },
         { status: 400 },
       );
     }
@@ -78,6 +96,40 @@ export async function POST(request: NextRequest) {
     if (error) throw error;
 
     const result = data as { id: string; order_number: string };
+    const customerName = `${firstName.trim()} ${lastName.trim()}`.trim();
+    const deliveryAddress = [
+      address.trim(),
+      city.trim(),
+      body.delivery.postalCode?.trim(),
+      body.delivery.country?.trim(),
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    // Fire-and-forget style: order already saved — email failures shouldn't fail checkout
+    try {
+      await sendOrderEmails({
+        orderNumber: result.order_number,
+        customerName,
+        customerEmail,
+        customerPhone: phone.trim(),
+        deliveryAddress,
+        shippingLabel: `Cash on delivery · ${deliveryZoneLabel(zone)}`,
+        items: body.items.map((item) => ({
+          title: item.title ?? "Product",
+          size: item.size,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+        })),
+        subtotal,
+        shipping,
+        total,
+        currencyLabel: settings.currency || "BDT",
+      });
+    } catch {
+      // Ignore mail errors — order is already placed
+    }
+
     return NextResponse.json(
       {
         success: true,

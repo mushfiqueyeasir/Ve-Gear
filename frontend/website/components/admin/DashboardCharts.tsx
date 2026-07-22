@@ -97,7 +97,11 @@ export function WeeklySalesChart({
           tickFormatter={(v) => `${symbol}${v}`}
         />
         <Tooltip
-          formatter={(v: number) => [`${symbol}${v.toFixed(2)}`, "Sales"]}
+          formatter={(value) => {
+            const amount =
+              typeof value === "number" ? value : Number(value) || 0;
+            return [`${symbol}${amount.toFixed(2)}`, "Sales"];
+          }}
           contentStyle={{
             borderRadius: 12,
             border: "1px solid var(--border)",

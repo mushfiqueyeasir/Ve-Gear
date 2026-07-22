@@ -55,6 +55,7 @@ export default async function SettingsPage() {
       <SettingsForm
         settings={settings}
         seo={cms.seo}
+        pagesSeo={cms.pages_seo}
         currencies={cms.currencies}
         deliveryCharges={cms.deliveryCharges}
         chatWidgets={cms.chatWidgets}

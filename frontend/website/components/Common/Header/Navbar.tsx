@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, Heart, ShoppingBag, Menu } from "lucide-react";
-import MobileMenu from "./MobileMenu";
+import { Search, Heart, ShoppingBag } from "lucide-react";
+import MobileBottomNav from "./MobileBottomNav";
 import SearchSidebar from "../SearchSidebar";
 import { useCartStore } from "@/store/cartStore";
 import { useWishlistStore } from "@/store/wishlistStore";
@@ -53,11 +53,14 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
     <>
       <header
         ref={headerRef}
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
-          scrolled
-            ? "border-b border-border bg-background/60 backdrop-blur-xl backdrop-saturate-150"
-            : "bg-transparent"
-        }`}
+        className={cn(
+          "z-50 bg-transparent transition-all duration-500",
+          // Phone: overlays hero, scrolls away (not sticky). Desktop: fixed + blur on scroll.
+          "absolute inset-x-0 top-0",
+          "md:fixed md:left-0 md:right-3 md:top-0",
+          scrolled &&
+            "md:border-b md:border-border md:bg-background/60 md:backdrop-blur-xl md:backdrop-saturate-150",
+        )}
       >
         <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-2 px-4 sm:h-20 sm:px-6 md:px-10">
           <Link
@@ -103,7 +106,8 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
             })}
           </nav>
 
-          <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+          {/* Desktop-only actions — phones use the bottom shopping tab bar */}
+          <div className="hidden shrink-0 items-center gap-0.5 sm:gap-1 md:flex">
             <IconBtn label="Search" onClick={() => setIsSearchOpen(true)}>
               <Search className="h-4 w-4" />
             </IconBtn>
@@ -153,24 +157,11 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
                 </span>
               )}
             </Link>
-            <div className="md:hidden">
-              <MobileMenu
-                menuData={menuData}
-                logoUrl={logoUrl}
-                storeName={storeName}
-                trigger={
-                  <button
-                    className="grid size-11 place-items-center rounded-full border border-border"
-                    aria-label="Menu"
-                  >
-                    <Menu className="h-4 w-4" />
-                  </button>
-                }
-              />
-            </div>
           </div>
         </div>
       </header>
+
+      <MobileBottomNav onSearchOpen={() => setIsSearchOpen(true)} />
       <SearchSidebar open={isSearchOpen} onOpenChange={setIsSearchOpen} />
     </>
   );

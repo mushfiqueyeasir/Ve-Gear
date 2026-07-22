@@ -3,7 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Instagram, Twitter, Youtube, Mail, Phone } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
+import {
+  InstagramIcon,
+  TwitterIcon,
+  YoutubeIcon,
+} from "@/components/Common/Icons";
 import type { SiteSettings } from "@/utility/getSettings";
 import { isActivePath } from "@/lib/nav";
 import { cn } from "@/lib/utils";
@@ -46,19 +51,19 @@ export default function Footer({ settings }: FooterProps) {
     {
       key: "instagram",
       href: socials.instagram,
-      icon: <Instagram className="h-4 w-4" />,
+      icon: <InstagramIcon className="h-4 w-4" size={16} />,
       label: "Instagram",
     },
     {
       key: "twitter",
       href: socials.twitter,
-      icon: <Twitter className="h-4 w-4" />,
+      icon: <TwitterIcon className="h-4 w-4" size={16} />,
       label: "X",
     },
     {
       key: "youtube",
       href: socials.youtube,
-      icon: <Youtube className="h-4 w-4" />,
+      icon: <YoutubeIcon className="h-4 w-4" size={16} />,
       label: "YouTube",
     },
   ].filter((s) => Boolean(s.href && s.href !== "#"));

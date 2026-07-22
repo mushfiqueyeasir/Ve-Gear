@@ -21,8 +21,12 @@ import {
 } from "@/components/admin/FormField";
 import { BUCKETS } from "@/lib/supabase/config";
 import type { SiteSettingsRow } from "@/type/db";
-import type { CmsSeo } from "@/lib/cms/types";
-import { DEFAULT_SEO } from "@/lib/cms/types";
+import type { CmsSeo, SeoPageKey } from "@/lib/cms/types";
+import {
+  normalizePagesSeo,
+  SEO_PAGE_KEYS,
+  SEO_PAGE_META,
+} from "@/lib/cms/types";
 import {
   SUPPORTED_CURRENCIES,
   normalizeCurrencySettings,
@@ -59,6 +63,7 @@ function orNull(v: string): string | null {
 export function SettingsForm({
   settings,
   seo: initialSeo,
+  pagesSeo: initialPagesSeo,
   currencies: initialCurrencies,
   deliveryCharges: initialDeliveryCharges,
   chatWidgets: initialChatWidgets,
@@ -66,6 +71,7 @@ export function SettingsForm({
 }: {
   settings: SiteSettingsRow;
   seo?: CmsSeo | null;
+  pagesSeo?: Record<SeoPageKey, CmsSeo> | null;
   currencies?: CurrencySettings | null;
   deliveryCharges?: DeliveryCharges | null;
   chatWidgets?: ChatWidgets | null;
@@ -137,13 +143,18 @@ export function SettingsForm({
     settings.analytics_enabled ?? false,
   );
 
-  const seoDefaults = { ...DEFAULT_SEO, ...(initialSeo ?? {}) };
-  const [seoTitle, setSeoTitle] = useState(seoDefaults.title);
-  const [seoDescription, setSeoDescription] = useState(seoDefaults.description);
-  const [seoKeywords, setSeoKeywords] = useState(seoDefaults.keywords);
-  const [ogImage, setOgImage] = useState<UploadedImage[]>(
-    seoDefaults.og_image_path ? [{ path: seoDefaults.og_image_path }] : [],
+  const [pagesSeo, setPagesSeo] = useState(() =>
+    normalizePagesSeo(initialPagesSeo, initialSeo),
   );
+  const [seoPage, setSeoPage] = useState<SeoPageKey>("home");
+  const currentSeo = pagesSeo[seoPage];
+
+  const updateCurrentSeo = (patch: Partial<CmsSeo>) => {
+    setPagesSeo((prev) => ({
+      ...prev,
+      [seoPage]: { ...prev[seoPage], ...patch },
+    }));
+  };
 
   const [palette, setPalette] = useState<ThemePalette>(() =>
     normalizePalette(initialPalette ?? DEFAULT_PALETTE),
@@ -174,9 +185,14 @@ export function SettingsForm({
       toast.error("Store name is required.");
       return;
     }
-    if (!seoTitle.trim() || !seoDescription.trim()) {
-      toast.error("SEO title and description are required.");
-      return;
+    for (const key of SEO_PAGE_KEYS) {
+      if (!pagesSeo[key].title.trim() || !pagesSeo[key].description.trim()) {
+        toast.error(
+          `SEO title and description are required for ${SEO_PAGE_META[key].label}.`,
+        );
+        setSeoPage(key);
+        return;
+      }
     }
     if (!enabledCurrencies.length) {
       toast.error("Enable at least one currency.");
@@ -248,12 +264,8 @@ export function SettingsForm({
       announcement_text: null,
       announcement_active: false,
       announcement_url: null,
-      seo: {
-        title: seoTitle,
-        description: seoDescription,
-        keywords: seoKeywords,
-        og_image_path: ogImage[0]?.path ?? null,
-      },
+      seo: pagesSeo.home,
+      pages_seo: pagesSeo,
     };
 
     startTransition(async () => {
@@ -765,19 +777,32 @@ export function SettingsForm({
 
         <TabsContent value="seo" className="space-y-5">
           <p className="text-sm text-muted-foreground">
-            Default search / social metadata for the storefront homepage and
-            site-wide fallbacks.
+            Search / social metadata for each storefront page. Pick a page, edit
+            its title, description, keywords, and share image, then save.
           </p>
+          <FormField label="Page">
+            <select
+              value={seoPage}
+              onChange={(e) => setSeoPage(e.target.value as SeoPageKey)}
+              className={adminInputClass}
+            >
+              {SEO_PAGE_KEYS.map((key) => (
+                <option key={key} value={key}>
+                  {SEO_PAGE_META[key].label} ({SEO_PAGE_META[key].path})
+                </option>
+              ))}
+            </select>
+          </FormField>
           <FormField label="Meta title" hint="Keep under ~60 characters.">
             <Input
-              value={seoTitle}
-              onChange={(e) => setSeoTitle(e.target.value)}
-              placeholder="VE Gear – Premium Gear & Essentials"
+              value={currentSeo.title}
+              onChange={(e) => updateCurrentSeo({ title: e.target.value })}
+              placeholder={`${SEO_PAGE_META[seoPage].label} | VE Gear`}
               className={adminInputClass}
               maxLength={80}
             />
             <p className="text-right text-[11px] text-muted-foreground">
-              {seoTitle.length}/80
+              {currentSeo.title.length}/80
             </p>
           </FormField>
           <FormField
@@ -785,15 +810,17 @@ export function SettingsForm({
             hint="Keep under ~160 characters."
           >
             <Textarea
-              value={seoDescription}
-              onChange={(e) => setSeoDescription(e.target.value)}
+              value={currentSeo.description}
+              onChange={(e) =>
+                updateCurrentSeo({ description: e.target.value })
+              }
               rows={4}
               maxLength={200}
               placeholder="Short description for Google and social shares."
               className={adminTextareaClass}
             />
             <p className="text-right text-[11px] text-muted-foreground">
-              {seoDescription.length}/200
+              {currentSeo.description.length}/200
             </p>
           </FormField>
           <FormField
@@ -801,8 +828,8 @@ export function SettingsForm({
             hint="Comma-separated phrases (e.g. VE Gear, streetwear, oversized tee)."
           >
             <Textarea
-              value={seoKeywords}
-              onChange={(e) => setSeoKeywords(e.target.value)}
+              value={currentSeo.keywords}
+              onChange={(e) => updateCurrentSeo({ keywords: e.target.value })}
               rows={3}
               placeholder="VE Gear, streetwear, rider essentials"
               className={adminTextareaClass}
@@ -814,8 +841,16 @@ export function SettingsForm({
           >
             <ImageUploader
               bucket={BUCKETS.branding}
-              value={ogImage}
-              onChange={setOgImage}
+              value={
+                currentSeo.og_image_path
+                  ? [{ path: currentSeo.og_image_path }]
+                  : []
+              }
+              onChange={(images) =>
+                updateCurrentSeo({
+                  og_image_path: images[0]?.path ?? null,
+                })
+              }
               label="Drop OG image here or click to browse"
             />
           </FormField>

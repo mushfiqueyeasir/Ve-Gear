@@ -3,7 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, isAdmin } from "@/lib/admin/auth";
-import type { CmsSeo, CurrencySettings } from "@/lib/cms/types";
+import {
+  normalizePagesSeo,
+  SEO_PAGE_KEYS,
+  SEO_PAGE_META,
+  type CmsSeo,
+  type CurrencySettings,
+  type SeoPageKey,
+} from "@/lib/cms/types";
 import { getCurrencyMeta, normalizeCurrencySettings } from "@/lib/currency";
 import { normalizeDeliveryCharges, type DeliveryCharges } from "@/lib/delivery";
 import { normalizeChatWidgets, type ChatWidgets } from "@/lib/chatWidgets";
@@ -29,7 +36,9 @@ export interface SettingsInput {
   announcement_text: string | null;
   announcement_active: boolean;
   announcement_url: string | null;
+  /** @deprecated Prefer pages_seo.home — kept for compatibility. */
   seo: CmsSeo;
+  pages_seo: Record<SeoPageKey, CmsSeo>;
 }
 
 export async function saveSettings(
@@ -43,12 +52,23 @@ export async function saveSettings(
   if (!input.store_name.trim()) {
     return { error: "Store name is required." };
   }
-  if (!input.seo.title.trim()) {
-    return { error: "SEO title is required." };
+  const pagesSeo = normalizePagesSeo(input.pages_seo, input.seo);
+  for (const key of SEO_PAGE_KEYS) {
+    const page = pagesSeo[key];
+    if (!page.title.trim() || !page.description.trim()) {
+      return {
+        error: `SEO title and description are required for ${SEO_PAGE_META[key].label}.`,
+      };
+    }
+    pagesSeo[key] = {
+      title: page.title.trim(),
+      description: page.description.trim(),
+      keywords: page.keywords.trim(),
+      og_image_path: page.og_image_path,
+    };
   }
-  if (!input.seo.description.trim()) {
-    return { error: "SEO description is required." };
-  }
+
+  const homeSeo = pagesSeo.home;
 
   const currencies = normalizeCurrencySettings(input.currencies);
   if (currencies.enabled.length === 0) {
@@ -81,12 +101,8 @@ export async function saveSettings(
         active: input.announcement_active,
         url: input.announcement_url,
       },
-      seo: {
-        title: input.seo.title.trim(),
-        description: input.seo.description.trim(),
-        keywords: input.seo.keywords.trim(),
-        og_image_path: input.seo.og_image_path,
-      },
+      seo: homeSeo,
+      pages_seo: pagesSeo,
       currencies,
       deliveryCharges,
       chatWidgets,
@@ -155,5 +171,9 @@ export async function saveSettings(
 
   revalidatePath("/admin/settings");
   revalidatePath("/", "layout");
+  for (const key of SEO_PAGE_KEYS) {
+    const path = SEO_PAGE_META[key].path;
+    if (path !== "/") revalidatePath(path);
+  }
   return {};
 }

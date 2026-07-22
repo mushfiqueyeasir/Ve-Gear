@@ -10,6 +10,7 @@ import { Analytics } from "@/utility/analytics/analyticsScript";
 import { getPromotions } from "@/utility/getPromotion";
 import { getCategories } from "@/utility/getCategory";
 import { getSiteSettings } from "@/utility/getSettings";
+import { appConfig } from "@/lib/config";
 
 // Catalog + CMS change constantly — never statically cache storefront pages.
 export const dynamic = "force-dynamic";
@@ -35,13 +36,20 @@ export default async function StoreLayout({
             gtmId={settings.gtm_id}
           />
         )}
-        {settings.security_enabled && <CustomSecurity />}
+        {appConfig.securityEnabled && <CustomSecurity />}
 
         <CursorGlow />
         <StoreScrollShell>
-          <Header categories={categories} settings={settings} />
-          <div className="min-h-[60vh]">{children}</div>
-          <Footer settings={settings} />
+          <div className="relative">
+            <Header categories={categories} settings={settings} />
+            <div className="min-h-[60vh]">{children}</div>
+            <Footer settings={settings} />
+            {/* Clearance for the mobile shopping tab bar */}
+            <div
+              className="h-[calc(5.75rem+env(safe-area-inset-bottom))] md:hidden"
+              aria-hidden
+            />
+          </div>
         </StoreScrollShell>
         <PromotionModalWrapper promotions={promotions} />
         <ChatPlugins widgets={settings.chatWidgets} />

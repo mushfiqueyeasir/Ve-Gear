@@ -26,7 +26,7 @@ export default function ProductDetailPageScreen({
   const hasSizeChart = (product.sizeChart?.length ?? 0) > 0;
 
   return (
-    <section className="mx-auto max-w-[1600px] px-6 pb-24 pt-28 md:px-10 md:pt-36">
+    <section className="mx-auto max-w-[1600px] px-6 pb-24 pt-24 md:px-10 md:pt-36">
       <div className="mb-12 grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16">
         <ProductImageGallery product={product} />
         <ProductInfo product={product} stock={stock} />

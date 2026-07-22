@@ -13,7 +13,7 @@ export default function WishlistPageScreen() {
 
   if (items.length === 0) {
     return (
-      <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-28 sm:px-6 md:px-10 md:pt-36">
+      <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-24 sm:px-6 md:px-10 md:pt-36">
         <div className="py-16 text-center sm:py-20">
           <div className="mx-auto mb-5 grid size-14 place-items-center rounded-full border border-border bg-card">
             <Heart className="size-6 text-muted-foreground" />
@@ -35,7 +35,7 @@ export default function WishlistPageScreen() {
   }
 
   return (
-    <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-28 sm:px-6 md:px-10 md:pt-36">
+    <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-24 sm:px-6 md:px-10 md:pt-36">
       <div className="mb-8 flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between lg:mb-10">
         <div>
           <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">

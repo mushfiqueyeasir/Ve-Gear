@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProducts } from "@/utility/getProducts";
+import { htmlToPlainText } from "@/utility/productSeo";
 import { appConfig } from "@/lib/config";
 
 export const runtime = "nodejs";
@@ -14,18 +15,6 @@ function escapeCsvValue(value: string): string {
     return `"${s.replace(/"/g, '""')}"`;
   }
   return s;
-}
-
-function htmlToPlainText(description: { html?: string } | null): string {
-  if (!description?.html) return "";
-  return description.html
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/\s+/g, " ")
-    .trim();
 }
 
 export async function GET(request: NextRequest) {

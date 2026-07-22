@@ -28,7 +28,7 @@ export default function CheckoutPageScreen({
 
   if (items.length === 0) {
     return (
-      <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-28 sm:px-6 md:px-10 md:pt-36">
+      <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-24 sm:px-6 md:px-10 md:pt-36">
         <h1 className="mb-6 font-display text-4xl font-bold tracking-tight sm:text-5xl">
           Checkout
         </h1>
@@ -48,7 +48,7 @@ export default function CheckoutPageScreen({
   }
 
   return (
-    <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-28 sm:px-6 md:px-10 md:pt-36">
+    <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-24 sm:px-6 md:px-10 md:pt-36">
       <h1 className="mb-8 font-display text-4xl font-bold tracking-tight sm:text-5xl">
         Checkout
       </h1>

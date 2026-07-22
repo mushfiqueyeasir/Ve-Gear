@@ -11,7 +11,7 @@ export default function CartPageScreen() {
 
   if (items.length === 0) {
     return (
-      <section className="mx-auto max-w-[1600px] px-6 pb-24 pt-28 md:px-10 md:pt-36">
+      <section className="mx-auto max-w-[1600px] px-6 pb-24 pt-24 md:px-10 md:pt-36">
         <EmptyCart />
       </section>
     );
@@ -20,7 +20,7 @@ export default function CartPageScreen() {
   const total = getTotal();
 
   return (
-    <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-28 sm:px-6 md:px-10 md:pt-36">
+    <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-24 sm:px-6 md:px-10 md:pt-36">
       <div className="mb-8 flex flex-col gap-3 border-b border-border pb-6 sm:flex-row sm:items-center sm:justify-between lg:mb-10">
         <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
           Your cart

@@ -1,0 +1,12 @@
+{
+  "name": "ve-gear-backend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "cleanup:assets": "node scripts/cleanup-unused-assets.mjs",
+    "cleanup:assets:dry": "node scripts/cleanup-unused-assets.mjs --dry-run"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4"
+  }
+}

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { productImageUrl } from "@/utility/imageUrl";
 import { resolveSizeChart } from "@/lib/products/sizeChart";
@@ -128,28 +129,30 @@ export async function getProducts(): Promise<Product[]> {
   return ((data as unknown as RawProduct[]) ?? []).map(mapProduct);
 }
 
-export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const supabase = await createSupabaseServerClient();
-  let { data, error } = await supabase
-    .from("products")
-    .select(PRODUCT_SELECT)
-    .eq("slug", slug)
-    .eq("status", "active")
-    .maybeSingle();
-
-  if (error && /size_chart/i.test(error.message)) {
-    ({ data, error } = await supabase
+export const getProductBySlug = cache(
+  async (slug: string): Promise<Product | null> => {
+    const supabase = await createSupabaseServerClient();
+    let { data, error } = await supabase
       .from("products")
-      .select(PRODUCT_SELECT_LEGACY)
+      .select(PRODUCT_SELECT)
       .eq("slug", slug)
       .eq("status", "active")
-      .maybeSingle());
-  }
+      .maybeSingle();
 
-  if (error) throw error;
-  if (!data) return null;
-  return mapProduct(data as unknown as RawProduct);
-}
+    if (error && /size_chart/i.test(error.message)) {
+      ({ data, error } = await supabase
+        .from("products")
+        .select(PRODUCT_SELECT_LEGACY)
+        .eq("slug", slug)
+        .eq("status", "active")
+        .maybeSingle());
+    }
+
+    if (error) throw error;
+    if (!data) return null;
+    return mapProduct(data as unknown as RawProduct);
+  },
+);
 
 export function groupProductsByCategory(
   products: Product[],

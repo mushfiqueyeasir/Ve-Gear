@@ -5,7 +5,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 /**
  * Full-viewport branded scroll area for the storefront.
- * Matches the dark UI with a slim coral-accent thumb.
  */
 export default function StoreScrollShell({
   children,
@@ -19,7 +18,7 @@ export default function StoreScrollShell({
   }, []);
 
   return (
-    <ScrollArea variant="brand" className="h-dvh w-full">
+    <ScrollArea variant="brand" type="always" className="h-dvh w-full">
       {children}
     </ScrollArea>
   );

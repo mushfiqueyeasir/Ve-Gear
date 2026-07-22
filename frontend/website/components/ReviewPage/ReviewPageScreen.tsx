@@ -7,7 +7,7 @@ export default function ReviewPageScreen({
   reviews: TransformedReview[];
 }) {
   return (
-    <section className="mx-auto max-w-[1600px] px-6 pb-24 pt-28 md:px-10 md:pt-36">
+    <section className="mx-auto max-w-[1600px] px-6 pb-24 pt-24 md:px-10 md:pt-36">
       <div className="mb-10 text-center lg:mb-14">
         <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
           The Community

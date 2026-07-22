@@ -10,7 +10,7 @@ export default function CmsPageScreen({
   bodyHtml,
 }: CmsPageScreenProps) {
   return (
-    <section className="mx-auto max-w-3xl px-5 pb-24 pt-28 sm:px-6 md:px-10 md:pt-36">
+    <section className="mx-auto max-w-3xl px-5 pb-24 pt-24 sm:px-6 md:px-10 md:pt-36">
       <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
         {eyebrow}
       </p>

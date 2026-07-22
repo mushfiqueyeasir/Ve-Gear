@@ -1,14 +1,71 @@
 import { bannerImageUrl, brandingImageUrl } from "@/utility/imageUrl";
 import { readCmsBlob } from "@/lib/cms/jsonStore";
-import { DEFAULT_SEO, type CmsSeo } from "@/lib/cms/types";
+import {
+  DEFAULT_PAGES_SEO,
+  DEFAULT_SEO,
+  SEO_PAGE_META,
+  type CmsSeo,
+  type SeoPageKey,
+} from "@/lib/cms/types";
 import type { SeoItemType } from "@/type/seoType";
 import { SeoContent } from "@/SeoContent/SeoContent";
 import { appConfig } from "@/lib/config";
 
+function resolveSeoImage(path: string | null | undefined, fallback: string) {
+  return brandingImageUrl(path) || bannerImageUrl(path) || fallback;
+}
+
+function keywordsFromCms(
+  keywords: string | undefined,
+  fallback?: string[],
+): string[] | undefined {
+  if (keywords?.trim()) {
+    return keywords
+      .split(",")
+      .map((k) => k.trim())
+      .filter(Boolean);
+  }
+  return fallback;
+}
+
+function toSeoItem(
+  seo: CmsSeo,
+  path: string,
+  fallback: SeoItemType,
+): SeoItemType {
+  const baseUrl = (appConfig.siteUrl || fallback.siteUrl || "").replace(
+    /\/$/,
+    "",
+  );
+  const siteUrl = path === "/" ? baseUrl || "/" : `${baseUrl}${path}`;
+
+  return {
+    title: seo.title?.trim() || fallback.title,
+    description: seo.description?.trim() || fallback.description,
+    image: resolveSeoImage(seo.og_image_path, fallback.image),
+    siteUrl,
+    keywords: keywordsFromCms(seo.keywords, fallback.keywords),
+  };
+}
+
+const STATIC_FALLBACK: Record<SeoPageKey, SeoItemType> = {
+  home: SeoContent.baseSeo,
+  about: SeoContent.aboutUsSeo,
+  product: SeoContent.productSeo,
+  contact: SeoContent.contactUsSeo,
+  reviews: SeoContent.reviewsSeo,
+  cart: SeoContent.cartSeo,
+  wishlist: SeoContent.wishlistSeo,
+  checkout: SeoContent.checkoutSeo,
+  privacy: SeoContent.privacyPolicySeo,
+  terms: SeoContent.termsOfServiceSeo,
+  refund: SeoContent.refundPolicySeo,
+};
+
 export async function getSeoConfig(): Promise<CmsSeo> {
   try {
     const cms = await readCmsBlob();
-    return { ...DEFAULT_SEO, ...cms.seo };
+    return { ...DEFAULT_SEO, ...cms.pages_seo.home, ...cms.seo };
   } catch {
     return { ...DEFAULT_SEO };
   }
@@ -16,25 +73,31 @@ export async function getSeoConfig(): Promise<CmsSeo> {
 
 /** Site-wide SEO used by the root layout / homepage, with static fallbacks. */
 export async function getBaseSeoItem(): Promise<SeoItemType> {
-  const seo = await getSeoConfig();
-  const fallback = SeoContent.baseSeo;
-  const image =
-    brandingImageUrl(seo.og_image_path) ||
-    bannerImageUrl(seo.og_image_path) ||
-    fallback.image;
+  return getSeoItem("home");
+}
 
-  const keywords = seo.keywords
-    ? seo.keywords
-        .split(",")
-        .map((k) => k.trim())
-        .filter(Boolean)
-    : fallback.keywords;
+/** Per-page SEO from Admin → Settings → SEO. */
+export async function getSeoItem(page: SeoPageKey): Promise<SeoItemType> {
+  const fallback = STATIC_FALLBACK[page];
+  const path = SEO_PAGE_META[page].path;
 
-  return {
-    title: seo.title?.trim() || fallback.title,
-    description: seo.description?.trim() || fallback.description,
-    image,
-    siteUrl: fallback.siteUrl || appConfig.siteUrl || "",
-    keywords,
-  };
+  try {
+    const cms = await readCmsBlob();
+    const fromPages = cms.pages_seo?.[page];
+    const seo: CmsSeo =
+      page === "home"
+        ? {
+            ...DEFAULT_PAGES_SEO.home,
+            ...cms.seo,
+            ...fromPages,
+          }
+        : {
+            ...DEFAULT_PAGES_SEO[page],
+            ...fromPages,
+          };
+
+    return toSeoItem(seo, path, fallback);
+  } catch {
+    return toSeoItem(DEFAULT_PAGES_SEO[page], path, fallback);
+  }
 }

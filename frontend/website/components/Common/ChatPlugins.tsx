@@ -71,7 +71,7 @@ function WhatsAppButton({ number }: { number: string }) {
       href={href}
       label="Chat on WhatsApp"
       title="Opens WhatsApp"
-      className="fixed bottom-4 right-4 z-100 flex size-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition hover:scale-105 hover:bg-[#1ebe57] sm:bottom-6 sm:right-6"
+      className="fixed bottom-24 right-4 z-40 flex size-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition hover:scale-105 hover:bg-[#1ebe57] md:bottom-6 md:right-6 md:z-100"
     >
       <WhatsAppIcon className="size-7" />
     </FloatingChatLink>
@@ -87,7 +87,7 @@ function MessengerButton({ pageId }: { pageId: string }) {
       href={href}
       label="Chat on Messenger"
       title="Opens Messenger"
-      className="fixed bottom-4 right-4 z-100 flex size-14 items-center justify-center rounded-full bg-[#0084FF] text-white shadow-lg transition hover:scale-105 hover:bg-[#006fd6] sm:bottom-6 sm:right-6"
+      className="fixed bottom-24 right-4 z-40 flex size-14 items-center justify-center rounded-full bg-[#0084FF] text-white shadow-lg transition hover:scale-105 hover:bg-[#006fd6] md:bottom-6 md:right-6 md:z-100"
     >
       <MessengerIcon className="size-7" />
     </FloatingChatLink>

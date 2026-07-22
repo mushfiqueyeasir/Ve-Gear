@@ -48,8 +48,9 @@ const ScrollBar = React.forwardRef<
         "flex touch-none select-none transition-colors",
         orientation === "vertical" &&
           cn(
-            "h-full border-l border-l-transparent p-px",
-            variant === "brand" ? "w-1.5" : "w-2.5",
+            "h-full border-l border-l-transparent",
+            // Sit above fixed navbar (z-50) so the thumb isn't covered
+            variant === "brand" ? "z-[60] w-3 p-0.5" : "w-2.5 p-px",
           ),
         orientation === "horizontal" &&
           "h-2.5 flex-col border-t border-t-transparent p-px",
@@ -62,7 +63,7 @@ const ScrollBar = React.forwardRef<
         className={cn(
           "relative flex-1 rounded-full transition-colors",
           variant === "brand"
-            ? "bg-foreground/18 hover:bg-primary/80 active:bg-primary"
+            ? "bg-foreground/35 hover:bg-primary/85 active:bg-primary"
             : "bg-foreground/15 hover:bg-foreground/30",
         )}
       />

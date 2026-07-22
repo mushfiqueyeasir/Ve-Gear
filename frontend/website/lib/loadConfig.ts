@@ -6,11 +6,9 @@ export type AppConfigFile = {
   NEXT_PUBLIC_SUPABASE_ANON_KEY?: string;
   SUPABASE_SERVICE_ROLE_KEY?: string;
   NEXT_PUBLIC_SITE_URL?: string;
-  NEXT_PUBLIC_EMAIL_SERVICE_ID?: string;
-  NEXT_PUBLIC_EMAIL_CONTACT_TEMPLATE?: string;
-  NEXT_PUBLIC_EMAIL_CHECKOUT_TEMPLATE?: string;
-  NEXT_PUBLIC_EMAIL_PUBLIC_KEY?: string;
-  NEXT_PUBLIC_EMAIL_ADDRESS?: string;
+  GMAIL_USER?: string;
+  GMAIL_APP_PASSWORD?: string;
+  ORDER_NOTIFY_EMAILS?: string[] | string;
   SECURITY_ENABLED?: string | boolean;
 };
 

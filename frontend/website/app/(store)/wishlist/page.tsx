@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import WishlistPageScreen from "@/components/WishlistPage/WishlistPageScreen";
 import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetadata";
-import { SeoContent } from "@/SeoContent/SeoContent";
+import { getSeoItem } from "@/utility/getSeoSettings";
 
-export const metadata = generateSeoMetadata(SeoContent.wishlistSeo);
+export async function generateMetadata(): Promise<Metadata> {
+  return generateSeoMetadata(await getSeoItem("wishlist"));
+}
 
 export default function WishlistPage() {
   return <WishlistPageScreen />;

@@ -4,7 +4,6 @@ import { useState } from "react";
 import Input from "@/components/Common/Input";
 import Textarea from "@/components/Common/Textarea";
 import { submitContactForm } from "@/utility/submitContactForm";
-import { sendEmail } from "@/utility/sendEmail";
 import { toast } from "sonner";
 
 export default function ContactPageScreen() {
@@ -59,32 +58,6 @@ export default function ContactPageScreen() {
         message: formData.message.trim(),
       });
 
-      try {
-        const escapeHtml = (text: string) => {
-          return text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-        };
-
-        const messageHtml = escapeHtml(formData.message.trim()).replace(
-          /\n/g,
-          "<br>",
-        );
-
-        await sendEmail({
-          subject: `New Contact Form Submission from ${formData.name.trim()}`,
-          body: {
-            from_name: formData.name.trim(),
-            from_email: formData.email.trim(),
-            from_phone: formData.phone?.trim() || "Not provided",
-            message_html: messageHtml,
-          },
-        });
-      } catch {}
-
       toast.success("Thank you! Your message has been sent successfully.");
       setFormData({
         name: "",
@@ -104,7 +77,7 @@ export default function ContactPageScreen() {
   };
 
   return (
-    <section className="mx-auto max-w-3xl px-6 pb-24 pt-28 md:px-10 md:pt-36">
+    <section className="mx-auto max-w-3xl px-6 pb-24 pt-24 md:px-10 md:pt-36">
       <div className="mb-10 lg:mb-14">
         <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
           We&apos;re here to help

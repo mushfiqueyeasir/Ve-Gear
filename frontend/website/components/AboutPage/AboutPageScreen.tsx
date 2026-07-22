@@ -106,7 +106,7 @@ function HeroSection({ config }: { config: Record<string, unknown> }) {
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/55 to-background/25" />
       <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/30 to-transparent" />
 
-      <div className="relative z-10 mx-auto flex min-h-[72vh] max-w-[1600px] flex-col justify-end px-6 pb-16 pt-32 md:min-h-[80vh] md:px-10 md:pb-24">
+      <div className="relative z-10 mx-auto flex min-h-[72vh] max-w-[1600px] flex-col justify-end px-6 pb-16 pt-28 md:min-h-[80vh] md:px-10 md:pb-24 md:pt-32">
         {cfgStr(config, "eyebrow") ? (
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
             {cfgStr(config, "eyebrow")}

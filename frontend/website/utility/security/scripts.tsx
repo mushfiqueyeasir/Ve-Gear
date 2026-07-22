@@ -1,86 +1,82 @@
-import React from "react";
-import { appConfig } from "@/lib/config";
+"use client";
 
-const securityEnabled = appConfig.securityEnabled;
+import { useEffect } from "react";
 
-export const DisableRightClickScript: React.FC = () => (
-  <script
-    dangerouslySetInnerHTML={{
-      __html: `
-      document.addEventListener("contextmenu", function(e) {
-        e.preventDefault();
-      });
-    `,
-    }}
-  />
-);
+/**
+ * Storefront anti-inspect / anti–right-click guard.
+ * Mount only when SECURITY_ENABLED is true (checked in the store layout).
+ *
+ * Note: client-side guards deter casual users; they cannot fully stop
+ * determined inspection (browser tools always have a way around).
+ */
+export function CustomSecurity() {
+  useEffect(() => {
+    const block = (event: Event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    };
 
-export const DisableF12Script: React.FC = () => (
-  <script
-    dangerouslySetInnerHTML={{
-      __html: `
-      document.addEventListener("keydown", function(e) {
-        if (e.key === "F12" || e.keyCode === 123) {
-          e.preventDefault();
-        }
-      });
-    `,
-    }}
-  />
-);
+    const onKeyDown = (event: KeyboardEvent) => {
+      const key = event.key?.toLowerCase?.() ?? "";
+      const code = event.code?.toLowerCase?.() ?? "";
+      const ctrlOrMeta = event.ctrlKey || event.metaKey;
+      const shift = event.shiftKey;
+      const alt = event.altKey;
 
-export const DisableCtrlShiftIScript: React.FC = () => (
-  <script
-    dangerouslySetInnerHTML={{
-      __html: `
-      document.addEventListener("keydown", function(e) {
-        if (
-          (e.ctrlKey || e.metaKey) &&
-          (e.shiftKey || e.altKey) &&
-          e.key.toLowerCase() === "i"
-        ) {
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }
-      });
-    `,
-    }}
-  />
-);
+      // F12 — DevTools
+      if (key === "f12" || event.keyCode === 123) {
+        block(event);
+        return;
+      }
 
-export const DisableDeveloperToolsScript: React.FC = () => (
-  <script
-    dangerouslySetInnerHTML={{
-      __html: `
-      document.addEventListener("DOMContentLoaded", function() {
-        const menu = document.querySelector(".more-tools-menu");
-        if (menu) {
-          const items = menu.querySelectorAll(".menu-item");
-          items.forEach(item => {
-            if (item.textContent.trim() === "Developer Tools") {
-              item.addEventListener("click", function(event) {
-                event.stopPropagation();
-                event.preventDefault();
-                return false;
-              });
-            }
-          });
-        }
-      });
-    `,
-    }}
-  />
-);
+      // Ctrl/Cmd + Shift + I / J / C  (Inspect / Console / Elements)
+      if (
+        ctrlOrMeta &&
+        shift &&
+        (key === "i" ||
+          key === "j" ||
+          key === "c" ||
+          code === "keyi" ||
+          code === "keyj" ||
+          code === "keyc")
+      ) {
+        block(event);
+        return;
+      }
 
-export const CustomSecurity: React.FC = () =>
-  securityEnabled ? (
-    <>
-      <DisableRightClickScript />
-      <DisableF12Script />
-      <DisableCtrlShiftIScript />
-      <DisableDeveloperToolsScript />
-    </>
-  ) : (
-    <></>
-  );
+      // Ctrl/Cmd + U  (View source)
+      if (ctrlOrMeta && !shift && !alt && (key === "u" || code === "keyu")) {
+        block(event);
+        return;
+      }
+
+      // macOS Chrome/Safari: Cmd + Option + I / J / C / U
+      if (
+        event.metaKey &&
+        alt &&
+        (key === "i" ||
+          key === "j" ||
+          key === "c" ||
+          key === "u" ||
+          code === "keyi" ||
+          code === "keyj" ||
+          code === "keyc" ||
+          code === "keyu")
+      ) {
+        block(event);
+      }
+    };
+
+    // Right-click / long-press context menu (desktop + mobile browsers)
+    document.addEventListener("contextmenu", block, true);
+    document.addEventListener("keydown", onKeyDown, true);
+
+    return () => {
+      document.removeEventListener("contextmenu", block, true);
+      document.removeEventListener("keydown", onKeyDown, true);
+    };
+  }, []);
+
+  return null;
+}

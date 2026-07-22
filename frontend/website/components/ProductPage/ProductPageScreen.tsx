@@ -38,7 +38,7 @@ export default function ProductPageScreen({
   }, [products, getFilteredProducts, filters]);
 
   return (
-    <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-28 sm:px-6 md:px-10 md:pt-36">
+    <section className="mx-auto max-w-[1600px] px-5 pb-24 pt-24 sm:px-6 md:px-10 md:pt-36">
       <div className="mb-8 border-b border-border pb-6 sm:mb-10 sm:pb-8">
         <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-primary">
           The Collection

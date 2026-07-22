@@ -8,16 +8,14 @@ import { toast } from "sonner";
 import Input from "@/components/Common/Input";
 import Select from "@/components/Common/Select";
 import { submitOrder } from "@/utility/submitOrder";
-import { sendEmail } from "@/utility/sendEmail";
 import { trackPurchase } from "@/utility/analytics/facebookPixelEvents";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
-import { appConfig } from "@/lib/config";
-import {
-  deliveryZoneLabel,
-  shippingCostForZone,
-  type DeliveryCharges,
-} from "@/lib/delivery";
+import { shippingCostForZone, type DeliveryCharges } from "@/lib/delivery";
 import { cn } from "@/lib/utils";
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
 
 export default function CheckoutForm({
   deliveryCharges,
@@ -40,8 +38,8 @@ export default function CheckoutForm({
   }, [loadSavedDeliveryInfo]);
 
   const handleCompleteOrder = async () => {
-    if (!formData.emailOrPhone) {
-      toast.error("Please enter your email or phone number");
+    if (!formData.emailOrPhone || !isValidEmail(formData.emailOrPhone)) {
+      toast.error("Please enter a valid email address");
       return;
     }
     if (!formData.firstName || !formData.lastName) {
@@ -77,6 +75,7 @@ export default function CheckoutForm({
           city: formData.city,
           postalCode: formData.postalCode,
           phone: formData.phone,
+          email: formData.emailOrPhone.trim(),
           shippingMethod: formData.shippingMethod,
         },
         items: items.map((item) => ({
@@ -93,102 +92,10 @@ export default function CheckoutForm({
         },
       };
 
-      await submitOrder(orderData);
+      const result = await submitOrder(orderData);
 
       if (formData.saveInfo) {
         saveDeliveryInfo();
-      }
-
-      const checkoutTemplateId = appConfig.email.checkoutTemplate;
-
-      if (checkoutTemplateId) {
-        try {
-          const escapeHtml = (text: string) => {
-            return text
-              .replace(/&/g, "&amp;")
-              .replace(/</g, "&lt;")
-              .replace(/>/g, "&gt;")
-              .replace(/"/g, "&quot;")
-              .replace(/'/g, "&#039;");
-          };
-
-          const deliveryAddress = [
-            formData.address,
-            formData.city,
-            formData.postalCode,
-            formData.country,
-          ]
-            .filter(Boolean)
-            .join(", ");
-
-          const itemsHtml = items
-            .map(
-              (item) =>
-                `<tr>
-                  <td style="padding: 20px 0; border-bottom: 1px solid #e8e8e8;">
-                    <table role="presentation" style="width: 100%; border-collapse: collapse;">
-                      <tr>
-                        <td style="width: 60%; vertical-align: top;">
-                          <table role="presentation" style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                              <td style="width: 80px; padding-right: 16px; vertical-align: top;">
-                                <img src="${item.image}" alt="${escapeHtml(item.title)}" style="width: 80px; height: 80px; object-fit: cover; display: block; border: 1px solid #e8e8e8;" />
-                              </td>
-                              <td style="vertical-align: top;">
-                                <div style="font-size: 11px; color: #999999; margin-bottom: 4px; text-transform: uppercase;">VE Gear</div>
-                                <div style="font-size: 15px; font-weight: 400; color: #000000; margin-bottom: 6px; line-height: 1.4;">${escapeHtml(item.title)}</div>
-                                <div style="font-size: 14px; color: #000000; margin-bottom: 4px;">Tk ${item.currentPrice.toLocaleString()}.00</div>
-                                <div style="font-size: 13px; color: #666666;">Size: ${item.size}</div>
-                              </td>
-                            </tr>
-                          </table>
-                        </td>
-                        <td style="width: 20%; text-align: center; vertical-align: top; padding-top: 8px;">
-                          <div style="font-size: 15px; color: #000000; font-weight: 400;">${item.quantity}</div>
-                        </td>
-                        <td style="width: 20%; text-align: right; vertical-align: top; padding-top: 8px;">
-                          <div style="font-size: 15px; color: #000000; font-weight: 400;">Tk ${(item.currentPrice * item.quantity).toLocaleString()}.00 BDT</div>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>`,
-            )
-            .join("");
-
-          const orderSummaryHtml = `
-            <div style="text-align: right;">
-              <div style="font-size: 13px; color: #666666; margin-bottom: 8px;">Estimated total</div>
-              <div style="font-size: 20px; font-weight: 400; color: #000000; margin-bottom: 8px;">Tk ${total.toLocaleString()}.00 BDT</div>
-              <div style="font-size: 11px; color: #999999; margin-bottom: 16px;">Cash on delivery · ${escapeHtml(deliveryZoneLabel(formData.shippingMethod))}</div>
-              <table style="width: 100%; border-collapse: collapse; margin-top: 16px; border-top: 1px solid #e8e8e8; padding-top: 16px;">
-                <tr>
-                  <td style="padding: 6px 0; color: #666666; font-size: 13px; text-align: left;">Subtotal</td>
-                  <td style="padding: 6px 0; text-align: right; color: #666666; font-size: 13px;">Tk ${subtotal.toLocaleString()}.00</td>
-                </tr>
-                <tr>
-                  <td style="padding: 6px 0; color: #666666; font-size: 13px; text-align: left;">Delivery (${escapeHtml(deliveryZoneLabel(formData.shippingMethod))})</td>
-                  <td style="padding: 6px 0; text-align: right; color: #666666; font-size: 13px;">Tk ${shipping.toLocaleString()}.00</td>
-                </tr>
-              </table>
-            </div>
-          `;
-
-          await sendEmail({
-            subject: `New Order Received - ${formData.firstName} ${formData.lastName}`,
-            body: {
-              customer_name: `${formData.firstName} ${formData.lastName}`,
-              customer_phone: formData.phone,
-              delivery_address: deliveryAddress,
-              order_items_html: itemsHtml,
-              order_summary_html: orderSummaryHtml,
-              subtotal: subtotal.toString(),
-              shipping: shippingCost.toString(),
-              total: total.toString(),
-            },
-            emailJsTemplateId: checkoutTemplateId,
-          });
-        } catch {}
       }
 
       // Track Purchase event for Meta catalog ads
@@ -197,8 +104,9 @@ export default function CheckoutForm({
       trackPurchase(productIds, total, code, numItems);
 
       toast.success("Order placed successfully!", {
-        description:
-          "Your order has been received and will be processed shortly.",
+        description: result.orderNumber
+          ? `Order ${result.orderNumber} received. A confirmation email is on the way.`
+          : "Your order has been received and will be processed shortly.",
       });
       clearCart();
       setTimeout(() => {
@@ -220,8 +128,8 @@ export default function CheckoutForm({
       <div className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Contact</h2>
         <Input
-          type="text"
-          placeholder="Email or mobile phone number"
+          type="email"
+          placeholder="Email address"
           value={formData.emailOrPhone}
           onChange={(e) => updateFormData({ emailOrPhone: e.target.value })}
         />

@@ -10,10 +10,13 @@ import {
   DEFAULT_DELIVERY_CHARGES,
   DEFAULT_CHAT_WIDGETS,
   DEFAULT_SEO,
+  DEFAULT_PAGES_SEO,
+  normalizePagesSeo,
   type CmsAnnouncement,
   type CmsPage,
   type CmsPageSlug,
   type CmsSeo,
+  type SeoPageKey,
   type CurrencySettings,
   type DeliveryCharges,
   type ChatWidgets,
@@ -47,12 +50,17 @@ export type {
   CmsPage,
   CmsPageSlug,
   CmsSeo,
+  SeoPageKey,
   CurrencySettings,
   DeliveryCharges,
   ChatWidgets,
 } from "./types";
 export {
   DEFAULT_SEO,
+  DEFAULT_PAGES_SEO,
+  SEO_PAGE_KEYS,
+  SEO_PAGE_META,
+  normalizePagesSeo,
   DEFAULT_CURRENCY_SETTINGS,
   DEFAULT_DELIVERY_CHARGES,
   DEFAULT_CHAT_WIDGETS,
@@ -70,7 +78,10 @@ export interface CmsBlob {
   about_sections: AboutSectionRow[];
   pages: Record<CmsPageSlug, CmsPage>;
   announcement: CmsAnnouncement;
+  /** Legacy site-wide / homepage SEO (kept in sync with pages_seo.home). */
   seo: CmsSeo;
+  /** Per-page SEO managed in Admin → Settings → SEO. */
+  pages_seo: Record<SeoPageKey, CmsSeo>;
   currencies: CurrencySettings;
   deliveryCharges: DeliveryCharges;
   chatWidgets: ChatWidgets;
@@ -120,6 +131,7 @@ function emptyCms(): CmsBlob {
       url: "/product",
     },
     seo: { ...DEFAULT_SEO },
+    pages_seo: { ...DEFAULT_PAGES_SEO, home: { ...DEFAULT_SEO } },
     currencies: { ...DEFAULT_CURRENCY_SETTINGS },
     deliveryCharges: { ...DEFAULT_DELIVERY_CHARGES },
     chatWidgets: { ...DEFAULT_CHAT_WIDGETS },
@@ -155,6 +167,10 @@ function normalize(raw: unknown): CmsBlob {
       ...DEFAULT_SEO,
       ...(o.seo ?? {}),
     },
+    pages_seo: normalizePagesSeo(
+      (o as { pages_seo?: unknown }).pages_seo,
+      o.seo,
+    ),
     currencies: normalizeCurrencySettings(o.currencies),
     deliveryCharges: normalizeDeliveryCharges(o.deliveryCharges),
     chatWidgets: normalizeChatWidgets(o.chatWidgets),

@@ -1,13 +1,17 @@
+import type { Metadata } from "next";
 import ProductPageScreen from "@/components/ProductPage/ProductPageScreen";
 import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetadata";
-import { SeoContent } from "@/SeoContent/SeoContent";
+import { getSeoItem } from "@/utility/getSeoSettings";
 import { getProducts, transformProduct } from "@/utility/getProducts";
 import { getCategories } from "@/utility/getCategory";
 
-export const metadata = generateSeoMetadata(SeoContent.productSeo);
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return generateSeoMetadata(await getSeoItem("product"));
+}
 
 type ProductSearchParams = {
   category?: string | string[];

@@ -17,6 +17,8 @@ export interface OrderFormData {
     city: string;
     postalCode?: string;
     phone: string;
+    /** Customer email for order confirmation */
+    email?: string;
     shippingMethod?: "inside-dhaka" | "outside-dhaka";
   };
   items: OrderItemInput[];

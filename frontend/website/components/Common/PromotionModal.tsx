@@ -6,22 +6,47 @@ import Image from "next/image";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import type { Promotion } from "@/type/promotionType";
+import { cn } from "@/lib/utils";
 
 interface PromotionModalProps {
   promotion: Promotion | null;
 }
 
+const OPEN_DELAY_MS = 2200;
+
+function dismissKey(promotion: Promotion) {
+  return `promo-dismissed:${promotion._id}`;
+}
+
 export default function PromotionModal({ promotion }: PromotionModalProps) {
   const router = useRouter();
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    setOpen(true);
-  }, []);
+    if (!promotion) return;
 
-  const handleClose = () => {
-    setOpen(false);
+    try {
+      if (sessionStorage.getItem(dismissKey(promotion))) return;
+    } catch {
+      // sessionStorage unavailable — still show with delay
+    }
+
+    const timer = window.setTimeout(() => setOpen(true), OPEN_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [promotion]);
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (!next && promotion) {
+      try {
+        sessionStorage.setItem(dismissKey(promotion), "1");
+      } catch {
+        // ignore
+      }
+    }
   };
+
+  const handleClose = () => handleOpenChange(false);
 
   const handleShopNow = () => {
     handleClose();
@@ -35,8 +60,17 @@ export default function PromotionModal({ promotion }: PromotionModalProps) {
   const imageUrl = promotion.imageUrl;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-h-[min(88dvh,820px)] w-[calc(100%-1.5rem)] max-w-xl gap-0 overflow-hidden rounded-2xl border-0 bg-[#111] p-0 shadow-2xl shadow-black/60 sm:w-[calc(100%-2rem)] sm:rounded-3xl [&>button]:hidden">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent
+        className={cn(
+          "max-h-[min(88dvh,820px)] w-[calc(100%-1.5rem)] max-w-xl gap-0 overflow-hidden rounded-2xl border-0 bg-[#111] p-0 shadow-2xl shadow-black/60 sm:w-[calc(100%-2rem)] sm:rounded-3xl [&>button]:hidden",
+          // Slower, smoother enter/exit than the default dialog
+          "duration-500 ease-out",
+          "data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
+          "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+          "data-[state=open]:slide-in-from-bottom-4 data-[state=closed]:slide-out-to-bottom-2",
+        )}
+      >
         <DialogTitle className="sr-only">
           {promotion.title} -{" "}
           {promotion.discountPercent

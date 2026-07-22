@@ -1,12 +1,16 @@
+import type { Metadata } from "next";
 import ReviewPageScreen from "@/components/ReviewPage/ReviewPageScreen";
 import { generateMetadata as generateSeoMetadata } from "@/utility/generateMetadata";
-import { SeoContent } from "@/SeoContent/SeoContent";
+import { getSeoItem } from "@/utility/getSeoSettings";
 import { getReviews, transformReview } from "@/utility/getReview";
 
-export const metadata = generateSeoMetadata(SeoContent.reviewsSeo);
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return generateSeoMetadata(await getSeoItem("reviews"));
+}
 
 export default async function ReviewsPage() {
   const reviews = await getReviews();
