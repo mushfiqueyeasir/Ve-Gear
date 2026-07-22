@@ -3,5 +3,7 @@ interface ProductCountProps {
 }
 
 export default function ProductCount({ count }: ProductCountProps) {
-  return <span className="text-sm text-gray-600">{count} products</span>;
+  return (
+    <span className="text-sm text-muted-foreground">{count} products</span>
+  );
 }

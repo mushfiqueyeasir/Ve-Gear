@@ -60,8 +60,8 @@ export default function ProductFilters({
           disabled={!hasActiveFilters}
           className={`inline-flex h-11 shrink-0 items-center px-2 text-sm font-normal transition-colors ${
             hasActiveFilters
-              ? "cursor-pointer text-foreground underline-offset-4 hover:underline"
-              : "cursor-not-allowed text-muted-foreground opacity-50"
+              ? "cursor-pointer text-foreground underline-offset-4 hover:text-primary hover:underline"
+              : "cursor-not-allowed text-muted-foreground/70"
           }`}
         >
           Reset

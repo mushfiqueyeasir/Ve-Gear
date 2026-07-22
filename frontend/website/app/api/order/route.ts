@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSiteSettings } from "@/utility/getSettings";
+import { productImageUrl } from "@/utility/imageUrl";
 import {
   deliveryZoneLabel,
   shippingCostForZone,
@@ -8,6 +9,7 @@ import {
 } from "@/lib/delivery";
 import { sendOrderEmails } from "@/lib/email/sendOrderEmails";
 import type { OrderFormData } from "@/type/orderType";
+import type { ProductImageRow } from "@/type/db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -108,6 +110,25 @@ export async function POST(request: NextRequest) {
 
     // Fire-and-forget style: order already saved — email failures shouldn't fail checkout
     try {
+      const productIds = [
+        ...new Set(body.items.map((item) => item.product).filter(Boolean)),
+      ];
+      const imageByProduct = new Map<string, string>();
+      if (productIds.length > 0) {
+        const { data: imageRows } = await supabase
+          .from("product_images")
+          .select("product_id, path, is_main, sort")
+          .in("product_id", productIds)
+          .order("is_main", { ascending: false })
+          .order("sort", { ascending: true });
+
+        for (const row of (imageRows as ProductImageRow[] | null) ?? []) {
+          if (imageByProduct.has(row.product_id)) continue;
+          const url = productImageUrl(row.path);
+          if (url) imageByProduct.set(row.product_id, url);
+        }
+      }
+
       await sendOrderEmails({
         orderNumber: result.order_number,
         customerName,
@@ -120,11 +141,15 @@ export async function POST(request: NextRequest) {
           size: item.size,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
+          imageUrl: imageByProduct.get(item.product) ?? null,
         })),
         subtotal,
         shipping,
         total,
         currencyLabel: settings.currency || "BDT",
+        storeName: settings.store_name || "VE Gear",
+        logoUrl: settings.logoUrl,
+        palette: settings.palette,
       });
     } catch {
       // Ignore mail errors — order is already placed

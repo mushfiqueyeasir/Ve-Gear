@@ -1,10 +1,18 @@
 import { MenuType } from "@/type/menyType";
+import type { Category } from "@/type/categoryType";
 
-export function getMenuData(): MenuType[] {
+export function getMenuData(categories: Category[] = []): MenuType[] {
   return [
     {
-      label: "Shop",
+      label: "Category",
       href: "/product",
+      items: [
+        { label: "All", href: "/product" },
+        ...categories.map((category) => ({
+          label: category.categoryName,
+          href: `/product?category=${encodeURIComponent(category.categoryUrl.current)}`,
+        })),
+      ],
     },
     {
       label: "About",

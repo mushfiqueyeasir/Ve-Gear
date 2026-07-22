@@ -3,10 +3,16 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Search, Heart, ShoppingBag } from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { ChevronDown, Search, Heart, ShoppingBag } from "lucide-react";
 import MobileBottomNav from "./MobileBottomNav";
 import SearchSidebar from "../SearchSidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useCartStore } from "@/store/cartStore";
 import { useWishlistStore } from "@/store/wishlistStore";
 import { isActivePath } from "@/lib/nav";
@@ -21,10 +27,12 @@ interface NavbarProps {
 
 export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const itemCount = useCartStore((state) => state.getItemCount());
   const wishlistCount = useWishlistStore((state) => state.getItemCount());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const activeCategory = searchParams.get("category")?.trim() || null;
 
   useEffect(() => {
     const onScroll = () => {
@@ -67,25 +75,78 @@ export default function Navbar({ menuData, logoUrl, storeName }: NavbarProps) {
             {menuData.map((menu, index) => {
               if (!menu.href) return null;
               const active = isActivePath(pathname, menu.href);
+              const linkClass = cn(
+                "group relative text-[13px] font-medium uppercase tracking-[0.2em] transition",
+                active
+                  ? "text-primary"
+                  : "text-foreground/80 hover:text-foreground",
+              );
+              const underlineClass = cn(
+                "absolute -bottom-1 left-0 h-px bg-primary transition-all duration-500",
+                active ? "w-full" : "w-0 group-hover:w-full",
+              );
+
+              if (menu.items?.length) {
+                return (
+                  <DropdownMenu key={index} modal={false}>
+                    <DropdownMenuTrigger
+                      aria-current={active ? "page" : undefined}
+                      className={cn(
+                        linkClass,
+                        "inline-flex items-center gap-1 outline-none",
+                      )}
+                    >
+                      {menu.label}
+                      <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+                      <span className={underlineClass} />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="start"
+                      className="min-w-48 border-border bg-popover p-1 text-popover-foreground"
+                    >
+                      {menu.items.map((item) => {
+                        const itemPath = item.href.split("?")[0] || item.href;
+                        const itemCategory =
+                          new URLSearchParams(
+                            item.href.includes("?")
+                              ? item.href.split("?")[1]
+                              : "",
+                          ).get("category") || null;
+                        const itemActive =
+                          pathname === itemPath &&
+                          (itemCategory
+                            ? activeCategory === itemCategory
+                            : !activeCategory);
+
+                        return (
+                          <DropdownMenuItem
+                            key={item.href}
+                            asChild
+                            className={cn(
+                              "cursor-pointer rounded-sm px-3 py-2.5 text-[13px] font-medium uppercase tracking-[0.16em] focus:bg-foreground/5 focus:text-foreground",
+                              itemActive
+                                ? "bg-foreground/5 text-primary"
+                                : "text-foreground/80",
+                            )}
+                          >
+                            <Link href={item.href}>{item.label}</Link>
+                          </DropdownMenuItem>
+                        );
+                      })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                );
+              }
+
               return (
                 <Link
                   key={index}
                   href={menu.href}
                   aria-current={active ? "page" : undefined}
-                  className={cn(
-                    "group relative text-[13px] font-medium uppercase tracking-[0.2em] transition",
-                    active
-                      ? "text-primary"
-                      : "text-foreground/80 hover:text-foreground",
-                  )}
+                  className={linkClass}
                 >
                   {menu.label}
-                  <span
-                    className={cn(
-                      "absolute -bottom-1 left-0 h-px bg-primary transition-all duration-500",
-                      active ? "w-full" : "w-0 group-hover:w-full",
-                    )}
-                  />
+                  <span className={underlineClass} />
                 </Link>
               );
             })}

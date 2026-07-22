@@ -10,13 +10,14 @@ export default function DropdownHeader({
   label = "selected",
 }: DropdownHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-3 py-2 border-b">
-      <span className="text-sm text-gray-600">
+    <div className="flex items-center justify-between border-b border-border px-3 py-2">
+      <span className="text-sm text-muted-foreground">
         {selectedCount} {label}
       </span>
       <button
+        type="button"
         onClick={onReset}
-        className="text-sm text-black underline hover:no-underline"
+        className="text-sm text-foreground underline underline-offset-4 hover:text-primary hover:no-underline"
       >
         Reset
       </button>
