@@ -113,26 +113,28 @@
     overflow-x: hidden;
   }
 
-  /* Storefront: lock document scroll; Radix ScrollArea owns scrolling */
-  html.store-scroll,
-  html.store-scroll body {
-    height: 100%;
-    overflow: hidden;
-  }
-
-  /* Hide native bar inside Radix viewport (prevents double scrollbars) */
-  html.store-scroll [data-radix-scroll-area-viewport] {
+  /*
+   * Storefront: native document scroll (smooth) + custom overlay thumb in JS.
+   * Hide the OS scrollbar so only the branded primary thumb shows.
+   */
+  html.store-scroll {
+    scroll-behavior: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
-  html.store-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar {
+  html.store-scroll::-webkit-scrollbar {
     display: none;
+    width: 0;
+    height: 0;
+  }
+  html.store-scroll body {
+    overflow-x: hidden;
   }
 
-  /* Fallback native scrollbar outside storefront */
+  /* Non-storefront pages keep a simple branded native bar */
   html:not(.store-scroll) {
     scrollbar-width: auto;
-    scrollbar-color: rgb(var(--primary-rgb) / 0.55) rgba(255, 255, 255, 0.04);
+    scrollbar-color: rgb(var(--primary-rgb) / 0.7) rgba(255, 255, 255, 0.04);
   }
   html:not(.store-scroll)::-webkit-scrollbar {
     width: 12px;
@@ -141,13 +143,13 @@
     background: rgba(255, 255, 255, 0.04);
   }
   html:not(.store-scroll)::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.22);
+    background: rgb(var(--primary-rgb) / 0.75);
     border-radius: 999px;
     border: 3px solid transparent;
     background-clip: padding-box;
   }
   html:not(.store-scroll)::-webkit-scrollbar-thumb:hover {
-    background: rgb(var(--primary-rgb) / 0.8);
+    background: rgb(var(--primary-rgb) / 0.95);
     background-clip: padding-box;
   }
   button {
