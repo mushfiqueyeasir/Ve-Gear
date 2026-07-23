@@ -63,7 +63,7 @@ const ScrollBar = React.forwardRef<
         className={cn(
           "relative flex-1 rounded-full transition-colors",
           variant === "brand"
-            ? "bg-foreground/35 hover:bg-primary/85 active:bg-primary"
+            ? "bg-primary/80 hover:bg-primary active:bg-primary"
             : "bg-foreground/15 hover:bg-foreground/30",
         )}
       />
