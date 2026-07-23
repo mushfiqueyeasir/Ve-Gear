@@ -119,7 +119,7 @@ export default function StoreScrollShell({
       >
         <div
           ref={thumbRef}
-          className="w-full cursor-pointer rounded-full bg-primary/80 will-change-transform hover:bg-primary active:bg-primary"
+          className="w-full cursor-pointer rounded-full bg-primary/35 will-change-transform transition-colors hover:bg-primary/80 active:bg-primary"
           style={{ height: 0, transform: "translate3d(0,0,0)" }}
           onPointerDown={(e) => {
             if (!scrollableRef.current) return;
