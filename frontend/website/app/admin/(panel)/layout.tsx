@@ -17,6 +17,7 @@ export default async function PanelLayout({
   return (
     <AdminShell
       session={{
+        userId: session.userId,
         role: session.role,
         email: session.email,
         fullName: session.fullName,

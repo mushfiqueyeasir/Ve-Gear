@@ -25,6 +25,9 @@ const ACTION_VARIANT: Record<
   reorder: "secondary",
   toggle: "warning",
   status_change: "default",
+  login: "success",
+  logout: "secondary",
+  login_failed: "destructive",
 };
 
 function labelize(value: string) {

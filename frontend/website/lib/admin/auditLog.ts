@@ -2,7 +2,15 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { AdminSession } from "@/lib/admin/auth";
 
 export type AuditAction =
-  "create" | "update" | "delete" | "reorder" | "toggle" | "status_change";
+  | "create"
+  | "update"
+  | "delete"
+  | "reorder"
+  | "toggle"
+  | "status_change"
+  | "login"
+  | "logout"
+  | "login_failed";
 
 export type AuditEntity =
   | "product"
@@ -18,7 +26,8 @@ export type AuditEntity =
   | "contact"
   | "settings"
   | "user"
-  | "security";
+  | "security"
+  | "auth";
 
 export interface WriteAuditLogInput {
   actor?: Pick<AdminSession, "userId" | "email" | "role"> | null;

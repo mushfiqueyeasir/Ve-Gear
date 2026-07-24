@@ -4,6 +4,7 @@ import { createContext, useContext } from "react";
 import type { UserRole } from "@/type/db";
 
 export interface AdminContextValue {
+  userId: string;
   role: UserRole;
   email: string;
   fullName: string | null;

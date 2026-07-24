@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { logAdminAuthEvent } from "@/app/admin/auth-audit-actions";
 
 const ROLE_LABEL: Record<string, string> = {
   admin: "Administrator",
@@ -76,6 +77,12 @@ export default function AdminShell({
       .sort((a, b) => b.href.length - a.href.length)[0] ?? null;
 
   const signOut = async () => {
+    await logAdminAuthEvent({
+      type: "logout",
+      userId: session.userId,
+      email: session.email,
+      role: session.role,
+    });
     const supabase = createSupabaseBrowserClient();
     await supabase.auth.signOut();
     toast.success("Signed out");

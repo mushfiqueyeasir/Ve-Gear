@@ -8,6 +8,8 @@ import { ArrowRight, ArrowUpRight, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import StoreInput from "@/components/Common/Input";
+import { logAdminAuthEvent } from "@/app/admin/auth-audit-actions";
+import type { UserRole } from "@/type/db";
 
 const PARTICLES = Array.from({ length: 14 });
 
@@ -22,16 +24,37 @@ function LoginForm() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    const trimmedEmail = email.trim().toLowerCase();
     const supabase = createSupabaseBrowserClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: trimmedEmail,
       password,
     });
-    setLoading(false);
     if (error) {
+      setLoading(false);
+      await logAdminAuthEvent({ type: "login_failed", email: trimmedEmail });
       toast.error(error.message || "Invalid credentials");
       return;
     }
+
+    const user = data.user;
+    let role: UserRole = "viewer";
+    if (user?.id) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+      role = (profile?.role as UserRole) ?? "viewer";
+      await logAdminAuthEvent({
+        type: "login",
+        userId: user.id,
+        email: user.email ?? trimmedEmail,
+        role,
+      });
+    }
+
+    setLoading(false);
     toast.success("Welcome back");
     router.replace(redirect);
     router.refresh();
