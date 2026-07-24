@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminSession, isAdmin } from "@/lib/admin/auth";
 import type { UserRole } from "@/type/db";
@@ -52,27 +51,69 @@ export async function createUser(input: {
   return {};
 }
 
-// Change a user's role. An admin cannot change their own role.
-export async function updateUserRole(
-  userId: string,
-  role: UserRole,
-): Promise<{ error?: string }> {
+// Update a staff user (email, name, role, optional password).
+export async function updateUser(input: {
+  userId: string;
+  email: string;
+  fullName: string;
+  role: UserRole;
+  password?: string;
+}): Promise<{ error?: string }> {
   const s = await requireAdminSession();
   if (!isAdmin(s.role)) {
     return { error: "You do not have permission to manage users." };
   }
-  if (!ROLES.includes(role)) return { error: "Invalid role." };
-  if (userId === s.userId) {
+
+  const userId = input.userId?.trim();
+  if (!userId) return { error: "User is required." };
+
+  const email = input.email.trim().toLowerCase();
+  if (!email) return { error: "Email is required." };
+  if (!ROLES.includes(input.role)) return { error: "Invalid role." };
+  if (userId === s.userId && input.role !== s.role) {
     return { error: "You cannot change your own role." };
   }
+  if (input.password && input.password.length < 6) {
+    return { error: "Password must be at least 6 characters." };
+  }
 
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase
+  const admin = createSupabaseAdminClient();
+  const fullName = input.fullName.trim() || null;
+
+  const authPatch: {
+    email: string;
+    user_metadata: { full_name: string | null };
+    password?: string;
+  } = {
+    email,
+    user_metadata: { full_name: fullName },
+  };
+  if (input.password) authPatch.password = input.password;
+
+  const { error: authError } = await admin.auth.admin.updateUserById(
+    userId,
+    authPatch,
+  );
+  if (authError) return { error: authError.message };
+
+  const profilePatch: {
+    full_name: string | null;
+    role?: UserRole;
+    updated_at: string;
+  } = {
+    full_name: fullName,
+    updated_at: new Date().toISOString(),
+  };
+  if (userId !== s.userId) {
+    profilePatch.role = input.role;
+  }
+
+  const { error: profileError } = await admin
     .from("profiles")
-    .update({ role, updated_at: new Date().toISOString() })
+    .update(profilePatch)
     .eq("id", userId);
 
-  if (error) return { error: error.message };
+  if (profileError) return { error: profileError.message };
 
   revalidatePath("/admin/users");
   return {};
