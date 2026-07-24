@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { ArrowRight, ArrowUpRight, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -14,7 +14,6 @@ import type { UserRole } from "@/type/db";
 const PARTICLES = Array.from({ length: 14 });
 
 function LoginForm() {
-  const router = useRouter();
   const params = useSearchParams();
   const redirect = params.get("redirect") || "/admin";
   const [email, setEmail] = useState("");
@@ -25,6 +24,10 @@ function LoginForm() {
     e.preventDefault();
     setLoading(true);
     const trimmedEmail = email.trim().toLowerCase();
+    const safeRedirect =
+      redirect.startsWith("/admin") && !redirect.startsWith("//")
+        ? redirect
+        : "/admin";
     const supabase = createSupabaseBrowserClient();
     const { data, error } = await supabase.auth.signInWithPassword({
       email: trimmedEmail,
@@ -32,32 +35,33 @@ function LoginForm() {
     });
     if (error) {
       setLoading(false);
-      await logAdminAuthEvent({ type: "login_failed", email: trimmedEmail });
+      void logAdminAuthEvent({ type: "login_failed", email: trimmedEmail });
       toast.error(error.message || "Invalid credentials");
       return;
     }
 
+    // Audit in the background — awaiting a server action here raced the session
+    // cookies and left client navigations stuck on the login page.
     const user = data.user;
-    let role: UserRole = "viewer";
     if (user?.id) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle();
-      role = (profile?.role as UserRole) ?? "viewer";
-      await logAdminAuthEvent({
-        type: "login",
-        userId: user.id,
-        email: user.email ?? trimmedEmail,
-        role,
-      });
+      void (async () => {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
+        await logAdminAuthEvent({
+          type: "login",
+          userId: user.id,
+          email: user.email ?? trimmedEmail,
+          role: (profile?.role as UserRole) ?? "viewer",
+        });
+      })();
     }
 
-    setLoading(false);
     toast.success("Welcome back");
-    router.replace(redirect);
-    router.refresh();
+    // Full navigation so middleware sees the new auth cookies reliably.
+    window.location.assign(safeRedirect);
   };
 
   return (
