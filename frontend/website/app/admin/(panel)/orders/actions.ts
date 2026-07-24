@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
+import { writeAuditLog } from "@/lib/admin/auditLog";
 import { ORDER_TRANSITIONS } from "@/lib/admin/format";
 import type { OrderStatus } from "@/type/db";
 
@@ -20,7 +21,7 @@ export async function updateOrderStatus(
 
   const { data: current, error: readError } = await supabase
     .from("orders")
-    .select("status")
+    .select("status, order_number")
     .eq("id", orderId)
     .single();
 
@@ -43,6 +44,16 @@ export async function updateOrderStatus(
 
   if (error) return { error: error.message };
 
+  const orderNumber = current.order_number as string;
+  await writeAuditLog({
+    actor: s,
+    action: "status_change",
+    entity: "order",
+    entityId: orderId,
+    summary: `Changed order ${orderNumber} status from ${from} to ${status}`,
+    metadata: { from, to: status },
+  });
+
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin/orders");
   return {};
@@ -59,12 +70,27 @@ export async function saveOrderNotes(
   }
 
   const supabase = await createSupabaseServerClient();
+  const { data: orderRow } = await supabase
+    .from("orders")
+    .select("order_number")
+    .eq("id", orderId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("orders")
     .update({ notes, updated_at: new Date().toISOString() })
     .eq("id", orderId);
 
   if (error) return { error: error.message };
+
+  const orderLabel = orderRow?.order_number ?? orderId;
+  await writeAuditLog({
+    actor: s,
+    action: "update",
+    entity: "order",
+    entityId: orderId,
+    summary: `Updated notes for order ${orderLabel}`,
+  });
 
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin/orders");

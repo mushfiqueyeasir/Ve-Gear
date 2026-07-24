@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminSession, isAdmin } from "@/lib/admin/auth";
+import { writeAuditLog } from "@/lib/admin/auditLog";
 import type { UserRole } from "@/type/db";
 
 const ROLES: UserRole[] = ["admin", "editor", "viewer"];
@@ -46,6 +47,15 @@ export async function createUser(input: {
     .upsert({ id: userId, full_name: fullName, role: input.role });
 
   if (profileError) return { error: profileError.message };
+
+  await writeAuditLog({
+    actor: s,
+    action: "create",
+    entity: "user",
+    entityId: userId,
+    summary: `Created user ${email}`,
+    metadata: { role: input.role },
+  });
 
   revalidatePath("/admin/users");
   return {};
@@ -115,6 +125,20 @@ export async function updateUser(input: {
 
   if (profileError) return { error: profileError.message };
 
+  await writeAuditLog({
+    actor: s,
+    action: "update",
+    entity: "user",
+    entityId: userId,
+    summary: input.password
+      ? `Updated user ${email} (password changed)`
+      : `Updated user ${email}`,
+    metadata: {
+      role: profilePatch.role ?? s.role,
+      ...(input.password ? { password_changed: true } : {}),
+    },
+  });
+
   revalidatePath("/admin/users");
   return {};
 }
@@ -130,8 +154,27 @@ export async function deleteUser(userId: string): Promise<{ error?: string }> {
   }
 
   const admin = createSupabaseAdminClient();
+
+  const { data: profileRow } = await admin
+    .from("profiles")
+    .select("full_name")
+    .eq("id", userId)
+    .maybeSingle();
+
+  const { data: authUser } = await admin.auth.admin.getUserById(userId);
+  const userEmail = authUser?.user?.email ?? userId;
+  const userLabel = profileRow?.full_name?.trim() || userEmail;
+
   const { error } = await admin.auth.admin.deleteUser(userId);
   if (error) return { error: error.message };
+
+  await writeAuditLog({
+    actor: s,
+    action: "delete",
+    entity: "user",
+    entityId: userId,
+    summary: `Deleted user ${userLabel}`,
+  });
 
   revalidatePath("/admin/users");
   return {};

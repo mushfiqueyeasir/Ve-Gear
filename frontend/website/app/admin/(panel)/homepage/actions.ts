@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
+import { writeAuditLog } from "@/lib/admin/auditLog";
 import {
   DEFAULT_HOMEPAGE_SECTIONS,
   HOMEPAGE_SECTION_TYPES,
@@ -165,6 +166,13 @@ export async function saveSection(
       .update(payload)
       .eq("id", input.id);
     if (error) return { error: error.message };
+    await writeAuditLog({
+      actor: s,
+      action: "update",
+      entity: "homepage_section",
+      entityId: input.id,
+      summary: `Updated homepage section "${input.title?.trim() || current.type}"`,
+    });
     revalidate();
     return { id: input.id };
   }
@@ -187,6 +195,13 @@ export async function saveSection(
   }
   const res = await writeCmsBlob(cms);
   if (res.error) return { error: res.error };
+  await writeAuditLog({
+    actor: s,
+    action: "update",
+    entity: "homepage_section",
+    entityId: input.id,
+    summary: `Updated homepage section "${input.title?.trim() || current.type}"`,
+  });
   revalidate();
   return { id: input.id };
 }
@@ -207,6 +222,10 @@ export async function toggleSection(
     return { error: "You do not have permission to do this." };
   }
 
+  const rows = await listSections();
+  const section = rows.find((r) => r.id === id);
+  const sectionLabel = section?.title?.trim() || section?.type || id;
+
   if (await tableExists("homepage_sections")) {
     const supabase = await createSupabaseServerClient();
     const { error } = await supabase
@@ -224,6 +243,16 @@ export async function toggleSection(
     const res = await writeCmsBlob(cms);
     if (res.error) return { error: res.error };
   }
+
+  await writeAuditLog({
+    actor: s,
+    action: "toggle",
+    entity: "homepage_section",
+    entityId: id,
+    summary: `${active ? "Enabled" : "Disabled"} homepage section "${sectionLabel}"`,
+    metadata: { active },
+  });
+
   revalidate();
 }
 
@@ -266,6 +295,13 @@ export async function reorderSections(
     const res = await writeCmsBlob(cms);
     if (res.error) return { error: res.error };
   }
+
+  await writeAuditLog({
+    actor: s,
+    action: "reorder",
+    entity: "homepage_section",
+    summary: "Reordered homepage sections",
+  });
 
   revalidate();
 }

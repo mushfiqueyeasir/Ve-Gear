@@ -8,6 +8,7 @@ import {
   type DeliveryZone,
 } from "@/lib/delivery";
 import { sendOrderEmails } from "@/lib/email/sendOrderEmails";
+import { writeAuditLog } from "@/lib/admin/auditLog";
 import type { OrderFormData } from "@/type/orderType";
 import type { ProductImageRow } from "@/type/db";
 
@@ -154,6 +155,13 @@ export async function POST(request: NextRequest) {
     } catch {
       // Ignore mail errors — order is already placed
     }
+
+    await writeAuditLog({
+      action: "create",
+      entity: "order",
+      entityId: result.id,
+      summary: `New storefront order ${result.order_number}`,
+    });
 
     return NextResponse.json(
       {

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
+import { writeAuditLog } from "@/lib/admin/auditLog";
 import {
   DEFAULT_PAGES,
   readCmsBlob,
@@ -87,6 +88,14 @@ export async function savePage(input: {
     const res = await writeCmsBlob(cms);
     if (res.error) return { error: res.error };
   }
+
+  await writeAuditLog({
+    actor: s,
+    action: "update",
+    entity: "page",
+    entityId: input.slug,
+    summary: `Updated page "${input.title.trim()}"`,
+  });
 
   revalidatePath("/admin/pages");
   revalidatePath(STORE_PATH[input.slug]);

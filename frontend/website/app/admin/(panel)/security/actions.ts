@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, isAdmin } from "@/lib/admin/auth";
+import { writeAuditLog } from "@/lib/admin/auditLog";
 
 // Basic IPv4 / IPv6 sanity check (also allows CIDR suffixes).
 function isValidIp(ip: string): boolean {
@@ -40,6 +41,14 @@ export async function blockIp(input: {
     return { error: error.message };
   }
 
+  await writeAuditLog({
+    actor: s,
+    action: "create",
+    entity: "security",
+    summary: `Blocked IP ${ip}`,
+    metadata: reason ? { reason } : undefined,
+  });
+
   revalidatePath("/admin/security");
   return {};
 }
@@ -52,8 +61,24 @@ export async function unblockIp(id: string): Promise<{ error?: string }> {
   }
 
   const supabase = await createSupabaseServerClient();
+  const { data: blockedRow } = await supabase
+    .from("blocked_ips")
+    .select("ip")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabase.from("blocked_ips").delete().eq("id", id);
   if (error) return { error: error.message };
+
+  await writeAuditLog({
+    actor: s,
+    action: "delete",
+    entity: "security",
+    entityId: id,
+    summary: blockedRow?.ip
+      ? `Unblocked IP ${blockedRow.ip}`
+      : `Unblocked IP entry ${id}`,
+  });
 
   revalidatePath("/admin/security");
   return {};

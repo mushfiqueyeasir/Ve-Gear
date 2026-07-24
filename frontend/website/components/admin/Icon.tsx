@@ -50,6 +50,7 @@ import {
   BookOpen,
   ArrowUp,
   ArrowDown,
+  ScrollText,
   type LucideProps,
 } from "lucide-react";
 
@@ -103,6 +104,7 @@ const MAP = {
   BookOpen,
   ArrowUp,
   ArrowDown,
+  ScrollText,
 } as const;
 
 export type IconName = keyof typeof MAP;

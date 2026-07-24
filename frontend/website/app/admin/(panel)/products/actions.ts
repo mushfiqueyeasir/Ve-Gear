@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
+import { writeAuditLog } from "@/lib/admin/auditLog";
 import { buildDescriptionPayload } from "@/lib/products/sizeChart";
 
 export interface ProductImageInput {
@@ -196,6 +197,17 @@ export async function saveProduct(
     if (error) return { error: error.message };
   }
 
+  const isCreate = !input.id;
+  await writeAuditLog({
+    actor: s,
+    action: isCreate ? "create" : "update",
+    entity: "product",
+    entityId: productId,
+    summary: isCreate
+      ? `Created product "${input.title.trim()}"`
+      : `Updated product "${input.title.trim()}"`,
+  });
+
   revalidatePath("/admin/products");
   revalidatePath("/admin/inventory");
   revalidatePath("/product");
@@ -211,9 +223,25 @@ export async function deleteProduct(
     return { error: "You do not have permission to do this." };
 
   const supabase = await createSupabaseServerClient();
+  const { data: productRow } = await supabase
+    .from("products")
+    .select("title")
+    .eq("id", id)
+    .maybeSingle();
+
   // product_images / product_variants / product_categories cascade on delete.
   const { error } = await supabase.from("products").delete().eq("id", id);
   if (error) return { error: error.message };
+
+  await writeAuditLog({
+    actor: s,
+    action: "delete",
+    entity: "product",
+    entityId: id,
+    summary: productRow?.title
+      ? `Deleted product "${productRow.title}"`
+      : `Deleted product ${id}`,
+  });
 
   revalidatePath("/admin/products");
   revalidatePath("/admin/inventory");
@@ -246,6 +274,13 @@ export async function reorderProducts(
       return { error: error.message };
     }
   }
+
+  await writeAuditLog({
+    actor: s,
+    action: "reorder",
+    entity: "product",
+    summary: "Reordered products",
+  });
 
   revalidatePath("/admin/products");
   revalidatePath("/");

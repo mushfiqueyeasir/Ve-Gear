@@ -111,6 +111,13 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ["admin"],
     group: "Store",
   },
+  {
+    label: "Audit log",
+    href: "/admin/audit",
+    icon: "ScrollText",
+    roles: ["admin"],
+    group: "Store",
+  },
 ];
 
 export const NAV_GROUPS: NavItem["group"][] = [

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
+import { writeAuditLog } from "@/lib/admin/auditLog";
 
 export interface PromotionInput {
   id?: string;
@@ -54,9 +55,20 @@ export async function savePromotion(
   const { data, error } = await query.select("id").single();
   if (error) return { error: error.message };
 
+  const promotionId = data.id as string;
+  await writeAuditLog({
+    actor: s,
+    action: input.id ? "update" : "create",
+    entity: "promotion",
+    entityId: promotionId,
+    summary: input.id
+      ? `Updated promotion "${input.title.trim()}"`
+      : `Created promotion "${input.title.trim()}"`,
+  });
+
   revalidatePath("/admin/promotions");
   revalidatePath("/");
-  return { id: data.id as string };
+  return { id: promotionId };
 }
 
 export async function deletePromotion(
@@ -67,8 +79,25 @@ export async function deletePromotion(
     return { error: "You do not have permission to do this." };
   }
   const supabase = await createSupabaseServerClient();
+  const { data: promotionRow } = await supabase
+    .from("promotions")
+    .select("title")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabase.from("promotions").delete().eq("id", id);
   if (error) return { error: error.message };
+
+  await writeAuditLog({
+    actor: s,
+    action: "delete",
+    entity: "promotion",
+    entityId: id,
+    summary: promotionRow?.title
+      ? `Deleted promotion "${promotionRow.title}"`
+      : `Deleted promotion ${id}`,
+  });
+
   revalidatePath("/admin/promotions");
 }
 
@@ -81,10 +110,27 @@ export async function togglePromotion(
     return { error: "You do not have permission to do this." };
   }
   const supabase = await createSupabaseServerClient();
+  const { data: promotionRow } = await supabase
+    .from("promotions")
+    .select("title")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("promotions")
     .update({ active, updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) return { error: error.message };
+
+  const promotionLabel = promotionRow?.title?.trim() || id;
+  await writeAuditLog({
+    actor: s,
+    action: "toggle",
+    entity: "promotion",
+    entityId: id,
+    summary: `${active ? "Enabled" : "Disabled"} promotion "${promotionLabel}"`,
+    metadata: { active },
+  });
+
   revalidatePath("/admin/promotions");
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
+import { writeAuditLog } from "@/lib/admin/auditLog";
 
 export interface CategoryInput {
   id?: string;
@@ -63,8 +64,20 @@ export async function saveCategory(
 
   if (error) return { error: error.message };
 
+  const categoryId = data.id as string;
+  const isCreate = !input.id;
+  await writeAuditLog({
+    actor: s,
+    action: isCreate ? "create" : "update",
+    entity: "category",
+    entityId: categoryId,
+    summary: isCreate
+      ? `Created category "${input.name.trim()}"`
+      : `Updated category "${input.name.trim()}"`,
+  });
+
   revalidatePath("/admin/categories");
-  return { id: data.id as string };
+  return { id: categoryId };
 }
 
 export async function deleteCategory(
@@ -75,8 +88,24 @@ export async function deleteCategory(
     return { error: "You do not have permission to do this." };
 
   const supabase = await createSupabaseServerClient();
+  const { data: categoryRow } = await supabase
+    .from("categories")
+    .select("name")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabase.from("categories").delete().eq("id", id);
   if (error) return { error: error.message };
+
+  await writeAuditLog({
+    actor: s,
+    action: "delete",
+    entity: "category",
+    entityId: id,
+    summary: categoryRow?.name
+      ? `Deleted category "${categoryRow.name}"`
+      : `Deleted category ${id}`,
+  });
 
   revalidatePath("/admin/categories");
 }
@@ -100,6 +129,13 @@ export async function reorderCategories(
       .eq("id", orderedIds[i]);
     if (error) return { error: error.message };
   }
+
+  await writeAuditLog({
+    actor: s,
+    action: "reorder",
+    entity: "category",
+    summary: "Reordered categories",
+  });
 
   revalidatePath("/admin/categories");
   revalidatePath("/");

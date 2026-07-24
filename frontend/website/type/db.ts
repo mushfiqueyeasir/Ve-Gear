@@ -352,3 +352,16 @@ export interface BlockedIpRow {
   reason: string | null;
   created_at: string;
 }
+
+export interface AuditLogRow {
+  id: string;
+  created_at: string;
+  actor_id: string | null;
+  actor_email: string | null;
+  actor_role: string | null;
+  action: string;
+  entity: string;
+  entity_id: string | null;
+  summary: string;
+  metadata: Record<string, unknown>;
+}

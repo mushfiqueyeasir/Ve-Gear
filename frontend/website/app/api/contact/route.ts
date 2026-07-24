@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { writeAuditLog } from "@/lib/admin/auditLog";
 import type { ContactFormData } from "@/type/contactType";
 
 export const runtime = "nodejs";
@@ -39,6 +40,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    await writeAuditLog({
+      action: "create",
+      entity: "contact",
+      entityId: data.id,
+      summary: `Contact form submitted by ${body.name.trim()}`,
+    });
 
     return NextResponse.json(
       {

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
+import { writeAuditLog } from "@/lib/admin/auditLog";
 
 export interface ReviewInput {
   id?: string;
@@ -45,8 +46,19 @@ export async function saveReview(
   const { data, error } = await query.select("id").single();
   if (error) return { error: error.message };
 
+  const reviewId = data.id as string;
+  await writeAuditLog({
+    actor: s,
+    action: input.id ? "update" : "create",
+    entity: "review",
+    entityId: reviewId,
+    summary: input.id
+      ? `Updated review by ${input.customer_name.trim()}`
+      : `Created review by ${input.customer_name.trim()}`,
+  });
+
   revalidatePath("/admin/reviews");
-  return { id: data.id as string };
+  return { id: reviewId };
 }
 
 export async function deleteReview(
@@ -57,8 +69,25 @@ export async function deleteReview(
     return { error: "You do not have permission to do this." };
   }
   const supabase = await createSupabaseServerClient();
+  const { data: reviewRow } = await supabase
+    .from("reviews")
+    .select("customer_name")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabase.from("reviews").delete().eq("id", id);
   if (error) return { error: error.message };
+
+  await writeAuditLog({
+    actor: s,
+    action: "delete",
+    entity: "review",
+    entityId: id,
+    summary: reviewRow?.customer_name
+      ? `Deleted review by ${reviewRow.customer_name}`
+      : `Deleted review ${id}`,
+  });
+
   revalidatePath("/admin/reviews");
 }
 
@@ -71,10 +100,27 @@ export async function toggleReview(
     return { error: "You do not have permission to do this." };
   }
   const supabase = await createSupabaseServerClient();
+  const { data: reviewRow } = await supabase
+    .from("reviews")
+    .select("customer_name")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("reviews")
     .update({ is_published: isPublished })
     .eq("id", id);
   if (error) return { error: error.message };
+
+  const reviewLabel = reviewRow?.customer_name?.trim() || id;
+  await writeAuditLog({
+    actor: s,
+    action: "toggle",
+    entity: "review",
+    entityId: id,
+    summary: `${isPublished ? "Published" : "Unpublished"} review by ${reviewLabel}`,
+    metadata: { is_published: isPublished },
+  });
+
   revalidatePath("/admin/reviews");
 }

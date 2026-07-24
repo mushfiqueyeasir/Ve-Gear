@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
+import { writeAuditLog } from "@/lib/admin/auditLog";
 import {
   ensureAboutSections,
   type AboutSectionRow,
@@ -72,6 +73,13 @@ export async function saveAboutSection(input: {
 
   const res = await persist(next);
   if (res.error) return { error: res.error };
+  await writeAuditLog({
+    actor: s,
+    action: "update",
+    entity: "about_section",
+    entityId: input.id,
+    summary: `Updated about section "${input.title?.trim() || current.type}"`,
+  });
   revalidate();
   return {};
 }
@@ -86,11 +94,24 @@ export async function toggleAboutSection(
   }
 
   const rows = await listAboutSections();
+  const section = rows.find((r) => r.id === id);
+  const sectionLabel = section?.title?.trim() || section?.type || id;
+
   const next = rows.map((r) =>
     r.id === id ? { ...r, active, updated_at: new Date().toISOString() } : r,
   );
   const res = await persist(next);
   if (res.error) return { error: res.error };
+
+  await writeAuditLog({
+    actor: s,
+    action: "toggle",
+    entity: "about_section",
+    entityId: id,
+    summary: `${active ? "Enabled" : "Disabled"} about section "${sectionLabel}"`,
+    metadata: { active },
+  });
+
   revalidate();
 }
 
@@ -120,5 +141,13 @@ export async function reorderAboutSections(
 
   const res = await persist(next);
   if (res.error) return { error: res.error };
+
+  await writeAuditLog({
+    actor: s,
+    action: "reorder",
+    entity: "about_section",
+    summary: "Reordered about sections",
+  });
+
   revalidate();
 }

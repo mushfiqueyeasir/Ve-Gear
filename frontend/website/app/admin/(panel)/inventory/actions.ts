@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
+import { writeAuditLog } from "@/lib/admin/auditLog";
 
 export async function updateVariantStock(
   variantId: string,
@@ -20,6 +21,15 @@ export async function updateVariantStock(
     .update({ stock_quantity: value, updated_at: new Date().toISOString() })
     .eq("id", variantId);
   if (error) return { error: error.message };
+
+  await writeAuditLog({
+    actor: s,
+    action: "update",
+    entity: "inventory",
+    entityId: variantId,
+    summary: `Updated stock to ${value} for variant ${variantId}`,
+    metadata: { stock: value },
+  });
 
   revalidatePath("/admin/inventory");
 }
@@ -45,6 +55,15 @@ export async function updateVariantThreshold(
     })
     .eq("id", variantId);
   if (error) return { error: error.message };
+
+  await writeAuditLog({
+    actor: s,
+    action: "update",
+    entity: "inventory",
+    entityId: variantId,
+    summary: `Updated low stock threshold to ${value} for variant ${variantId}`,
+    metadata: { threshold: value },
+  });
 
   revalidatePath("/admin/inventory");
 }

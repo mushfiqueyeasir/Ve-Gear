@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, isAdmin } from "@/lib/admin/auth";
+import { writeAuditLog } from "@/lib/admin/auditLog";
 import {
   normalizePagesSeo,
   SEO_PAGE_KEYS,
@@ -168,6 +169,13 @@ export async function saveSettings(
       .eq("id", 1);
     if (fallbackError) return { error: fallbackError.message };
   }
+
+  await writeAuditLog({
+    actor: s,
+    action: "update",
+    entity: "settings",
+    summary: `Updated store settings for "${input.store_name.trim()}"`,
+  });
 
   revalidatePath("/admin/settings");
   revalidatePath("/", "layout");

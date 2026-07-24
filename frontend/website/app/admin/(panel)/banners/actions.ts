@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdminSession, canWrite } from "@/lib/admin/auth";
+import { writeAuditLog } from "@/lib/admin/auditLog";
 import {
   newId,
   readCmsBlob,
@@ -92,8 +93,18 @@ export async function saveBanner(
       : supabase.from("banners").insert(payload);
     const { data, error } = await query.select("id").single();
     if (error) return { error: error.message };
+    const bannerId = data.id as string;
+    await writeAuditLog({
+      actor: s,
+      action: input.id ? "update" : "create",
+      entity: "banner",
+      entityId: bannerId,
+      summary: input.id
+        ? `Updated banner "${input.title!.trim()}"`
+        : `Created banner "${input.title!.trim()}"`,
+    });
     revalidate();
-    return { id: data.id as string };
+    return { id: bannerId };
   }
 
   const cms = await readCmsBlob();
@@ -109,6 +120,15 @@ export async function saveBanner(
   else cms.banners.push(row);
   const res = await writeCmsBlob(cms);
   if (res.error) return { error: res.error };
+  await writeAuditLog({
+    actor: s,
+    action: input.id ? "update" : "create",
+    entity: "banner",
+    entityId: id,
+    summary: input.id
+      ? `Updated banner "${input.title!.trim()}"`
+      : `Created banner "${input.title!.trim()}"`,
+  });
   revalidate();
   return { id };
 }
@@ -121,6 +141,10 @@ export async function deleteBanner(
     return { error: "You do not have permission to do this." };
   }
 
+  const existing = await listBanners();
+  const banner = existing.find((b) => b.id === id);
+  const bannerLabel = banner?.title?.trim() || id;
+
   if (await tableExists("banners")) {
     const supabase = await createSupabaseServerClient();
     const { error } = await supabase.from("banners").delete().eq("id", id);
@@ -131,6 +155,17 @@ export async function deleteBanner(
     const res = await writeCmsBlob(cms);
     if (res.error) return { error: res.error };
   }
+
+  await writeAuditLog({
+    actor: s,
+    action: "delete",
+    entity: "banner",
+    entityId: id,
+    summary: banner?.title?.trim()
+      ? `Deleted banner "${bannerLabel}"`
+      : `Deleted banner ${id}`,
+  });
+
   revalidate();
 }
 
@@ -142,6 +177,10 @@ export async function toggleBanner(
   if (!canWrite(s.role)) {
     return { error: "You do not have permission to do this." };
   }
+
+  const existing = await listBanners();
+  const banner = existing.find((b) => b.id === id);
+  const bannerLabel = banner?.title?.trim() || id;
 
   if (await tableExists("banners")) {
     const supabase = await createSupabaseServerClient();
@@ -158,6 +197,16 @@ export async function toggleBanner(
     const res = await writeCmsBlob(cms);
     if (res.error) return { error: res.error };
   }
+
+  await writeAuditLog({
+    actor: s,
+    action: "toggle",
+    entity: "banner",
+    entityId: id,
+    summary: `${active ? "Enabled" : "Disabled"} banner "${bannerLabel}"`,
+    metadata: { active },
+  });
+
   revalidate();
 }
 
@@ -200,6 +249,13 @@ export async function reorderBanners(
     const res = await writeCmsBlob(cms);
     if (res.error) return { error: res.error };
   }
+
+  await writeAuditLog({
+    actor: s,
+    action: "reorder",
+    entity: "banner",
+    summary: "Reordered banners",
+  });
 
   revalidate();
 }
