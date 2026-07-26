@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { FormField, adminInputClass } from "@/components/admin/FormField";
+import { DatePickerField } from "@/components/admin/DatePickerField";
 import type { PromoCodeRow } from "@/type/db";
 import { savePromoCode } from "./actions";
 
@@ -152,12 +153,12 @@ export function PromoCodeDialog({
                 : "Starts immediately from today."
             }
           >
-            <Input
+            <DatePickerField
               id="promo_ends"
-              type="date"
               value={endsOn}
-              onChange={(e) => setEndsOn(e.target.value)}
-              className={adminInputClass}
+              onChange={setEndsOn}
+              placeholder="Choose end date"
+              disablePast
             />
           </FormField>
           <div className="flex items-center justify-between rounded-xl border border-border px-3 py-3">

@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DateTimePickerField } from "@/components/admin/DateTimePickerField";
 import { savePromotion } from "./actions";
 
 export type ProductOption = { id: string; title: string; slug: string };
@@ -221,21 +222,19 @@ export function PromotionForm({
 
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <FormField label="Starts at" htmlFor="starts_at">
-                  <Input
+                  <DateTimePickerField
                     id="starts_at"
-                    type="datetime-local"
                     value={startsAt}
-                    onChange={(e) => setStartsAt(e.target.value)}
-                    className={adminInputClass}
+                    onChange={setStartsAt}
+                    placeholder="Optional start"
                   />
                 </FormField>
                 <FormField label="Ends at" htmlFor="ends_at">
-                  <Input
+                  <DateTimePickerField
                     id="ends_at"
-                    type="datetime-local"
                     value={endsAt}
-                    onChange={(e) => setEndsAt(e.target.value)}
-                    className={adminInputClass}
+                    onChange={setEndsAt}
+                    placeholder="Optional end"
                   />
                 </FormField>
               </div>

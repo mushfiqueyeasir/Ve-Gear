@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { DateTimePickerField } from "@/components/admin/DateTimePickerField";
 import { renderBannerTitle } from "@/utility/renderBannerTitle";
 import { saveBanner } from "./actions";
 
@@ -166,21 +167,19 @@ export function BannerForm({
               </div>
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <FormField label="Starts at" htmlFor="starts_at">
-                  <Input
+                  <DateTimePickerField
                     id="starts_at"
-                    type="datetime-local"
                     value={startsAt}
-                    onChange={(e) => setStartsAt(e.target.value)}
-                    className={adminInputClass}
+                    onChange={setStartsAt}
+                    placeholder="Optional start"
                   />
                 </FormField>
                 <FormField label="Ends at" htmlFor="ends_at">
-                  <Input
+                  <DateTimePickerField
                     id="ends_at"
-                    type="datetime-local"
                     value={endsAt}
-                    onChange={(e) => setEndsAt(e.target.value)}
-                    className={adminInputClass}
+                    onChange={setEndsAt}
+                    placeholder="Optional end"
                   />
                 </FormField>
               </div>

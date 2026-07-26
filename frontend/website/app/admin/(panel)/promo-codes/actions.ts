@@ -64,6 +64,11 @@ export async function savePromoCode(
     if (new Date(endsAt).getTime() <= new Date(startsAt).getTime()) {
       return { error: "End date must be after the start date." };
     }
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    if (new Date(endsAt).getTime() < startOfToday.getTime()) {
+      return { error: "End date cannot be in the past." };
+    }
 
     const { data, error } = await supabase
       .from("promo_codes")
@@ -98,8 +103,11 @@ export async function savePromoCode(
     return { id: data.id as string };
   }
 
-  if (new Date(endsAt).getTime() <= Date.now()) {
-    return { error: "End date must be after today." };
+  const endDay = new Date(endsAt);
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  if (endDay.getTime() < startOfToday.getTime()) {
+    return { error: "End date cannot be in the past." };
   }
 
   const { data, error } = await supabase
