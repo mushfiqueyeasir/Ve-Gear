@@ -32,6 +32,9 @@ export interface InvoiceData {
   items: InvoiceLineItem[];
   subtotal: number;
   shipping: number;
+  discount?: number;
+  discountPercent?: number;
+  promoCode?: string | null;
   total: number;
 }
 
@@ -357,7 +360,8 @@ export async function downloadOrderInvoice(data: InvoiceData): Promise<void> {
   y += 6;
   const boxW = 72;
   const boxX = pageW - margin - boxW;
-  const boxH = 30;
+  const hasDiscount = (data.discount ?? 0) > 0;
+  const boxH = hasDiscount ? 36 : 30;
   doc.setFillColor(...card);
   doc.setDrawColor(...border);
   doc.roundedRect(boxX, y - 4, boxW, boxH, 2, 2, "FD");
@@ -370,6 +374,18 @@ export async function downloadOrderInvoice(data: InvoiceData): Promise<void> {
   doc.setTextColor(...fg);
   doc.text(money(data.subtotal, code), boxX + boxW - 4, ty, { align: "right" });
   ty += 6;
+
+  if (hasDiscount) {
+    const promoLabel = data.promoCode
+      ? `Promo (${data.promoCode}${data.discountPercent ? ` ${data.discountPercent}%` : ""})`
+      : "Promo";
+    doc.setTextColor(...primary);
+    doc.text(promoLabel, boxX + 4, ty);
+    doc.text(`-${money(data.discount ?? 0, code)}`, boxX + boxW - 4, ty, {
+      align: "right",
+    });
+    ty += 6;
+  }
 
   doc.setTextColor(...muted);
   doc.text("Delivery", boxX + 4, ty);

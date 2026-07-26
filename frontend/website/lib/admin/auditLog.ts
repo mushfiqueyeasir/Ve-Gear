@@ -27,7 +27,8 @@ export type AuditEntity =
   | "settings"
   | "user"
   | "security"
-  | "auth";
+  | "auth"
+  | "promo_code";
 
 export interface WriteAuditLogInput {
   actor?: Pick<AdminSession, "userId" | "email" | "role"> | null;

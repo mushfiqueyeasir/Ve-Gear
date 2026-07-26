@@ -51,6 +51,7 @@ import {
   ArrowUp,
   ArrowDown,
   ScrollText,
+  TicketPercent,
   type LucideProps,
 } from "lucide-react";
 
@@ -105,6 +106,7 @@ const MAP = {
   ArrowUp,
   ArrowDown,
   ScrollText,
+  TicketPercent,
 } as const;
 
 export type IconName = keyof typeof MAP;

@@ -11,6 +11,7 @@ import { submitOrder } from "@/utility/submitOrder";
 import { trackPurchase } from "@/utility/analytics/facebookPixelEvents";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
 import { shippingCostForZone, type DeliveryCharges } from "@/lib/delivery";
+import { computePromoDiscount } from "@/lib/promoCodes";
 import { cn } from "@/lib/utils";
 
 function isValidEmail(value: string) {
@@ -23,8 +24,14 @@ export default function CheckoutForm({
   deliveryCharges: DeliveryCharges;
 }) {
   const router = useRouter();
-  const { formData, updateFormData, saveDeliveryInfo, loadSavedDeliveryInfo } =
-    useCheckoutStore();
+  const {
+    formData,
+    appliedPromo,
+    updateFormData,
+    setAppliedPromo,
+    saveDeliveryInfo,
+    loadSavedDeliveryInfo,
+  } = useCheckoutStore();
   const { items, getTotal, clearCart } = useCartStore();
   const { code, format } = useCurrency();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,7 +71,10 @@ export default function CheckoutForm({
         deliveryCharges,
         formData.shippingMethod,
       );
-      const total = subtotal + shipping;
+      const discount = appliedPromo
+        ? computePromoDiscount(subtotal, appliedPromo.percent)
+        : 0;
+      const total = Math.max(0, subtotal - discount) + shipping;
 
       const orderData = {
         delivery: {
@@ -85,9 +95,13 @@ export default function CheckoutForm({
           quantity: item.quantity,
           unitPrice: item.currentPrice,
         })),
+        promoCode: appliedPromo?.code ?? (formData.discountCode.trim() || null),
         totals: {
           subtotal,
           shipping,
+          discount,
+          discount_percent: appliedPromo?.percent,
+          promo_code: appliedPromo?.code ?? null,
           total,
         },
       };
@@ -109,6 +123,7 @@ export default function CheckoutForm({
           : "Your order has been received and will be processed shortly.",
       });
       clearCart();
+      setAppliedPromo(null);
       setTimeout(() => {
         router.push("/");
       }, 2000);

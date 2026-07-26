@@ -9,6 +9,8 @@ import {
 } from "@/lib/delivery";
 import { sendOrderEmails } from "@/lib/email/sendOrderEmails";
 import { writeAuditLog } from "@/lib/admin/auditLog";
+import { computePromoDiscount } from "@/lib/promoCodes";
+import { resolveActivePromoCode } from "@/lib/promoCodes.server";
 import type { OrderFormData } from "@/type/orderType";
 import type { ProductImageRow } from "@/type/db";
 
@@ -63,7 +65,27 @@ export async function POST(request: NextRequest) {
     const zone = resolveZone(body.delivery.shippingMethod);
     const shipping = shippingCostForZone(settings.deliveryCharges, zone);
     const subtotal = Number(body.totals.subtotal) || 0;
-    const total = subtotal + shipping;
+
+    let discount = 0;
+    let discountPercent: number | undefined;
+    let promoCode: string | null = null;
+    const requestedCode =
+      body.promoCode?.trim() || body.totals.promo_code?.trim() || "";
+
+    if (requestedCode) {
+      const resolved = await resolveActivePromoCode(requestedCode);
+      if (resolved.error || !resolved.promo) {
+        return NextResponse.json(
+          { error: resolved.error || "Invalid promo code." },
+          { status: 400 },
+        );
+      }
+      promoCode = resolved.promo.code;
+      discountPercent = resolved.promo.percent;
+      discount = computePromoDiscount(subtotal, resolved.promo.percent);
+    }
+
+    const total = Math.max(0, subtotal - discount) + shipping;
 
     const payload = {
       delivery: {
@@ -88,6 +110,9 @@ export async function POST(request: NextRequest) {
       totals: {
         subtotal,
         shipping,
+        discount,
+        discount_percent: discountPercent ?? null,
+        promo_code: promoCode,
         total,
       },
       notes: body.notes?.trim() ?? "",
@@ -146,6 +171,9 @@ export async function POST(request: NextRequest) {
         })),
         subtotal,
         shipping,
+        discount,
+        discountPercent,
+        promoCode,
         total,
         currencyLabel: settings.currency || "BDT",
         storeName: settings.store_name || "VE Gear",
@@ -160,7 +188,12 @@ export async function POST(request: NextRequest) {
       action: "create",
       entity: "order",
       entityId: result.id,
-      summary: `New storefront order ${result.order_number}`,
+      summary: promoCode
+        ? `New storefront order ${result.order_number} (promo ${promoCode})`
+        : `New storefront order ${result.order_number}`,
+      metadata: promoCode
+        ? { promo_code: promoCode, discount, discount_percent: discountPercent }
+        : undefined,
     });
 
     return NextResponse.json(

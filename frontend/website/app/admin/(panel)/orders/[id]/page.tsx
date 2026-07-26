@@ -131,6 +131,9 @@ export default async function OrderDetailPage({
             })),
             subtotal: Number(o.totals?.subtotal) || 0,
             shipping: Number(o.totals?.shipping) || 0,
+            discount: Number(o.totals?.discount) || 0,
+            discountPercent: Number(o.totals?.discount_percent) || undefined,
+            promoCode: o.totals?.promo_code ?? null,
             total: Number(o.totals?.total) || 0,
           }}
         />
@@ -196,6 +199,18 @@ export default async function OrderDetailPage({
                   {formatMoney(o.totals?.subtotal ?? 0, symbol)}
                 </span>
               </div>
+              {(o.totals?.discount ?? 0) > 0 ? (
+                <div className="flex justify-between text-primary">
+                  <span>
+                    Promo
+                    {o.totals?.promo_code ? ` (${o.totals.promo_code})` : ""}
+                    {o.totals?.discount_percent
+                      ? ` · ${o.totals.discount_percent}%`
+                      : ""}
+                  </span>
+                  <span>-{formatMoney(o.totals?.discount ?? 0, symbol)}</span>
+                </div>
+              ) : null}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Shipping</span>
                 <span className="text-foreground">

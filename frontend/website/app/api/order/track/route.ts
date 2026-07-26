@@ -99,6 +99,9 @@ export async function POST(request: NextRequest) {
       totals: {
         subtotal: Number(o.totals?.subtotal) || 0,
         shipping: Number(o.totals?.shipping) || 0,
+        discount: Number(o.totals?.discount) || 0,
+        discount_percent: Number(o.totals?.discount_percent) || undefined,
+        promo_code: o.totals?.promo_code ?? null,
         total: Number(o.totals?.total) || 0,
       },
       delivery: {

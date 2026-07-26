@@ -53,6 +53,13 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ["admin", "editor", "viewer"],
     group: "Sales",
   },
+  {
+    label: "Promo codes",
+    href: "/admin/promo-codes",
+    icon: "TicketPercent",
+    roles: ["admin", "editor", "viewer"],
+    group: "Sales",
+  },
 
   {
     label: "Homepage",

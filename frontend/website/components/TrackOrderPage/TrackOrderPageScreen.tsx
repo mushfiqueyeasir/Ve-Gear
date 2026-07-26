@@ -254,6 +254,22 @@ export default function TrackOrderPageScreen() {
                     {format(result.totals.subtotal)}
                   </dd>
                 </div>
+                {(result.totals.discount ?? 0) > 0 ? (
+                  <div className="flex justify-between gap-3 text-primary">
+                    <dt>
+                      Promo
+                      {result.totals.promo_code
+                        ? ` (${result.totals.promo_code})`
+                        : ""}
+                      {result.totals.discount_percent
+                        ? ` · ${result.totals.discount_percent}%`
+                        : ""}
+                    </dt>
+                    <dd className="font-medium">
+                      -{format(result.totals.discount ?? 0)}
+                    </dd>
+                  </div>
+                ) : null}
                 <div className="flex justify-between gap-3">
                   <dt className="text-muted-foreground">Shipping</dt>
                   <dd className="font-medium">

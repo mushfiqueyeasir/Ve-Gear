@@ -23,6 +23,11 @@ export interface CheckoutFormData {
   discountCode: string;
 }
 
+export type AppliedPromo = {
+  code: string;
+  percent: number;
+};
+
 interface SavedDeliveryInfo {
   country: string;
   firstName: string;
@@ -35,7 +40,9 @@ interface SavedDeliveryInfo {
 
 interface CheckoutStore {
   formData: CheckoutFormData;
+  appliedPromo: AppliedPromo | null;
   updateFormData: (data: Partial<CheckoutFormData>) => void;
+  setAppliedPromo: (promo: AppliedPromo | null) => void;
   resetFormData: () => void;
   saveDeliveryInfo: () => void;
   loadSavedDeliveryInfo: () => void;
@@ -64,6 +71,7 @@ export const useCheckoutStore = create<CheckoutStore>()(
   persist(
     (set, get) => ({
       formData: defaultFormData,
+      appliedPromo: null,
 
       updateFormData: (data) => {
         set((state) => ({
@@ -71,8 +79,18 @@ export const useCheckoutStore = create<CheckoutStore>()(
         }));
       },
 
+      setAppliedPromo: (promo) => {
+        set((state) => ({
+          appliedPromo: promo,
+          formData: {
+            ...state.formData,
+            discountCode: promo?.code ?? state.formData.discountCode,
+          },
+        }));
+      },
+
       resetFormData: () => {
-        set({ formData: defaultFormData });
+        set({ formData: defaultFormData, appliedPromo: null });
       },
 
       saveDeliveryInfo: () => {

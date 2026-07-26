@@ -19,6 +19,9 @@ export type OrderEmailPayload = {
   items: OrderEmailItem[];
   subtotal: number;
   shipping: number;
+  discount?: number;
+  discountPercent?: number;
+  promoCode?: string | null;
   total: number;
   currencyLabel?: string;
   storeName?: string;
@@ -168,6 +171,14 @@ function shell(opts: {
                     <td style="padding:6px 0;font-size:13px;color:${colors.mutedForeground};">Subtotal</td>
                     <td style="padding:6px 0;font-size:13px;color:${colors.mutedForeground};text-align:right;">${escapeHtml(money(payload.subtotal, currency))}</td>
                   </tr>
+                  ${
+                    payload.discount && payload.discount > 0
+                      ? `<tr>
+                    <td style="padding:6px 0;font-size:13px;color:${colors.primary};">Promo${payload.promoCode ? ` (${escapeHtml(payload.promoCode)})` : ""}${payload.discountPercent ? ` · ${payload.discountPercent}%` : ""}</td>
+                    <td style="padding:6px 0;font-size:13px;color:${colors.primary};text-align:right;">-${escapeHtml(money(payload.discount, currency))}</td>
+                  </tr>`
+                      : ""
+                  }
                   <tr>
                     <td style="padding:6px 0;font-size:13px;color:${colors.mutedForeground};">Delivery</td>
                     <td style="padding:6px 0;font-size:13px;color:${colors.mutedForeground};text-align:right;">${escapeHtml(money(payload.shipping, currency))}</td>

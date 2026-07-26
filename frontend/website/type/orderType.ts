@@ -26,7 +26,12 @@ export interface OrderFormData {
     subtotal: number;
     shipping: number;
     total: number;
+    discount?: number;
+    discount_percent?: number;
+    promo_code?: string | null;
   };
+  /** Optional checkout promo code (validated server-side). */
+  promoCode?: string | null;
   notes?: string;
 }
 
@@ -62,6 +67,9 @@ export interface TrackOrderResult {
     subtotal: number;
     shipping: number;
     total: number;
+    discount?: number;
+    discount_percent?: number;
+    promo_code?: string | null;
   };
   delivery: {
     name: string;

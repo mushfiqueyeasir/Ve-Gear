@@ -109,6 +109,21 @@ export interface OrderTotals {
   subtotal: number;
   shipping: number;
   total: number;
+  /** Flat % promo discount amount (applied to subtotal only). */
+  discount?: number;
+  discount_percent?: number;
+  promo_code?: string | null;
+}
+
+export interface PromoCodeRow {
+  id: string;
+  code: string;
+  percent: number;
+  starts_at: string;
+  ends_at: string;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface OrderRow {
