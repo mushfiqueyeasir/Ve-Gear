@@ -13,7 +13,7 @@ export interface CheckoutFormData {
   phone: string;
   saveInfo: boolean;
   shippingMethod: "inside-dhaka" | "outside-dhaka";
-  paymentMethod: "cod";
+  paymentMethod: "cod" | "bkash";
   billingAddress: "same" | "different";
   billingFirstName?: string;
   billingLastName?: string;

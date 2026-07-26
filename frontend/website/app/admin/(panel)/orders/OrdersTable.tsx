@@ -1,8 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Download, Loader2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { AdminList } from "@/components/admin/AdminList";
+import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { downloadOrderInvoicesZip } from "@/lib/admin/invoicePdf";
 import {
   formatMoney,
   formatDate,
@@ -19,6 +24,7 @@ import {
 } from "@/lib/admin/format";
 import { cn } from "@/lib/utils";
 import { ORDER_STATUSES, type OrderStatus } from "@/type/db";
+import { deleteOrders, getOrdersInvoiceData } from "./actions";
 
 export interface OrderTableRow {
   id: string;
@@ -32,11 +38,16 @@ export interface OrderTableRow {
 export function OrdersTable({
   data,
   symbol,
+  canWrite,
 }: {
   data: OrderTableRow[];
   symbol: string;
+  canWrite: boolean;
 }) {
+  const router = useRouter();
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [downloading, startDownload] = useTransition();
 
   const rows = useMemo(
     () =>
@@ -46,9 +57,33 @@ export function OrdersTable({
     [data, statusFilter],
   );
 
+  const downloadSelected = () => {
+    if (!selectedIds.length) return;
+    startDownload(async () => {
+      const res = await getOrdersInvoiceData(selectedIds);
+      if (res.error || !res.data?.length) {
+        toast.error(res.error ?? "Could not load invoices.");
+        return;
+      }
+      try {
+        await downloadOrderInvoicesZip(res.data);
+        toast.success(
+          res.data.length === 1
+            ? "Invoice downloaded"
+            : `${res.data.length} invoices downloaded as ZIP`,
+        );
+      } catch {
+        toast.error("Could not generate invoice download.");
+      }
+    });
+  };
+
   return (
     <AdminList
       items={rows}
+      selectable
+      selectedIds={selectedIds}
+      onSelectionChange={setSelectedIds}
       searchPlaceholder="Search by order number…"
       searchFilter={(item, q) =>
         item.order_number.toLowerCase().includes(q) ||
@@ -72,6 +107,54 @@ export function OrdersTable({
             ))}
           </SelectContent>
         </Select>
+      }
+      selectionActions={
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-9 rounded-full"
+            disabled={downloading || selectedIds.length === 0}
+            onClick={downloadSelected}
+          >
+            {downloading ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Download className="size-3.5" />
+            )}
+            Download
+          </Button>
+          {canWrite ? (
+            <ConfirmDialog
+              title={
+                selectedIds.length === 1
+                  ? "Delete this order?"
+                  : `Delete ${selectedIds.length} orders?`
+              }
+              description="This permanently removes the selected orders and their line items. Stock is returned only for orders that are not yet shipped (pending, confirmed, or processing). This cannot be undone."
+              confirmLabel="Delete"
+              action={async () => {
+                const res = await deleteOrders(selectedIds);
+                if (res && "error" in res && res.error) return res;
+                setSelectedIds([]);
+                router.refresh();
+              }}
+              trigger={
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  disabled={selectedIds.length === 0}
+                >
+                  <Trash2 className="size-3.5" />
+                  Delete
+                </Button>
+              }
+            />
+          ) : null}
+        </>
       }
       renderTitle={(item) => item.order_number}
       renderSubtitle={(item) =>

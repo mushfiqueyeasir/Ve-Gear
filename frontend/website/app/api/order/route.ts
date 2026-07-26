@@ -11,12 +11,20 @@ import { sendOrderEmails } from "@/lib/email/sendOrderEmails";
 import { writeAuditLog } from "@/lib/admin/auditLog";
 import { computePromoDiscount } from "@/lib/promoCodes";
 import { resolveActivePromoCode } from "@/lib/promoCodes.server";
+import { appConfig } from "@/lib/config";
+import { createBkashPayment } from "@/lib/payments/bkash";
+import { getBkashSettings, isBkashReady } from "@/lib/payments/bkashSettings";
+import { paymentMethodLabel } from "@/lib/payments/paymentLabels";
+import { restockVariantsForOrders } from "@/lib/admin/orderStock";
 import type { OrderFormData } from "@/type/orderType";
 import type { ProductImageRow } from "@/type/db";
+import type { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
+
+type ServerClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
 function resolveZone(value: string | undefined): DeliveryZone {
   return value === "outside-dhaka" ? "outside-dhaka" : "inside-dhaka";
@@ -24,6 +32,24 @@ function resolveZone(value: string | undefined): DeliveryZone {
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+async function failUnpaidOrder(
+  supabase: ReturnType<typeof createSupabaseAdminClient>,
+  orderId: string,
+) {
+  await supabase
+    .from("orders")
+    .update({
+      payment_status: "failed",
+      status: "cancelled",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId);
+
+  await restockVariantsForOrders(supabase as unknown as ServerClient, [
+    orderId,
+  ]);
 }
 
 export async function POST(request: NextRequest) {
@@ -39,6 +65,8 @@ export async function POST(request: NextRequest) {
 
     const { firstName, lastName, address, city, phone } = body.delivery;
     const customerEmail = (body.delivery.email ?? "").trim();
+    const paymentMethod =
+      body.paymentMethod === "bkash" ? ("bkash" as const) : ("cod" as const);
 
     if (!firstName || !lastName || !address || !city || !phone) {
       return NextResponse.json(
@@ -65,6 +93,22 @@ export async function POST(request: NextRequest) {
     const zone = resolveZone(body.delivery.shippingMethod);
     const shipping = shippingCostForZone(settings.deliveryCharges, zone);
     const subtotal = Number(body.totals.subtotal) || 0;
+
+    if (paymentMethod === "bkash") {
+      const bkash = await getBkashSettings();
+      if (!isBkashReady(bkash)) {
+        return NextResponse.json(
+          { error: "bKash payments are not available right now." },
+          { status: 400 },
+        );
+      }
+      if ((settings.currency || "BDT").toUpperCase() !== "BDT") {
+        return NextResponse.json(
+          { error: "bKash requires store currency BDT." },
+          { status: 400 },
+        );
+      }
+    }
 
     let discount = 0;
     let discountPercent: number | undefined;
@@ -96,6 +140,7 @@ export async function POST(request: NextRequest) {
         city: city.trim(),
         postalCode: body.delivery.postalCode?.trim() ?? "",
         phone: phone.trim(),
+        email: customerEmail,
         shippingMethod: zone,
       },
       items: body.items.map((item) => ({
@@ -116,6 +161,7 @@ export async function POST(request: NextRequest) {
         total,
       },
       notes: body.notes?.trim() ?? "",
+      payment_method: paymentMethod,
     };
 
     const supabase = createSupabaseAdminClient();
@@ -134,7 +180,69 @@ export async function POST(request: NextRequest) {
       .filter(Boolean)
       .join(", ");
 
-    // Fire-and-forget style: order already saved — email failures shouldn't fail checkout
+    if (paymentMethod === "bkash") {
+      try {
+        const origin = (appConfig.siteUrl || request.nextUrl.origin).replace(
+          /\/$/,
+          "",
+        );
+        const callbackURL = `${origin}/api/payment/bkash/callback`;
+        const payment = await createBkashPayment({
+          amount: total,
+          merchantInvoiceNumber: result.order_number,
+          payerReference: phone.trim().replace(/\D/g, "").slice(-11) || "01",
+          callbackURL,
+        });
+
+        await supabase
+          .from("orders")
+          .update({
+            bkash_payment_id: payment.paymentID,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", result.id);
+
+        await writeAuditLog({
+          action: "create",
+          entity: "order",
+          entityId: result.id,
+          summary: promoCode
+            ? `New bKash order ${result.order_number} (promo ${promoCode})`
+            : `New bKash order ${result.order_number}`,
+          metadata: {
+            payment_method: "bkash",
+            bkash_payment_id: payment.paymentID,
+            promo_code: promoCode,
+            discount,
+            discount_percent: discountPercent,
+          },
+        });
+
+        return NextResponse.json(
+          {
+            success: true,
+            id: result.id,
+            orderNumber: result.order_number,
+            redirectUrl: payment.bkashURL,
+            message: "Redirecting to bKash",
+          },
+          { status: 200 },
+        );
+      } catch (err) {
+        await failUnpaidOrder(supabase, result.id);
+        return NextResponse.json(
+          {
+            error:
+              err instanceof Error
+                ? err.message
+                : "Failed to start bKash payment. Please try again.",
+          },
+          { status: 502 },
+        );
+      }
+    }
+
+    // COD — send emails immediately
     try {
       const productIds = [
         ...new Set(body.items.map((item) => item.product).filter(Boolean)),
@@ -161,7 +269,7 @@ export async function POST(request: NextRequest) {
         customerEmail,
         customerPhone: phone.trim(),
         deliveryAddress,
-        shippingLabel: `Cash on delivery · ${deliveryZoneLabel(zone)}`,
+        shippingLabel: `${paymentMethodLabel("cod")} · ${deliveryZoneLabel(zone)}`,
         items: body.items.map((item) => ({
           title: item.title ?? "Product",
           size: item.size,
@@ -192,8 +300,13 @@ export async function POST(request: NextRequest) {
         ? `New storefront order ${result.order_number} (promo ${promoCode})`
         : `New storefront order ${result.order_number}`,
       metadata: promoCode
-        ? { promo_code: promoCode, discount, discount_percent: discountPercent }
-        : undefined,
+        ? {
+            payment_method: "cod",
+            promo_code: promoCode,
+            discount,
+            discount_percent: discountPercent,
+          }
+        : { payment_method: "cod" },
     });
 
     return NextResponse.json(

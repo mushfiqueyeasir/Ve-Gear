@@ -102,6 +102,7 @@ export interface OrderDelivery {
   city?: string;
   postalCode?: string;
   phone?: string;
+  email?: string;
   shippingMethod?: "inside-dhaka" | "outside-dhaka";
 }
 
@@ -126,6 +127,9 @@ export interface PromoCodeRow {
   updated_at: string;
 }
 
+export type PaymentMethod = "cod" | "bkash";
+export type PaymentStatus = "unpaid" | "paid" | "failed";
+
 export interface OrderRow {
   id: string;
   order_number: string;
@@ -133,9 +137,23 @@ export interface OrderRow {
   customer_id: string | null;
   delivery: OrderDelivery;
   totals: OrderTotals;
-  payment_method: string;
+  payment_method: PaymentMethod | string;
+  payment_status?: PaymentStatus | string;
+  bkash_payment_id?: string | null;
+  bkash_trx_id?: string | null;
   notes: string | null;
   created_at: string;
+  updated_at: string;
+}
+
+export interface BkashSettingsRow {
+  id: number;
+  enabled: boolean;
+  sandbox: boolean;
+  username: string | null;
+  password: string | null;
+  app_key: string | null;
+  app_secret: string | null;
   updated_at: string;
 }
 

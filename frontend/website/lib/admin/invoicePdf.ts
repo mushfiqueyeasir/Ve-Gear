@@ -133,7 +133,9 @@ async function loadImageAsDataUrl(url: string): Promise<{
   }
 }
 
-export async function downloadOrderInvoice(data: InvoiceData): Promise<void> {
+async function buildOrderInvoicePdf(
+  data: InvoiceData,
+): Promise<{ filename: string; blob: Blob }> {
   const palette = normalizePalette(data.palette ?? DEFAULT_PALETTE);
   const bg = hexToRgb(palette.background);
   const surface = hexToRgb(palette.surface);
@@ -423,5 +425,56 @@ export async function downloadOrderInvoice(data: InvoiceData): Promise<void> {
   );
 
   const safeName = asciiSafe(data.orderNumber).replace(/[^\w.-]+/g, "_");
-  doc.save(`invoice-${safeName || "order"}.pdf`);
+  const filename = `invoice-${safeName || "order"}.pdf`;
+  const blob = doc.output("blob");
+  return { filename, blob };
+}
+
+function triggerBlobDownload(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export async function downloadOrderInvoice(data: InvoiceData): Promise<void> {
+  const { filename, blob } = await buildOrderInvoicePdf(data);
+  triggerBlobDownload(blob, filename);
+}
+
+/** Build all invoices and download them as a single ZIP. */
+export async function downloadOrderInvoicesZip(
+  invoices: InvoiceData[],
+): Promise<void> {
+  if (!invoices.length) throw new Error("No invoices to download.");
+
+  if (invoices.length === 1) {
+    await downloadOrderInvoice(invoices[0]);
+    return;
+  }
+
+  const JSZip = (await import("jszip")).default;
+  const zip = new JSZip();
+  const usedNames = new Set<string>();
+
+  for (const invoice of invoices) {
+    const { filename, blob } = await buildOrderInvoicePdf(invoice);
+    let name = filename;
+    let n = 2;
+    while (usedNames.has(name)) {
+      name = filename.replace(/\.pdf$/i, `-${n}.pdf`);
+      n += 1;
+    }
+    usedNames.add(name);
+    zip.file(name, blob);
+  }
+
+  const zipBlob = await zip.generateAsync({ type: "blob" });
+  const stamp = new Date().toISOString().slice(0, 10);
+  triggerBlobDownload(zipBlob, `invoices-${stamp}.zip`);
 }

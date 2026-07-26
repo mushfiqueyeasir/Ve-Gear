@@ -28,6 +28,7 @@ import {
 import { BUCKETS } from "@/lib/supabase/config";
 import { slugify } from "@/lib/admin/format";
 import { DEFAULT_TEE_SIZE_CHART } from "@/lib/products/sizeChart";
+import { DEFAULT_TEE_VARIANTS } from "@/lib/products/variants";
 import { saveProduct, type ProductVariantInput } from "./actions";
 
 export interface SizeChartFormRow {
@@ -136,6 +137,8 @@ export function ProductForm({
   const addVariant = () => setVariants((prev) => [...prev, emptyVariant()]);
   const removeVariant = (index: number) =>
     setVariants((prev) => prev.filter((_, i) => i !== index));
+  const loadDefaultVariants = () =>
+    setVariants(DEFAULT_TEE_VARIANTS.map((r) => ({ ...r })));
 
   const updateSizeChart = (
     index: number,
@@ -239,8 +242,32 @@ export function ProductForm({
 
         <TabsContent value="general" className="space-y-5">
           <p className="text-sm text-muted-foreground">
-            Name, URL slug, and product story.
+            Name, visibility, URL slug, and product story.
           </p>
+          <FormField
+            label="Status"
+            hint="Draft and archived products stay in admin but are hidden from the store."
+          >
+            <Select
+              value={status}
+              onValueChange={(v) =>
+                setStatus(v as "active" | "draft" | "archived")
+              }
+            >
+              <SelectTrigger className={adminSelectClass}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">
+                  Active — visible in store
+                </SelectItem>
+                <SelectItem value="draft">Draft — hidden from store</SelectItem>
+                <SelectItem value="archived">
+                  Archived — hidden from store
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
           <FormField label="Title" htmlFor="title">
             <Input
               id="title"
@@ -272,25 +299,8 @@ export function ProductForm({
 
         <TabsContent value="pricing" className="space-y-5">
           <p className="text-sm text-muted-foreground">
-            Status, type, and storefront prices.
+            Product type and storefront prices.
           </p>
-          <FormField label="Status">
-            <Select
-              value={status}
-              onValueChange={(v) =>
-                setStatus(v as "active" | "draft" | "archived")
-              }
-            >
-              <SelectTrigger className={adminSelectClass}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="archived">Archived</SelectItem>
-              </SelectContent>
-            </Select>
-          </FormField>
           <FormField label="Product type" htmlFor="product_type">
             <Input
               id="product_type"
@@ -324,99 +334,137 @@ export function ProductForm({
           </div>
         </TabsContent>
 
-        <TabsContent value="variations" className="space-y-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-muted-foreground">
-              Size / colour combinations with stock and SKU.
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-full"
-              onClick={addVariant}
-            >
-              <Plus className="size-4" /> Add row
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {variants.map((v, i) => (
-              <div
-                key={i}
-                className="grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card/60 p-4 sm:grid-cols-12 sm:items-end"
-              >
-                <FormField label="Size" className="sm:col-span-2">
-                  <Input
-                    value={v.size}
-                    onChange={(e) => updateVariant(i, "size", e.target.value)}
-                    className={adminInputClass}
-                  />
-                </FormField>
-                <FormField label="Color" className="sm:col-span-2">
-                  <Input
-                    value={v.color}
-                    onChange={(e) => updateVariant(i, "color", e.target.value)}
-                    className={adminInputClass}
-                  />
-                </FormField>
-                <FormField label="SKU" className="sm:col-span-3">
-                  <Input
-                    value={v.sku}
-                    onChange={(e) => updateVariant(i, "sku", e.target.value)}
-                    className={adminInputClass}
-                  />
-                </FormField>
-                <FormField label="Price override" className="sm:col-span-2">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={v.price_override}
-                    onChange={(e) =>
-                      updateVariant(i, "price_override", e.target.value)
-                    }
-                    className={adminInputClass}
-                  />
-                </FormField>
-                <FormField label="Stock" className="sm:col-span-1">
-                  <Input
-                    type="number"
-                    value={v.stock_quantity}
-                    onChange={(e) =>
-                      updateVariant(i, "stock_quantity", e.target.value)
-                    }
-                    className={adminInputClass}
-                  />
-                </FormField>
-                <FormField label="Low" className="sm:col-span-1">
-                  <Input
-                    type="number"
-                    value={v.low_stock_threshold}
-                    onChange={(e) =>
-                      updateVariant(i, "low_stock_threshold", e.target.value)
-                    }
-                    className={adminInputClass}
-                  />
-                </FormField>
-                <div className="flex justify-stretch sm:col-span-1 sm:justify-end">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-11 w-full rounded-full sm:size-9 sm:w-9"
-                    onClick={() => removeVariant(i)}
-                    aria-label="Remove variation"
-                  >
-                    <Trash2 className="size-4 text-destructive" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-            {variants.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                No variations. Add one to track stock.
+        <TabsContent value="variations" className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Stock by size
               </p>
-            )}
+              <p className="text-xs text-muted-foreground">
+                Prefill M–2XL, then set colour, SKU, and stock.
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 rounded-full px-3.5"
+                onClick={loadDefaultVariants}
+              >
+                Load tee defaults
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 rounded-full px-3.5"
+                onClick={addVariant}
+              >
+                <Plus className="size-3.5" />
+                Add row
+              </Button>
+            </div>
           </div>
+
+          {variants.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border px-4 py-10 text-center">
+              <p className="text-sm text-muted-foreground">
+                No variations yet.
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                className="rounded-full"
+                onClick={loadDefaultVariants}
+              >
+                Load tee defaults
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {variants.map((v, i) => (
+                <div
+                  key={i}
+                  className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-card/60 p-3 sm:grid-cols-12 sm:items-end sm:gap-2 sm:p-3.5"
+                >
+                  <FormField label="Size" className="sm:col-span-1">
+                    <Input
+                      value={v.size}
+                      onChange={(e) => updateVariant(i, "size", e.target.value)}
+                      placeholder="M"
+                      className={adminInputClass}
+                    />
+                  </FormField>
+                  <FormField label="Color" className="sm:col-span-2">
+                    <Input
+                      value={v.color}
+                      onChange={(e) =>
+                        updateVariant(i, "color", e.target.value)
+                      }
+                      placeholder="Black"
+                      className={adminInputClass}
+                    />
+                  </FormField>
+                  <FormField label="SKU" className="col-span-2 sm:col-span-2">
+                    <Input
+                      value={v.sku}
+                      onChange={(e) => updateVariant(i, "sku", e.target.value)}
+                      className={adminInputClass}
+                    />
+                  </FormField>
+                  <FormField
+                    label="Price override"
+                    className="col-span-2 sm:col-span-2"
+                  >
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={v.price_override}
+                      onChange={(e) =>
+                        updateVariant(i, "price_override", e.target.value)
+                      }
+                      className={adminInputClass}
+                    />
+                  </FormField>
+                  <FormField label="Stock" className="sm:col-span-2">
+                    <Input
+                      type="number"
+                      min={0}
+                      value={v.stock_quantity}
+                      onChange={(e) =>
+                        updateVariant(i, "stock_quantity", e.target.value)
+                      }
+                      className={`${adminInputClass} min-w-[4.5rem] px-3 tabular-nums`}
+                    />
+                  </FormField>
+                  <FormField label="Low" className="sm:col-span-2">
+                    <Input
+                      type="number"
+                      min={0}
+                      value={v.low_stock_threshold}
+                      onChange={(e) =>
+                        updateVariant(i, "low_stock_threshold", e.target.value)
+                      }
+                      className={`${adminInputClass} min-w-[4.5rem] px-3 tabular-nums`}
+                    />
+                  </FormField>
+                  <div className="col-span-2 flex justify-end sm:col-span-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-9 rounded-full"
+                      onClick={() => removeVariant(i)}
+                      aria-label="Remove variation"
+                    >
+                      <Trash2 className="size-4 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="categories" className="space-y-5">
@@ -461,18 +509,20 @@ export function ProductForm({
           />
         </TabsContent>
 
-        <TabsContent value="size-chart" className="space-y-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-muted-foreground">
-              Optional. If you add rows, a size chart appears on the product
-              page. Leave empty to hide it.
-            </p>
-            <div className="flex flex-wrap gap-2">
+        <TabsContent value="size-chart" className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-foreground">Size chart</p>
+              <p className="text-xs text-muted-foreground">
+                Optional. Shown on the product page when rows exist.
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="rounded-full"
+                className="h-9 rounded-full px-3.5"
                 onClick={loadDefaultSizeChart}
               >
                 Load tee defaults
@@ -481,10 +531,11 @@ export function ProductForm({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="rounded-full"
+                className="h-9 rounded-full px-3.5"
                 onClick={addSizeChartRow}
               >
-                <Plus className="size-4" /> Add row
+                <Plus className="size-3.5" />
+                Add row
               </Button>
             </div>
           </div>
@@ -493,7 +544,7 @@ export function ProductForm({
             {sizeChart.map((row, i) => (
               <div
                 key={i}
-                className="grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card/60 p-4 sm:grid-cols-12 sm:items-end"
+                className="grid grid-cols-1 gap-3 rounded-xl border border-border bg-card/60 p-3.5 sm:grid-cols-12 sm:items-end sm:gap-2"
               >
                 <FormField label="Size" className="sm:col-span-3">
                   <Input
@@ -538,9 +589,20 @@ export function ProductForm({
               </div>
             ))}
             {sizeChart.length === 0 && (
-              <p className="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
-                No size chart. Customers won&apos;t see a guide on this product.
-              </p>
+              <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border px-4 py-10 text-center">
+                <p className="text-sm text-muted-foreground">
+                  No size chart. Customers won&apos;t see a guide on this
+                  product.
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="rounded-full"
+                  onClick={loadDefaultSizeChart}
+                >
+                  Load tee defaults
+                </Button>
+              </div>
             )}
           </div>
         </TabsContent>

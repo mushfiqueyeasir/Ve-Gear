@@ -79,7 +79,8 @@ export function DateTimePickerField({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    // modal: required so clicks work when this opens inside a Dialog
+    <Popover modal open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           id={id}
@@ -98,21 +99,39 @@ export function DateTimePickerField({
           <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto space-y-3 p-3">
-        <Calendar
-          mode="single"
-          selected={selected}
-          onSelect={(date) => {
-            if (!date) {
-              onChange("");
-              return;
-            }
-            applyDateTime(date);
-          }}
-          disabled={disablePast ? { before: today } : undefined}
-          defaultMonth={selected ?? today}
-        />
-        <div className="flex items-center gap-2 border-t border-border pt-3">
+      <PopoverContent
+        align="start"
+        sideOffset={6}
+        collisionPadding={16}
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="z-[100] w-[var(--radix-popover-trigger-width)] rounded-xl p-0 shadow-[0_20px_50px_-20px_rgb(0_0_0/0.65)]"
+      >
+        <div className="border-b border-border/70 px-4 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+            Select date & time
+          </p>
+          <p className="mt-0.5 font-display text-base font-semibold text-foreground">
+            {selected
+              ? format(selected, "EEEE, MMM d · h:mm a")
+              : "Choose a day"}
+          </p>
+        </div>
+        <div className="px-4 pb-3 pt-3">
+          <Calendar
+            mode="single"
+            selected={selected}
+            onSelect={(date) => {
+              if (!date) {
+                onChange("");
+                return;
+              }
+              applyDateTime(date);
+            }}
+            disabled={disablePast ? { before: today } : undefined}
+            defaultMonth={selected ?? today}
+          />
+        </div>
+        <div className="flex items-center gap-2 border-t border-border/70 px-3.5 py-2.5">
           <Select
             value={hour}
             onValueChange={(h) => {
@@ -153,7 +172,7 @@ export function DateTimePickerField({
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="h-10 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+            className="h-10 shrink-0 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
           >
             Done
           </button>

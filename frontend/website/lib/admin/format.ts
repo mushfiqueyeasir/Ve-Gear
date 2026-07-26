@@ -51,6 +51,7 @@ export const ORDER_STATUS_STYLES: Record<OrderStatus, string> = {
 };
 
 // Allowed forward transitions for the order workflow.
+// Delivered is final (no cancel). Cancelling any earlier status restocks variants.
 export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   pending: ["confirmed", "cancelled"],
   confirmed: ["processing", "cancelled"],

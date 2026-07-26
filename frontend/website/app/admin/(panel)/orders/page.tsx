@@ -1,4 +1,4 @@
-import { requireAdminSession } from "@/lib/admin/auth";
+import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSiteSettings } from "@/utility/getSettings";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -8,7 +8,7 @@ import type { OrderRow } from "@/type/db";
 export const dynamic = "force-dynamic";
 
 export default async function OrdersPage() {
-  await requireAdminSession();
+  const session = await requireAdminSession();
   const supabase = await createSupabaseServerClient();
   const [{ data: orders }, settings] = await Promise.all([
     supabase
@@ -39,7 +39,11 @@ export default async function OrdersPage() {
         title="Orders"
         description={`${rows.length} order${rows.length === 1 ? "" : "s"} total`}
       />
-      <OrdersTable data={rows} symbol={symbol} />
+      <OrdersTable
+        data={rows}
+        symbol={symbol}
+        canWrite={canWrite(session.role)}
+      />
     </div>
   );
 }

@@ -6,7 +6,13 @@ import { Check, Loader2, PackageSearch, X } from "lucide-react";
 import Input from "@/components/Common/Input";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
 import { ORDER_STATUS_STYLES, formatDateTime } from "@/lib/admin/format";
+import {
+  paymentMethodLabel,
+  paymentStatusLabel,
+} from "@/lib/payments/paymentLabels";
 import { cn } from "@/lib/utils";
+import { useCartStore } from "@/store/cartStore";
+import { useCheckoutStore } from "@/store/checkoutStore";
 import type { OrderStatus } from "@/type/db";
 import type { TrackOrderResult } from "@/type/orderType";
 import { trackOrder } from "@/utility/trackOrder";
@@ -20,11 +26,6 @@ const FLOW_STEPS: OrderStatus[] = [
   "delivered",
 ];
 
-function paymentLabel(method: string) {
-  if (method === "cod") return "Cash on delivery";
-  return method.replace(/_/g, " ");
-}
-
 function stepIndex(status: OrderStatus) {
   return FLOW_STEPS.indexOf(status);
 }
@@ -32,6 +33,8 @@ function stepIndex(status: OrderStatus) {
 export default function TrackOrderPageScreen() {
   const searchParams = useSearchParams();
   const { format } = useCurrency();
+  const clearCart = useCartStore((s) => s.clearCart);
+  const setAppliedPromo = useCheckoutStore((s) => s.setAppliedPromo);
   const [orderNumber, setOrderNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<TrackOrderResult | null>(null);
@@ -65,7 +68,14 @@ export default function TrackOrderPageScreen() {
     if (!fromQuery) return;
     setOrderNumber(fromQuery.toUpperCase());
     void lookup(fromQuery);
-  }, [searchParams]);
+    if (searchParams.get("paid") === "1") {
+      clearCart();
+      setAppliedPromo(null);
+      toast.success("Payment successful", {
+        description: "Your bKash payment was confirmed.",
+      });
+    }
+  }, [searchParams, clearCart, setAppliedPromo]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -238,10 +248,24 @@ export default function TrackOrderPageScreen() {
                 </div>
                 <div className="flex justify-between gap-3">
                   <dt className="text-muted-foreground">Payment</dt>
-                  <dd className="text-right font-medium capitalize">
-                    {paymentLabel(result.paymentMethod)}
+                  <dd className="text-right font-medium">
+                    {paymentMethodLabel(result.paymentMethod)}
                   </dd>
                 </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted-foreground">Payment status</dt>
+                  <dd className="text-right font-medium">
+                    {paymentStatusLabel(result.paymentStatus)}
+                  </dd>
+                </div>
+                {result.bkashTrxId ? (
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted-foreground">bKash TrxID</dt>
+                    <dd className="text-right font-mono text-xs font-medium">
+                      {result.bkashTrxId}
+                    </dd>
+                  </div>
+                ) : null}
               </dl>
             </div>
 

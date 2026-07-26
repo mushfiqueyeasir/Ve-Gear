@@ -53,7 +53,17 @@ import {
   type ThemePalette,
 } from "@/lib/theme/palette";
 import { cn } from "@/lib/utils";
-import { saveSettings, type SettingsInput } from "./actions";
+import type {
+  SmtpProvider,
+  SmtpSettingsPublic,
+} from "@/lib/email/smtpSettings";
+import type { BkashSettingsPublic } from "@/lib/payments/bkashSettings";
+import {
+  saveSettings,
+  saveSmtpSettings,
+  saveBkashSettings,
+  type SettingsInput,
+} from "./actions";
 
 function orNull(v: string): string | null {
   const t = v.trim();
@@ -68,6 +78,8 @@ export function SettingsForm({
   deliveryCharges: initialDeliveryCharges,
   chatWidgets: initialChatWidgets,
   palette: initialPalette,
+  smtp: initialSmtp,
+  bkash: initialBkash,
 }: {
   settings: SiteSettingsRow;
   seo?: CmsSeo | null;
@@ -76,6 +88,8 @@ export function SettingsForm({
   deliveryCharges?: DeliveryCharges | null;
   chatWidgets?: ChatWidgets | null;
   palette?: ThemePalette | null;
+  smtp: SmtpSettingsPublic;
+  bkash: BkashSettingsPublic;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -159,6 +173,37 @@ export function SettingsForm({
   const [palette, setPalette] = useState<ThemePalette>(() =>
     normalizePalette(initialPalette ?? DEFAULT_PALETTE),
   );
+
+  const [smtpEnabled, setSmtpEnabled] = useState(initialSmtp.enabled);
+  const [smtpProvider, setSmtpProvider] = useState<SmtpProvider>(
+    initialSmtp.provider,
+  );
+  const [smtpHost, setSmtpHost] = useState(initialSmtp.host ?? "");
+  const [smtpPort, setSmtpPort] = useState(String(initialSmtp.port || 587));
+  const [smtpSecure, setSmtpSecure] = useState(initialSmtp.secure);
+  const [smtpUsername, setSmtpUsername] = useState(initialSmtp.username ?? "");
+  const [smtpPassword, setSmtpPassword] = useState("");
+  const [smtpFromName, setSmtpFromName] = useState(
+    initialSmtp.fromName || "VE Gear",
+  );
+  const [smtpFromEmail, setSmtpFromEmail] = useState(
+    initialSmtp.fromEmail ?? "",
+  );
+  const [smtpNotifyEmails, setSmtpNotifyEmails] = useState(
+    initialSmtp.notifyEmails.join(", "),
+  );
+  const [smtpHasPassword] = useState(initialSmtp.hasPassword);
+
+  const [bkashEnabled, setBkashEnabled] = useState(initialBkash.enabled);
+  const [bkashSandbox, setBkashSandbox] = useState(initialBkash.sandbox);
+  const [bkashUsername, setBkashUsername] = useState(
+    initialBkash.username ?? "",
+  );
+  const [bkashPassword, setBkashPassword] = useState("");
+  const [bkashAppKey, setBkashAppKey] = useState(initialBkash.appKey ?? "");
+  const [bkashAppSecret, setBkashAppSecret] = useState("");
+  const [bkashHasPassword] = useState(initialBkash.hasPassword);
+  const [bkashHasAppSecret] = useState(initialBkash.hasAppSecret);
 
   const setPaletteColor = (key: keyof ThemePalette, value: string) => {
     setPalette((prev) => ({ ...prev, [key]: value }));
@@ -274,35 +319,69 @@ export function SettingsForm({
         toast.error(res.error);
         return;
       }
+
+      const smtpRes = await saveSmtpSettings({
+        enabled: smtpEnabled,
+        provider: smtpProvider,
+        host: orNull(smtpHost),
+        port: Number(smtpPort) || 587,
+        secure: smtpSecure,
+        username: orNull(smtpUsername),
+        password: smtpPassword.trim() ? smtpPassword : null,
+        fromName: smtpFromName.trim() || "VE Gear",
+        fromEmail: orNull(smtpFromEmail),
+        notifyEmails: smtpNotifyEmails
+          .split(/[,;\n]+/)
+          .map((e) => e.trim())
+          .filter(Boolean),
+      });
+      if (smtpRes?.error) {
+        toast.error(smtpRes.error);
+        return;
+      }
+
+      const bkashRes = await saveBkashSettings({
+        enabled: bkashEnabled,
+        sandbox: bkashSandbox,
+        username: orNull(bkashUsername),
+        password: bkashPassword.trim() ? bkashPassword : null,
+        appKey: orNull(bkashAppKey),
+        appSecret: bkashAppSecret.trim() ? bkashAppSecret : null,
+      });
+      if (bkashRes?.error) {
+        toast.error(bkashRes.error);
+        return;
+      }
+
       toast.success("Settings saved");
+      setSmtpPassword("");
+      setBkashPassword("");
+      setBkashAppSecret("");
       router.refresh();
     });
   };
 
+  const mainTabListClass =
+    "mb-6 flex h-auto w-fit flex-wrap justify-start gap-1 rounded-xl bg-card p-1";
+  const subTabListClass =
+    "mb-5 flex h-auto w-fit flex-wrap justify-start gap-1 rounded-lg border border-border bg-background/60 p-1";
+  const subTabTriggerClass = "rounded-md px-3 py-1.5 text-xs sm:text-sm";
+
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      <Tabs defaultValue="brand" className="w-full">
-        <TabsList className="mb-6 flex h-auto w-fit flex-wrap justify-start gap-1 rounded-xl bg-card p-1">
-          <TabsTrigger value="brand" className="rounded-lg px-3 sm:px-4">
-            Brand
+      <Tabs defaultValue="store" className="w-full">
+        <TabsList className={mainTabListClass}>
+          <TabsTrigger value="store" className="rounded-lg px-3 sm:px-4">
+            Store
           </TabsTrigger>
-          <TabsTrigger value="colors" className="rounded-lg px-3 sm:px-4">
-            Colors
+          <TabsTrigger value="commerce" className="rounded-lg px-3 sm:px-4">
+            Commerce
           </TabsTrigger>
-          <TabsTrigger value="contact" className="rounded-lg px-3 sm:px-4">
-            Contact
-          </TabsTrigger>
-          <TabsTrigger value="currency" className="rounded-lg px-3 sm:px-4">
-            Currency
-          </TabsTrigger>
-          <TabsTrigger value="delivery" className="rounded-lg px-3 sm:px-4">
-            Delivery
-          </TabsTrigger>
-          <TabsTrigger value="chat" className="rounded-lg px-3 sm:px-4">
-            Chat
-          </TabsTrigger>
-          <TabsTrigger value="social" className="rounded-lg px-3 sm:px-4">
-            Social
+          <TabsTrigger
+            value="notifications"
+            className="rounded-lg px-3 sm:px-4"
+          >
+            Notifications
           </TabsTrigger>
           <TabsTrigger value="analytics" className="rounded-lg px-3 sm:px-4">
             Analytics
@@ -312,426 +391,723 @@ export function SettingsForm({
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="brand" className="space-y-5">
-          <FormField label="Store name">
-            <Input
-              value={storeName}
-              onChange={(e) => setStoreName(e.target.value)}
-              placeholder="VE Gear"
-              className={adminInputClass}
-            />
-          </FormField>
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
-            <FormField label="Logo" className="min-w-0 flex-1">
-              <ImageUploader
-                bucket={BUCKETS.branding}
-                value={logo}
-                onChange={setLogo}
-                label="Drop logo here or click to browse"
-                enableCrop
-                preview="wide"
-              />
-            </FormField>
-            <FormField
-              label="Favicon"
-              hint="Square tab icon (PNG)."
-              className="shrink-0"
-            >
-              <ImageUploader
-                bucket={BUCKETS.branding}
-                value={favicon}
-                onChange={setFavicon}
-                label="Add favicon"
-                enableCrop
-                preview="square"
-              />
-            </FormField>
-          </div>
-        </TabsContent>
+        <TabsContent value="store" className="mt-0">
+          <Tabs defaultValue="brand" className="w-full">
+            <TabsList className={subTabListClass}>
+              <TabsTrigger value="brand" className={subTabTriggerClass}>
+                Brand
+              </TabsTrigger>
+              <TabsTrigger value="colors" className={subTabTriggerClass}>
+                Colors
+              </TabsTrigger>
+              <TabsTrigger value="contact" className={subTabTriggerClass}>
+                Contact
+              </TabsTrigger>
+              <TabsTrigger value="social" className={subTabTriggerClass}>
+                Social
+              </TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="colors" className="space-y-6">
-          <p className="text-sm text-muted-foreground">
-            These colors drive the whole storefront — buttons, backgrounds,
-            text, and borders. Admin stays on the default theme.
-          </p>
+            <TabsContent value="brand" className="mt-0 space-y-5">
+              <FormField label="Store name">
+                <Input
+                  value={storeName}
+                  onChange={(e) => setStoreName(e.target.value)}
+                  placeholder="VE Gear"
+                  className={adminInputClass}
+                />
+              </FormField>
+              <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+                <FormField label="Logo" className="min-w-0 flex-1">
+                  <ImageUploader
+                    bucket={BUCKETS.branding}
+                    value={logo}
+                    onChange={setLogo}
+                    label="Drop logo here or click to browse"
+                    enableCrop
+                    preview="wide"
+                  />
+                </FormField>
+                <FormField
+                  label="Favicon"
+                  hint="Square tab icon (PNG)."
+                  className="shrink-0"
+                >
+                  <ImageUploader
+                    bucket={BUCKETS.branding}
+                    value={favicon}
+                    onChange={setFavicon}
+                    label="Add favicon"
+                    enableCrop
+                    preview="square"
+                  />
+                </FormField>
+              </div>
+            </TabsContent>
 
-          <div>
-            <p className="mb-3 text-xs uppercase tracking-[0.14em] text-muted-foreground">
-              Presets
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {PALETTE_PRESETS.map((preset) => {
-                const active =
-                  JSON.stringify(normalizePalette(palette)) ===
-                  JSON.stringify(preset.palette);
-                return (
+            <TabsContent value="colors" className="mt-0 space-y-6">
+              <p className="text-sm text-muted-foreground">
+                Storefront theme — buttons, backgrounds, text, and borders.
+              </p>
+
+              <div>
+                <p className="mb-3 text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                  Presets
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {PALETTE_PRESETS.map((preset) => {
+                    const active =
+                      JSON.stringify(normalizePalette(palette)) ===
+                      JSON.stringify(preset.palette);
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => setPalette({ ...preset.palette })}
+                        className={cn(
+                          "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                          active
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                        )}
+                      >
+                        <span
+                          className="size-3.5 rounded-full border border-white/20"
+                          style={{ backgroundColor: preset.palette.primary }}
+                        />
+                        {preset.name}
+                      </button>
+                    );
+                  })}
                   <button
-                    key={preset.id}
                     type="button"
-                    onClick={() => setPalette({ ...preset.palette })}
-                    className={cn(
-                      "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                      active
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                    )}
+                    onClick={() => setPalette({ ...DEFAULT_PALETTE })}
+                    className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition hover:border-primary/40 hover:text-foreground"
                   >
-                    <span
-                      className="size-3.5 rounded-full border border-white/20"
-                      style={{ backgroundColor: preset.palette.primary }}
-                    />
-                    {preset.name}
+                    Reset default
                   </button>
-                );
-              })}
-              <button
-                type="button"
-                onClick={() => setPalette({ ...DEFAULT_PALETTE })}
-                className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition hover:border-primary/40 hover:text-foreground"
-              >
-                Reset default
-              </button>
-            </div>
-          </div>
+                </div>
+              </div>
 
-          <div
-            className="overflow-hidden rounded-2xl border border-border"
-            style={{
-              background: palette.background,
-              color: palette.foreground,
-              borderColor: palette.border,
-            }}
-          >
-            <div
-              className="border-b px-4 py-3 text-xs uppercase tracking-[0.18em]"
-              style={{
-                borderColor: palette.border,
-                color: palette.mutedForeground,
-              }}
-            >
-              Live preview
-            </div>
-            <div className="space-y-3 p-4">
               <div
-                className="rounded-xl border p-4"
+                className="overflow-hidden rounded-2xl border border-border"
                 style={{
-                  background: palette.card,
+                  background: palette.background,
+                  color: palette.foreground,
                   borderColor: palette.border,
                 }}
               >
-                <p
-                  className="text-sm font-medium"
-                  style={{ color: palette.foreground }}
+                <div
+                  className="border-b px-4 py-3 text-xs uppercase tracking-[0.18em]"
+                  style={{
+                    borderColor: palette.border,
+                    color: palette.mutedForeground,
+                  }}
                 >
-                  Product card
-                </p>
-                <p
-                  className="mt-1 text-xs"
-                  style={{ color: palette.mutedForeground }}
-                >
-                  Supporting copy uses muted text.
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <span
-                    className="rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider"
+                  Live preview
+                </div>
+                <div className="space-y-3 p-4">
+                  <div
+                    className="rounded-xl border p-4"
                     style={{
-                      background: palette.primary,
-                      color: palette.primaryForeground,
-                    }}
-                  >
-                    Shop now
-                  </span>
-                  <span
-                    className="rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider"
-                    style={{
+                      background: palette.card,
                       borderColor: palette.border,
-                      color: palette.foreground,
-                      background: palette.surface,
                     }}
                   >
-                    View details
-                  </span>
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: palette.foreground }}
+                    >
+                      Product card
+                    </p>
+                    <p
+                      className="mt-1 text-xs"
+                      style={{ color: palette.mutedForeground }}
+                    >
+                      Supporting copy uses muted text.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <span
+                        className="rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider"
+                        style={{
+                          background: palette.primary,
+                          color: palette.primaryForeground,
+                        }}
+                      >
+                        Shop now
+                      </span>
+                      <span
+                        className="rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider"
+                        style={{
+                          borderColor: palette.border,
+                          color: palette.foreground,
+                          background: palette.surface,
+                        }}
+                      >
+                        View details
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {PALETTE_FIELDS.map((field) => (
-              <FormField key={field.key} label={field.label} hint={field.hint}>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={palette[field.key]}
-                    onChange={(e) => setPaletteColor(field.key, e.target.value)}
-                    className="h-10 w-12 cursor-pointer rounded-lg border border-border bg-transparent p-1"
-                    aria-label={field.label}
-                  />
-                  <Input
-                    value={palette[field.key]}
-                    onChange={(e) => setPaletteColor(field.key, e.target.value)}
-                    className={cn(adminInputClass, "font-mono uppercase")}
-                    maxLength={7}
-                    spellCheck={false}
-                  />
-                </div>
-              </FormField>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="contact" className="space-y-5">
-          <div className="grid gap-5 sm:grid-cols-2">
-            <FormField label="Email">
-              <Input
-                type="email"
-                value={contactEmail}
-                onChange={(e) => setContactEmail(e.target.value)}
-                placeholder="hello@vegear.com"
-                className={adminInputClass}
-              />
-            </FormField>
-            <FormField label="Phone">
-              <Input
-                value={contactPhone}
-                onChange={(e) => setContactPhone(e.target.value)}
-                placeholder="+880…"
-                className={adminInputClass}
-              />
-            </FormField>
-          </div>
-          <FormField label="Address">
-            <Textarea
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Street, city, country"
-              rows={3}
-              className={adminTextareaClass}
-            />
-          </FormField>
-        </TabsContent>
-
-        <TabsContent value="currency" className="space-y-5">
-          <p className="text-sm text-muted-foreground">
-            Enable the currencies you use locally. Pick one as the store default
-            — prices display with that symbol.
-          </p>
-          <div className="space-y-3">
-            {SUPPORTED_CURRENCIES.map((c) => {
-              const enabled = enabledCurrencies.includes(c.code);
-              const isDefault = defaultCurrency === c.code;
-              return (
-                <div
-                  key={c.code}
-                  className={cn(
-                    "flex flex-col gap-3 rounded-2xl border px-4 py-4 sm:flex-row sm:items-center sm:justify-between",
-                    enabled
-                      ? "border-border bg-card/60"
-                      : "border-border/60 opacity-70",
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="grid size-10 place-items-center rounded-full bg-white/5 font-mono text-xs text-muted-foreground">
-                      {c.flag}
-                    </span>
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {c.code}{" "}
-                        <span className="text-muted-foreground">
-                          ({c.symbol})
-                        </span>
-                      </p>
-                      <p className="text-xs text-muted-foreground">{c.label}</p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {PALETTE_FIELDS.map((field) => (
+                  <FormField
+                    key={field.key}
+                    label={field.label}
+                    hint={field.hint}
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={palette[field.key]}
+                        onChange={(e) =>
+                          setPaletteColor(field.key, e.target.value)
+                        }
+                        className="h-10 w-12 cursor-pointer rounded-lg border border-border bg-transparent p-1"
+                        aria-label={field.label}
+                      />
+                      <Input
+                        value={palette[field.key]}
+                        onChange={(e) =>
+                          setPaletteColor(field.key, e.target.value)
+                        }
+                        className={cn(adminInputClass, "font-mono uppercase")}
+                        maxLength={7}
+                        spellCheck={false}
+                      />
                     </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                  </FormField>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="contact" className="mt-0 space-y-5">
+              <div className="grid gap-5 sm:grid-cols-2">
+                <FormField label="Email">
+                  <Input
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    placeholder="hello@vegear.com"
+                    className={adminInputClass}
+                  />
+                </FormField>
+                <FormField label="Phone">
+                  <Input
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    placeholder="+880…"
+                    className={adminInputClass}
+                  />
+                </FormField>
+              </div>
+              <FormField label="Address">
+                <Textarea
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Street, city, country"
+                  rows={3}
+                  className={adminTextareaClass}
+                />
+              </FormField>
+            </TabsContent>
+
+            <TabsContent value="social" className="mt-0 space-y-5">
+              <FormField label="Instagram">
+                <Input
+                  value={instagram}
+                  onChange={(e) => setInstagram(e.target.value)}
+                  placeholder="https://instagram.com/…"
+                  className={adminInputClass}
+                />
+              </FormField>
+              <FormField label="Twitter / X">
+                <Input
+                  value={twitter}
+                  onChange={(e) => setTwitter(e.target.value)}
+                  placeholder="https://x.com/…"
+                  className={adminInputClass}
+                />
+              </FormField>
+              <FormField label="Facebook">
+                <Input
+                  value={facebook}
+                  onChange={(e) => setFacebook(e.target.value)}
+                  placeholder="https://facebook.com/…"
+                  className={adminInputClass}
+                />
+              </FormField>
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+
+        <TabsContent value="commerce" className="mt-0">
+          <Tabs defaultValue="currency" className="w-full">
+            <TabsList className={subTabListClass}>
+              <TabsTrigger value="currency" className={subTabTriggerClass}>
+                Currency
+              </TabsTrigger>
+              <TabsTrigger value="delivery" className={subTabTriggerClass}>
+                Delivery
+              </TabsTrigger>
+              <TabsTrigger value="payments" className={subTabTriggerClass}>
+                Payments
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="currency" className="mt-0 space-y-5">
+              <p className="text-sm text-muted-foreground">
+                Enable currencies and pick the store default.
+              </p>
+              <div className="space-y-3">
+                {SUPPORTED_CURRENCIES.map((c) => {
+                  const enabled = enabledCurrencies.includes(c.code);
+                  const isDefault = defaultCurrency === c.code;
+                  return (
+                    <div
+                      key={c.code}
+                      className={cn(
+                        "flex flex-col gap-3 rounded-2xl border px-4 py-4 sm:flex-row sm:items-center sm:justify-between",
+                        enabled
+                          ? "border-border bg-card/60"
+                          : "border-border/60 opacity-70",
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="grid size-10 place-items-center rounded-full bg-white/5 font-mono text-xs text-muted-foreground">
+                          {c.flag}
+                        </span>
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {c.code}{" "}
+                            <span className="text-muted-foreground">
+                              ({c.symbol})
+                            </span>
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {c.label}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <input
+                            type="radio"
+                            name="default-currency"
+                            checked={isDefault}
+                            disabled={!enabled}
+                            onChange={() => setDefaultCurrency(c.code)}
+                            className="accent-primary"
+                          />
+                          Default
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                            {enabled ? "On" : "Off"}
+                          </span>
+                          <Switch
+                            checked={enabled}
+                            onCheckedChange={(on) => toggleCurrency(c.code, on)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Active default:{" "}
+                <span className="text-foreground">
+                  {defaultCurrency} ·{" "}
+                  {SUPPORTED_CURRENCIES.find((c) => c.code === defaultCurrency)
+                    ?.symbol ?? ""}
+                </span>
+              </p>
+            </TabsContent>
+
+            <TabsContent value="delivery" className="mt-0 space-y-5">
+              <p className="text-sm text-muted-foreground">
+                COD charge per order — Inside / Outside Dhaka at checkout.
+              </p>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <FormField
+                  label="Inside Dhaka"
+                  hint="Default 70 — applies to Dhaka city orders."
+                >
+                  <Input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={insideDhakaCharge}
+                    onChange={(e) => setInsideDhakaCharge(e.target.value)}
+                    className={adminInputClass}
+                  />
+                </FormField>
+                <FormField
+                  label="Outside Dhaka"
+                  hint="Default 120 — applies outside Dhaka."
+                >
+                  <Input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={outsideDhakaCharge}
+                    onChange={(e) => setOutsideDhakaCharge(e.target.value)}
+                    className={adminInputClass}
+                  />
+                </FormField>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Amounts use your store currency (
+                <span className="text-foreground">{defaultCurrency}</span>
+                ).
+              </p>
+            </TabsContent>
+
+            <TabsContent value="payments" className="mt-0 space-y-5">
+              <p className="text-sm text-muted-foreground">
+                Cash on delivery is always available. Enable bKash Tokenized
+                Checkout (mode 0011) when credentials are ready. Store currency
+                must be BDT for bKash at checkout.
+              </p>
+
+              <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium">Enable bKash</p>
+                  <p className="text-xs text-muted-foreground">
+                    Show bKash as a payment option at checkout.
+                  </p>
+                </div>
+                <Switch
+                  checked={bkashEnabled}
+                  onCheckedChange={setBkashEnabled}
+                />
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium">Sandbox mode</p>
+                  <p className="text-xs text-muted-foreground">
+                    Use bKash sandbox URLs for testing. Turn off for live
+                    payments.
+                  </p>
+                </div>
+                <Switch
+                  checked={bkashSandbox}
+                  onCheckedChange={setBkashSandbox}
+                />
+              </div>
+
+              {defaultCurrency !== "BDT" ? (
+                <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                  Default currency is {defaultCurrency}. Switch Commerce →
+                  Currency to BDT before offering bKash at checkout.
+                </p>
+              ) : null}
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField label="Username">
+                  <Input
+                    value={bkashUsername}
+                    onChange={(e) => setBkashUsername(e.target.value)}
+                    placeholder="Merchant portal username"
+                    className={adminInputClass}
+                    autoComplete="off"
+                  />
+                </FormField>
+                <FormField
+                  label="Password"
+                  hint={
+                    bkashHasPassword && !bkashPassword
+                      ? "Saved — leave blank to keep current password."
+                      : undefined
+                  }
+                >
+                  <Input
+                    type="password"
+                    value={bkashPassword}
+                    onChange={(e) => setBkashPassword(e.target.value)}
+                    placeholder={bkashHasPassword ? "••••••••••••" : "Password"}
+                    className={adminInputClass}
+                    autoComplete="new-password"
+                  />
+                </FormField>
+                <FormField label="App Key">
+                  <Input
+                    value={bkashAppKey}
+                    onChange={(e) => setBkashAppKey(e.target.value)}
+                    placeholder="x-app-key"
+                    className={adminInputClass}
+                    autoComplete="off"
+                  />
+                </FormField>
+                <FormField
+                  label="App Secret"
+                  hint={
+                    bkashHasAppSecret && !bkashAppSecret
+                      ? "Saved — leave blank to keep current secret."
+                      : undefined
+                  }
+                >
+                  <Input
+                    type="password"
+                    value={bkashAppSecret}
+                    onChange={(e) => setBkashAppSecret(e.target.value)}
+                    placeholder={
+                      bkashHasAppSecret ? "••••••••••••" : "App secret"
+                    }
+                    className={adminInputClass}
+                    autoComplete="new-password"
+                  />
+                </FormField>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+
+        <TabsContent value="notifications" className="mt-0">
+          <Tabs defaultValue="chat" className="w-full">
+            <TabsList className={subTabListClass}>
+              <TabsTrigger value="chat" className={subTabTriggerClass}>
+                Chat
+              </TabsTrigger>
+              <TabsTrigger value="email" className={subTabTriggerClass}>
+                Order email
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="chat" className="mt-0 space-y-5">
+              <p className="text-sm text-muted-foreground">
+                Storefront chat button — opens Messenger or WhatsApp in a new
+                tab.
+              </p>
+
+              <div className="space-y-2">
+                {(
+                  [
+                    {
+                      value: "none" as const,
+                      label: "Off",
+                      hint: "Hide chat button",
+                    },
+                    {
+                      value: "messenger" as const,
+                      label: "Messenger",
+                      hint: "Opens m.me — Messenger app or messenger.com",
+                    },
+                    {
+                      value: "whatsapp" as const,
+                      label: "WhatsApp",
+                      hint: "Opens WhatsApp — cannot stay on the website",
+                    },
+                  ] as const
+                ).map((option) => {
+                  const selected = chatProvider === option.value;
+                  return (
+                    <label
+                      key={option.value}
+                      className={cn(
+                        "flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition",
+                        selected
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-card/60 hover:border-primary/40",
+                      )}
+                    >
                       <input
                         type="radio"
-                        name="default-currency"
-                        checked={isDefault}
-                        disabled={!enabled}
-                        onChange={() => setDefaultCurrency(c.code)}
+                        name="chat-provider"
+                        checked={selected}
+                        onChange={() => setChatProvider(option.value)}
                         className="accent-primary"
                       />
-                      Default
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                        {enabled ? "On" : "Off"}
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium text-foreground">
+                          {option.label}
+                        </span>
+                        <span className="block text-xs text-muted-foreground">
+                          {option.hint}
+                        </span>
                       </span>
-                      <Switch
-                        checked={enabled}
-                        onCheckedChange={(on) => toggleCurrency(c.code, on)}
-                      />
+                    </label>
+                  );
+                })}
+              </div>
+
+              {chatProvider === "whatsapp" ? (
+                <FormField
+                  label="WhatsApp number"
+                  hint="Country code + number, e.g. 8801712345678. Clicking opens WhatsApp."
+                >
+                  <Input
+                    value={whatsappNumber}
+                    onChange={(e) => setWhatsappNumber(e.target.value)}
+                    placeholder="8801712345678"
+                    inputMode="tel"
+                    className={adminInputClass}
+                  />
+                </FormField>
+              ) : null}
+
+              {chatProvider === "messenger" ? (
+                <FormField
+                  label="Facebook Page ID or username"
+                  hint="Use your Page ID (e.g. 378400148906020) or username. You can also paste an m.me link."
+                >
+                  <Input
+                    value={messengerPageId}
+                    onChange={(e) => setMessengerPageId(e.target.value)}
+                    placeholder="378400148906020"
+                    className={adminInputClass}
+                  />
+                </FormField>
+              ) : null}
+            </TabsContent>
+
+            <TabsContent value="email" className="mt-0 space-y-5">
+              <p className="text-sm text-muted-foreground">
+                SMTP for customer confirmations and owner alerts. For Gmail, use
+                an App Password (not your normal login password).
+              </p>
+
+              <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium">Enable order emails</p>
+                  <p className="text-xs text-muted-foreground">
+                    Customer confirmation + owner new-order alerts.
+                  </p>
+                </div>
+                <Switch
+                  checked={smtpEnabled}
+                  onCheckedChange={setSmtpEnabled}
+                />
+              </div>
+
+              <FormField label="Provider">
+                <div className="flex flex-wrap gap-2">
+                  {(
+                    [
+                      { id: "gmail", label: "Gmail" },
+                      { id: "smtp", label: "Custom SMTP" },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setSmtpProvider(opt.id)}
+                      className={cn(
+                        "h-9 rounded-full border px-4 text-sm transition",
+                        smtpProvider === opt.id
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-card text-foreground hover:border-primary/40",
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </FormField>
+
+              {smtpProvider === "smtp" ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField label="SMTP host" className="sm:col-span-2">
+                    <Input
+                      value={smtpHost}
+                      onChange={(e) => setSmtpHost(e.target.value)}
+                      placeholder="smtp.example.com"
+                      className={adminInputClass}
+                    />
+                  </FormField>
+                  <FormField label="Port">
+                    <Input
+                      type="number"
+                      value={smtpPort}
+                      onChange={(e) => setSmtpPort(e.target.value)}
+                      placeholder="587"
+                      className={adminInputClass}
+                    />
+                  </FormField>
+                  <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
+                    <div>
+                      <p className="text-sm font-medium">Use TLS (port 465)</p>
+                      <p className="text-xs text-muted-foreground">
+                        Off for STARTTLS on 587.
+                      </p>
                     </div>
+                    <Switch
+                      checked={smtpSecure}
+                      onCheckedChange={setSmtpSecure}
+                    />
                   </div>
                 </div>
-              );
-            })}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Active default:{" "}
-            <span className="text-foreground">
-              {defaultCurrency} ·{" "}
-              {SUPPORTED_CURRENCIES.find((c) => c.code === defaultCurrency)
-                ?.symbol ?? ""}
-            </span>
-          </p>
-        </TabsContent>
+              ) : null}
 
-        <TabsContent value="delivery" className="space-y-5">
-          <p className="text-sm text-muted-foreground">
-            Cash on delivery charge per order. Customers pick Inside Dhaka or
-            Outside Dhaka at checkout — the matching rate is added to the total.
-          </p>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <FormField
-              label="Inside Dhaka"
-              hint="Default 70 — applies to Dhaka city orders."
-            >
-              <Input
-                type="number"
-                min={0}
-                step={1}
-                value={insideDhakaCharge}
-                onChange={(e) => setInsideDhakaCharge(e.target.value)}
-                className={adminInputClass}
-              />
-            </FormField>
-            <FormField
-              label="Outside Dhaka"
-              hint="Default 120 — applies outside Dhaka."
-            >
-              <Input
-                type="number"
-                min={0}
-                step={1}
-                value={outsideDhakaCharge}
-                onChange={(e) => setOutsideDhakaCharge(e.target.value)}
-                className={adminInputClass}
-              />
-            </FormField>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Amounts use your store currency (
-            <span className="text-foreground">{defaultCurrency}</span>
-            ).
-          </p>
-        </TabsContent>
-
-        <TabsContent value="chat" className="space-y-5">
-          <p className="text-sm text-muted-foreground">
-            Pick one chat option. Meta retired the on-site Messenger Chat Plugin
-            — both options open their app or messenger.com in a new tab.
-          </p>
-
-          <div className="space-y-2">
-            {(
-              [
-                {
-                  value: "none" as const,
-                  label: "Off",
-                  hint: "Hide chat button",
-                },
-                {
-                  value: "messenger" as const,
-                  label: "Messenger",
-                  hint: "Opens m.me — Messenger app or messenger.com",
-                },
-                {
-                  value: "whatsapp" as const,
-                  label: "WhatsApp",
-                  hint: "Opens WhatsApp — cannot stay on the website",
-                },
-              ] as const
-            ).map((option) => {
-              const selected = chatProvider === option.value;
-              return (
-                <label
-                  key={option.value}
-                  className={cn(
-                    "flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition",
-                    selected
-                      ? "border-primary bg-primary/10"
-                      : "border-border bg-card/60 hover:border-primary/40",
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="chat-provider"
-                    checked={selected}
-                    onChange={() => setChatProvider(option.value)}
-                    className="accent-primary"
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField label="Username / email">
+                  <Input
+                    type="email"
+                    value={smtpUsername}
+                    onChange={(e) => setSmtpUsername(e.target.value)}
+                    placeholder="you@gmail.com"
+                    className={adminInputClass}
+                    autoComplete="off"
                   />
-                  <span className="min-w-0">
-                    <span className="block text-sm font-medium text-foreground">
-                      {option.label}
-                    </span>
-                    <span className="block text-xs text-muted-foreground">
-                      {option.hint}
-                    </span>
-                  </span>
-                </label>
-              );
-            })}
-          </div>
+                </FormField>
+                <FormField
+                  label="App password"
+                  hint={
+                    smtpHasPassword && !smtpPassword
+                      ? "Saved — leave blank to keep current password."
+                      : smtpProvider === "gmail"
+                        ? "Google Account → Security → App passwords"
+                        : undefined
+                  }
+                >
+                  <Input
+                    type="password"
+                    value={smtpPassword}
+                    onChange={(e) => setSmtpPassword(e.target.value)}
+                    placeholder={
+                      smtpHasPassword ? "••••••••••••" : "App password"
+                    }
+                    className={adminInputClass}
+                    autoComplete="new-password"
+                  />
+                </FormField>
+                <FormField label="From name">
+                  <Input
+                    value={smtpFromName}
+                    onChange={(e) => setSmtpFromName(e.target.value)}
+                    placeholder="VE Gear"
+                    className={adminInputClass}
+                  />
+                </FormField>
+                <FormField label="From email" hint="Usually same as username.">
+                  <Input
+                    type="email"
+                    value={smtpFromEmail}
+                    onChange={(e) => setSmtpFromEmail(e.target.value)}
+                    placeholder="you@gmail.com"
+                    className={adminInputClass}
+                  />
+                </FormField>
+              </div>
 
-          {chatProvider === "whatsapp" ? (
-            <FormField
-              label="WhatsApp number"
-              hint="Country code + number, e.g. 8801712345678. Clicking opens WhatsApp."
-            >
-              <Input
-                value={whatsappNumber}
-                onChange={(e) => setWhatsappNumber(e.target.value)}
-                placeholder="8801712345678"
-                inputMode="tel"
-                className={adminInputClass}
-              />
-            </FormField>
-          ) : null}
-
-          {chatProvider === "messenger" ? (
-            <FormField
-              label="Facebook Page ID or username"
-              hint="Use your Page ID (e.g. 378400148906020) or username. You can also paste an m.me link."
-            >
-              <Input
-                value={messengerPageId}
-                onChange={(e) => setMessengerPageId(e.target.value)}
-                placeholder="378400148906020"
-                className={adminInputClass}
-              />
-            </FormField>
-          ) : null}
-        </TabsContent>
-
-        <TabsContent value="social" className="space-y-5">
-          <FormField label="Instagram">
-            <Input
-              value={instagram}
-              onChange={(e) => setInstagram(e.target.value)}
-              placeholder="https://instagram.com/…"
-              className={adminInputClass}
-            />
-          </FormField>
-          <FormField label="Twitter / X">
-            <Input
-              value={twitter}
-              onChange={(e) => setTwitter(e.target.value)}
-              placeholder="https://x.com/…"
-              className={adminInputClass}
-            />
-          </FormField>
-          <FormField label="Facebook">
-            <Input
-              value={facebook}
-              onChange={(e) => setFacebook(e.target.value)}
-              placeholder="https://facebook.com/…"
-              className={adminInputClass}
-            />
-          </FormField>
+              <FormField
+                label="Notify emails"
+                hint="Comma-separated. These get CC’d on new order alerts."
+              >
+                <Textarea
+                  value={smtpNotifyEmails}
+                  onChange={(e) => setSmtpNotifyEmails(e.target.value)}
+                  placeholder="owner@example.com, team@example.com"
+                  className={adminTextareaClass}
+                  rows={3}
+                />
+              </FormField>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-5">

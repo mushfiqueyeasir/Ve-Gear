@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useCheckoutStore } from "@/store/checkoutStore";
 import { useCartStore } from "@/store/cartStore";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Input from "@/components/Common/Input";
 import Select from "@/components/Common/Select";
@@ -20,10 +20,13 @@ function isValidEmail(value: string) {
 
 export default function CheckoutForm({
   deliveryCharges,
+  bkashEnabled = false,
 }: {
   deliveryCharges: DeliveryCharges;
+  bkashEnabled?: boolean;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     formData,
     appliedPromo,
@@ -44,6 +47,18 @@ export default function CheckoutForm({
     loadSavedDeliveryInfo();
   }, [loadSavedDeliveryInfo]);
 
+  useEffect(() => {
+    if (searchParams.get("payment") === "failed") {
+      toast.error("bKash payment was not completed. Please try again.");
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!bkashEnabled && formData.paymentMethod === "bkash") {
+      updateFormData({ paymentMethod: "cod" });
+    }
+  }, [bkashEnabled, formData.paymentMethod, updateFormData]);
+
   const handleCompleteOrder = async () => {
     if (!formData.emailOrPhone || !isValidEmail(formData.emailOrPhone)) {
       toast.error("Please enter a valid email address");
@@ -60,6 +75,11 @@ export default function CheckoutForm({
 
     if (items.length === 0) {
       toast.error("Your cart is empty");
+      return;
+    }
+
+    if (formData.paymentMethod === "bkash" && !bkashEnabled) {
+      toast.error("bKash is not available. Please choose Cash on Delivery.");
       return;
     }
 
@@ -96,6 +116,7 @@ export default function CheckoutForm({
           unitPrice: item.currentPrice,
         })),
         promoCode: appliedPromo?.code ?? (formData.discountCode.trim() || null),
+        paymentMethod: formData.paymentMethod,
         totals: {
           subtotal,
           shipping,
@@ -110,6 +131,12 @@ export default function CheckoutForm({
 
       if (formData.saveInfo) {
         saveDeliveryInfo();
+      }
+
+      if (result.redirectUrl) {
+        toast.message("Redirecting to bKash…");
+        window.location.assign(result.redirectUrl);
+        return;
       }
 
       // Track Purchase event for Meta catalog ads
@@ -210,7 +237,7 @@ export default function CheckoutForm({
       <div className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Delivery area</h2>
         <p className="text-sm text-muted-foreground">
-          Cash on delivery — choose where we should deliver.
+          Choose where we should deliver.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           {(
@@ -256,17 +283,40 @@ export default function CheckoutForm({
 
       <div className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Payment</h2>
-        <button
-          type="button"
-          className={`w-full rounded-xl border px-4 py-3 text-sm transition-colors ${
-            formData.paymentMethod === "cod"
-              ? "border-primary bg-primary/10 text-foreground"
-              : "border-border bg-card hover:border-primary/50"
-          }`}
-          onClick={() => updateFormData({ paymentMethod: "cod" })}
-        >
-          Cash on Delivery (COD)
-        </button>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            className={cn(
+              "rounded-xl border px-4 py-3 text-left text-sm transition-colors",
+              formData.paymentMethod === "cod"
+                ? "border-primary bg-primary/10 text-foreground"
+                : "border-border bg-card hover:border-primary/50",
+            )}
+            onClick={() => updateFormData({ paymentMethod: "cod" })}
+          >
+            <span className="block font-medium">Cash on Delivery</span>
+            <span className="mt-1 block text-muted-foreground">
+              Pay when your order arrives
+            </span>
+          </button>
+          {bkashEnabled ? (
+            <button
+              type="button"
+              className={cn(
+                "rounded-xl border px-4 py-3 text-left text-sm transition-colors",
+                formData.paymentMethod === "bkash"
+                  ? "border-primary bg-primary/10 text-foreground"
+                  : "border-border bg-card hover:border-primary/50",
+              )}
+              onClick={() => updateFormData({ paymentMethod: "bkash" })}
+            >
+              <span className="block font-medium">bKash</span>
+              <span className="mt-1 block text-muted-foreground">
+                Pay securely with bKash wallet
+              </span>
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <button
@@ -275,7 +325,13 @@ export default function CheckoutForm({
         disabled={isSubmitting}
         className="w-full rounded-full bg-primary px-4 py-3.5 text-sm font-semibold uppercase tracking-wider text-primary-foreground transition-colors duration-200 hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        Complete order
+        {isSubmitting
+          ? formData.paymentMethod === "bkash"
+            ? "Starting bKash…"
+            : "Placing order…"
+          : formData.paymentMethod === "bkash"
+            ? "Pay with bKash"
+            : "Complete order"}
       </button>
     </div>
   );

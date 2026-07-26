@@ -16,6 +16,14 @@ import { getCurrencyMeta, normalizeCurrencySettings } from "@/lib/currency";
 import { normalizeDeliveryCharges, type DeliveryCharges } from "@/lib/delivery";
 import { normalizeChatWidgets, type ChatWidgets } from "@/lib/chatWidgets";
 import { normalizePalette, type ThemePalette } from "@/lib/theme/palette";
+import {
+  saveSmtpSettingsRow,
+  type SaveSmtpInput,
+} from "@/lib/email/smtpSettings";
+import {
+  saveBkashSettingsRow,
+  type SaveBkashInput,
+} from "@/lib/payments/bkashSettings";
 
 export interface SettingsInput {
   store_name: string;
@@ -183,5 +191,106 @@ export async function saveSettings(
     const path = SEO_PAGE_META[key].path;
     if (path !== "/") revalidatePath(path);
   }
+  return {};
+}
+
+export async function saveSmtpSettings(
+  input: SaveSmtpInput,
+): Promise<{ error?: string }> {
+  const s = await requireAdminSession();
+  if (!isAdmin(s.role)) {
+    return {
+      error: "You do not have permission to change notification settings.",
+    };
+  }
+
+  if (input.enabled) {
+    if (!input.username?.trim()) {
+      return {
+        error: "SMTP username / email is required when email is enabled.",
+      };
+    }
+    if (input.provider === "smtp" && !input.host?.trim()) {
+      return { error: "SMTP host is required for custom SMTP." };
+    }
+  }
+
+  const notifyEmails = input.notifyEmails.map((e) => e.trim()).filter(Boolean);
+  for (const email of notifyEmails) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return { error: `Invalid notify email: ${email}` };
+    }
+  }
+
+  const res = await saveSmtpSettingsRow({
+    ...input,
+    username: input.username?.trim() || null,
+    host: input.host?.trim() || null,
+    fromEmail: input.fromEmail?.trim() || null,
+    fromName: input.fromName.trim() || "VE Gear",
+    notifyEmails,
+    password: input.password?.trim() ? input.password : null,
+  });
+  if (res.error) return res;
+
+  await writeAuditLog({
+    actor: s,
+    action: "update",
+    entity: "settings",
+    summary: "Updated SMTP / order email notification settings",
+    metadata: {
+      enabled: input.enabled,
+      provider: input.provider,
+      username: input.username?.trim() || null,
+    },
+  });
+
+  revalidatePath("/admin/settings");
+  return {};
+}
+
+export async function saveBkashSettings(
+  input: SaveBkashInput,
+): Promise<{ error?: string }> {
+  const s = await requireAdminSession();
+  if (!isAdmin(s.role)) {
+    return {
+      error: "You do not have permission to change payment settings.",
+    };
+  }
+
+  if (input.enabled) {
+    if (!input.username?.trim()) {
+      return { error: "bKash username is required when bKash is enabled." };
+    }
+    if (!input.appKey?.trim()) {
+      return { error: "bKash App Key is required when bKash is enabled." };
+    }
+  }
+
+  const res = await saveBkashSettingsRow({
+    enabled: input.enabled,
+    sandbox: input.sandbox,
+    username: input.username?.trim() || null,
+    password: input.password?.trim() ? input.password : null,
+    appKey: input.appKey?.trim() || null,
+    appSecret: input.appSecret?.trim() ? input.appSecret : null,
+  });
+  if (res.error) return res;
+
+  await writeAuditLog({
+    actor: s,
+    action: "update",
+    entity: "settings",
+    summary: "Updated bKash payment settings",
+    metadata: {
+      enabled: input.enabled,
+      sandbox: input.sandbox,
+      username: input.username?.trim() || null,
+    },
+  });
+
+  revalidatePath("/admin/settings");
+  revalidatePath("/checkout");
   return {};
 }

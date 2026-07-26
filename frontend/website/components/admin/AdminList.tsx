@@ -31,15 +31,31 @@ import { cn } from "@/lib/utils";
 
 export type AdminListItem = { id: string };
 
-function Grip({ active }: { active: boolean }) {
-  if (!active) {
-    return (
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl text-muted-foreground/35">
-        <GripVertical className="size-4" />
-      </span>
-    );
-  }
-  return null;
+function SelectBox({
+  checked,
+  indeterminate,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  indeterminate?: boolean;
+  onChange: (next: boolean) => void;
+  label: string;
+}) {
+  return (
+    <label className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-xl text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground">
+      <input
+        type="checkbox"
+        checked={checked}
+        ref={(el) => {
+          if (el) el.indeterminate = Boolean(indeterminate && !checked);
+        }}
+        onChange={(e) => onChange(e.target.checked)}
+        aria-label={label}
+        className="size-4 accent-primary"
+      />
+    </label>
+  );
 }
 
 function RowContent<T extends AdminListItem>({
@@ -123,7 +139,7 @@ function SortableRow<T extends AdminListItem>({
         transition,
       }}
       className={cn(
-        "flex flex-col gap-3 rounded-2xl border border-border bg-card/80 px-3 py-3 sm:flex-row sm:items-center sm:px-4",
+        "flex flex-col gap-3 rounded-xl border border-border bg-card/80 px-3 py-3 sm:flex-row sm:items-center sm:px-4",
         isDragging &&
           "z-10 border-primary/50 bg-card shadow-lg shadow-black/40",
       )}
@@ -158,6 +174,8 @@ function StaticRow<T extends AdminListItem>({
   renderSubtitle,
   renderMeta,
   renderTrailing,
+  leading,
+  selected,
 }: {
   item: T;
   renderLeading?: (item: T) => ReactNode;
@@ -165,9 +183,16 @@ function StaticRow<T extends AdminListItem>({
   renderSubtitle?: (item: T) => ReactNode;
   renderMeta?: (item: T) => ReactNode;
   renderTrailing?: (item: T) => ReactNode;
+  leading: ReactNode;
+  selected?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card/80 px-3 py-3 sm:flex-row sm:items-center sm:px-4">
+    <div
+      className={cn(
+        "flex flex-col gap-3 rounded-xl border border-border bg-card/80 px-3 py-3 sm:flex-row sm:items-center sm:px-4",
+        selected && "border-primary/40 bg-primary/5",
+      )}
+    >
       <RowContent
         item={item}
         renderLeading={renderLeading}
@@ -175,7 +200,7 @@ function StaticRow<T extends AdminListItem>({
         renderSubtitle={renderSubtitle}
         renderMeta={renderMeta}
         renderTrailing={renderTrailing}
-        leading={<Grip active={false} />}
+        leading={leading}
       />
     </div>
   );
@@ -186,6 +211,10 @@ export function AdminList<T extends AdminListItem>({
   sortable = false,
   canReorder = false,
   onReorder,
+  selectable = false,
+  selectedIds,
+  onSelectionChange,
+  selectionActions,
   hint,
   emptyMessage = "Nothing here yet.",
   searchPlaceholder,
@@ -201,6 +230,11 @@ export function AdminList<T extends AdminListItem>({
   sortable?: boolean;
   canReorder?: boolean;
   onReorder?: (orderedIds: string[]) => Promise<{ error?: string } | void>;
+  selectable?: boolean;
+  selectedIds?: string[];
+  onSelectionChange?: (ids: string[]) => void;
+  /** Shown when one or more rows are selected (bulk actions). */
+  selectionActions?: ReactNode;
   hint?: string;
   emptyMessage?: string;
   searchPlaceholder?: string;
@@ -216,6 +250,8 @@ export function AdminList<T extends AdminListItem>({
   const [query, setQuery] = useState("");
   const [, startTransition] = useTransition();
   const enableDrag = Boolean(sortable && canReorder && onReorder);
+  const enableSelect = Boolean(selectable && onSelectionChange);
+  const selected = useMemo(() => new Set(selectedIds ?? []), [selectedIds]);
 
   useEffect(() => {
     setRows(items);
@@ -226,6 +262,33 @@ export function AdminList<T extends AdminListItem>({
     if (!q || !searchFilter) return rows;
     return rows.filter((item) => searchFilter(item, q));
   }, [rows, query, searchFilter]);
+
+  const allFilteredSelected =
+    enableSelect &&
+    filtered.length > 0 &&
+    filtered.every((item) => selected.has(item.id));
+  const someFilteredSelected =
+    enableSelect &&
+    filtered.some((item) => selected.has(item.id)) &&
+    !allFilteredSelected;
+
+  const toggleOne = (id: string, next: boolean) => {
+    if (!onSelectionChange) return;
+    const set = new Set(selectedIds ?? []);
+    if (next) set.add(id);
+    else set.delete(id);
+    onSelectionChange([...set]);
+  };
+
+  const toggleAllFiltered = (next: boolean) => {
+    if (!onSelectionChange) return;
+    const set = new Set(selectedIds ?? []);
+    for (const item of filtered) {
+      if (next) set.add(item.id);
+      else set.delete(item.id);
+    }
+    onSelectionChange([...set]);
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -272,7 +335,7 @@ export function AdminList<T extends AdminListItem>({
 
   const listBody =
     filtered.length === 0 ? (
-      <p className="rounded-2xl border border-border bg-card/80 px-4 py-10 text-center text-sm text-muted-foreground">
+      <p className="rounded-xl border border-border bg-card/80 px-4 py-10 text-center text-sm text-muted-foreground">
         {rows.length === 0 ? emptyMessage : "No matches for your search."}
       </p>
     ) : (
@@ -281,31 +344,62 @@ export function AdminList<T extends AdminListItem>({
           enableDrag ? (
             <SortableRow key={item.id} item={item} {...rowProps} />
           ) : (
-            <StaticRow key={item.id} item={item} {...rowProps} />
+            <StaticRow
+              key={item.id}
+              item={item}
+              {...rowProps}
+              selected={enableSelect && selected.has(item.id)}
+              leading={
+                enableSelect ? (
+                  <SelectBox
+                    checked={selected.has(item.id)}
+                    onChange={(next) => toggleOne(item.id, next)}
+                    label={`Select ${item.id}`}
+                  />
+                ) : (
+                  <span className="size-0 shrink-0" aria-hidden />
+                )
+              }
+            />
           ),
         )}
       </div>
     );
 
+  const selectedCount = selectedIds?.length ?? 0;
+
   return (
     <div className="space-y-3">
-      {(searchPlaceholder || toolbar || (enableDrag && hint)) && (
+      {(searchPlaceholder ||
+        toolbar ||
+        (enableDrag && hint) ||
+        enableSelect) && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 flex-1 space-y-1">
             {enableDrag && hint ? (
               <p className="text-sm text-muted-foreground">{hint}</p>
             ) : null}
-            {searchPlaceholder ? (
-              <div className="relative w-full max-w-sm">
-                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder={searchPlaceholder}
-                  className="h-11 w-full rounded-full border-border bg-card/60 pl-9"
+            <div className="flex items-center gap-2">
+              {enableSelect ? (
+                <SelectBox
+                  checked={allFilteredSelected}
+                  indeterminate={someFilteredSelected}
+                  onChange={toggleAllFiltered}
+                  label="Select all visible"
                 />
-              </div>
-            ) : null}
+              ) : null}
+              {searchPlaceholder ? (
+                <div className="relative w-full max-w-sm">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder={searchPlaceholder}
+                    className="h-11 w-full rounded-full border-border bg-card/60 pl-9"
+                  />
+                </div>
+              ) : null}
+            </div>
           </div>
           {toolbar ? (
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
@@ -314,6 +408,25 @@ export function AdminList<T extends AdminListItem>({
           ) : null}
         </div>
       )}
+
+      {enableSelect && selectedCount > 0 ? (
+        <div className="flex flex-col gap-2 rounded-xl border border-border bg-card/80 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">{selectedCount}</span>{" "}
+            selected
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            {selectionActions}
+            <button
+              type="button"
+              onClick={() => onSelectionChange?.([])}
+              className="h-9 rounded-full px-3 text-sm text-muted-foreground transition hover:text-foreground"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {enableDrag ? (
         <DndContext

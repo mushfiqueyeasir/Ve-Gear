@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .select(
-        "id, order_number, status, delivery, totals, payment_method, created_at",
+        "id, order_number, status, delivery, totals, payment_method, payment_status, bkash_trx_id, created_at",
       )
       .eq("order_number", orderNumber)
       .maybeSingle();
@@ -55,6 +55,8 @@ export async function POST(request: NextRequest) {
       | "delivery"
       | "totals"
       | "payment_method"
+      | "payment_status"
+      | "bkash_trx_id"
       | "created_at"
     >;
 
@@ -84,6 +86,8 @@ export async function POST(request: NextRequest) {
       status: o.status as OrderStatus,
       createdAt: o.created_at,
       paymentMethod: o.payment_method || "cod",
+      paymentStatus: o.payment_status || "unpaid",
+      bkashTrxId: o.bkash_trx_id ?? null,
       items: (
         (items as Pick<
           OrderItemRow,

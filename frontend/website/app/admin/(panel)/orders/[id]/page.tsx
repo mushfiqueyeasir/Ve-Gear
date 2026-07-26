@@ -20,6 +20,10 @@ import {
   ORDER_STATUS_STYLES,
 } from "@/lib/admin/format";
 import { cn } from "@/lib/utils";
+import {
+  paymentMethodLabel,
+  paymentStatusLabel,
+} from "@/lib/payments/paymentLabels";
 import type { OrderRow, OrderItemRow } from "@/type/db";
 import { DownloadInvoiceButton } from "@/components/admin/DownloadInvoiceButton";
 import { OrderNotes } from "./OrderNotes";
@@ -99,7 +103,10 @@ export default async function OrderDetailPage({
             </Badge>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Placed {formatDateTime(o.created_at)} · Payment: {o.payment_method}
+            Placed {formatDateTime(o.created_at)} ·{" "}
+            {paymentMethodLabel(o.payment_method)} ·{" "}
+            {paymentStatusLabel(o.payment_status)}
+            {o.bkash_trx_id ? ` · TrxID ${o.bkash_trx_id}` : ""}
           </p>
         </div>
         <DownloadInvoiceButton
@@ -107,7 +114,7 @@ export default async function OrderDetailPage({
             orderNumber: o.order_number,
             createdAt: o.created_at,
             status: o.status,
-            paymentMethod: o.payment_method || "COD",
+            paymentMethod: paymentMethodLabel(o.payment_method),
             storeName: settings.store_name,
             storeEmail: settings.contact_email,
             storePhone: settings.contact_phone,
@@ -242,6 +249,42 @@ export default async function OrderDetailPage({
               Update status
             </h2>
             <OrderStatusControl orderId={o.id} status={o.status} />
+          </div>
+
+          <div className={card}>
+            <h2 className="mb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              Payment
+            </h2>
+            <dl className="space-y-3 text-sm">
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">Method</dt>
+                <dd className="text-foreground">
+                  {paymentMethodLabel(o.payment_method)}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">Status</dt>
+                <dd className="text-foreground">
+                  {paymentStatusLabel(o.payment_status)}
+                </dd>
+              </div>
+              {o.bkash_payment_id ? (
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted-foreground">bKash payment ID</dt>
+                  <dd className="max-w-[60%] break-all text-right font-mono text-xs text-foreground">
+                    {o.bkash_payment_id}
+                  </dd>
+                </div>
+              ) : null}
+              {o.bkash_trx_id ? (
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted-foreground">bKash TrxID</dt>
+                  <dd className="font-mono text-xs text-foreground">
+                    {o.bkash_trx_id}
+                  </dd>
+                </div>
+              ) : null}
+            </dl>
           </div>
 
           {/* Delivery / shipping */}

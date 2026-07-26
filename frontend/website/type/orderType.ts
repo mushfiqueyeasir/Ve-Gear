@@ -33,12 +33,14 @@ export interface OrderFormData {
   /** Optional checkout promo code (validated server-side). */
   promoCode?: string | null;
   notes?: string;
+  paymentMethod?: "cod" | "bkash";
 }
 
 export interface OrderFormResponse {
   success: boolean;
   id?: string;
   orderNumber?: string;
+  redirectUrl?: string;
   message?: string;
   error?: string;
 }
@@ -62,6 +64,8 @@ export interface TrackOrderResult {
     | "cancelled";
   createdAt: string;
   paymentMethod: string;
+  paymentStatus?: string;
+  bkashTrxId?: string | null;
   items: TrackOrderItem[];
   totals: {
     subtotal: number;

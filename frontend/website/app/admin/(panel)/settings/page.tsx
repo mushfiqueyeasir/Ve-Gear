@@ -2,6 +2,8 @@ import { requireRole } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { readCmsBlob } from "@/lib/cms/jsonStore";
+import { getSmtpSettingsForAdmin } from "@/lib/email/smtpSettings";
+import { getBkashSettingsForAdmin } from "@/lib/payments/bkashSettings";
 import type { SiteSettingsRow } from "@/type/db";
 import { SettingsForm } from "./SettingsForm";
 
@@ -35,9 +37,11 @@ export default async function SettingsPage() {
   await requireRole(["admin"]);
 
   const supabase = await createSupabaseServerClient();
-  const [{ data }, cms] = await Promise.all([
+  const [{ data }, cms, smtp, bkash] = await Promise.all([
     supabase.from("site_settings").select("*").eq("id", 1).maybeSingle(),
     readCmsBlob(),
+    getSmtpSettingsForAdmin(),
+    getBkashSettingsForAdmin(),
   ]);
 
   const row = (data as SiteSettingsRow | null) ?? DEFAULTS;
@@ -50,7 +54,7 @@ export default async function SettingsPage() {
     <div>
       <PageHeader
         title="Settings"
-        description="Brand, colors, contact, currency, delivery, chat, analytics, and SEO."
+        description="Store, commerce, notifications, analytics, and SEO."
       />
       <SettingsForm
         settings={settings}
@@ -60,6 +64,8 @@ export default async function SettingsPage() {
         deliveryCharges={cms.deliveryCharges}
         chatWidgets={cms.chatWidgets}
         palette={cms.palette}
+        smtp={smtp}
+        bkash={bkash}
       />
     </div>
   );

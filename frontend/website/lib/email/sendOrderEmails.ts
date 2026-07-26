@@ -1,7 +1,7 @@
 import "server-only";
 
 import nodemailer from "nodemailer";
-import { getGmailCredentials, getOrderNotifyEmails } from "@/lib/config.server";
+import { getSmtpSettings } from "@/lib/email/smtpSettings";
 import {
   buildCustomerOrderEmailHtml,
   buildOwnerOrderEmailHtml,
@@ -16,32 +16,75 @@ function normalizeEmail(value: string) {
   return value.trim().toLowerCase();
 }
 
-export async function sendOrderEmails(payload: OrderEmailPayload) {
-  const { user, appPassword } = getGmailCredentials();
-  const ownerEmails = getOrderNotifyEmails().filter(isValidEmail);
+type MailSetup =
+  | { error: string }
+  | {
+      transporter: nodemailer.Transporter;
+      user: string;
+      fromName: string;
+      fromEmail: string;
+      notifyEmails: string[];
+    };
 
-  if (!user || !appPassword) {
-    return { sent: false, reason: "Gmail credentials missing in config.json" };
+async function createMailTransport(): Promise<MailSetup> {
+  const smtp = await getSmtpSettings();
+  const user = (smtp.username ?? smtp.fromEmail ?? "").trim();
+  const pass = (smtp.password ?? "").replace(/\s+/g, "");
+
+  if (!smtp.enabled) {
+    return {
+      error:
+        "Order email notifications are disabled in Settings → Notifications.",
+    };
+  }
+  if (!user || !pass) {
+    return {
+      error:
+        "SMTP credentials missing. Configure them in Settings → Notifications (or config.json fallback).",
+    };
   }
 
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user,
-      pass: appPassword,
-    },
-  });
+  const transporter =
+    smtp.provider === "smtp" && smtp.host
+      ? nodemailer.createTransport({
+          host: smtp.host,
+          port: smtp.port,
+          secure: smtp.secure,
+          auth: { user, pass },
+        })
+      : nodemailer.createTransport({
+          service: "gmail",
+          auth: { user, pass },
+        });
+
+  return {
+    transporter,
+    user,
+    fromName: smtp.fromName || "VE Gear",
+    fromEmail: (smtp.fromEmail || user).trim(),
+    notifyEmails: smtp.notifyEmails.filter(isValidEmail),
+  };
+}
+
+export async function sendOrderEmails(payload: OrderEmailPayload) {
+  const setup = await createMailTransport();
+  if ("error" in setup) {
+    return { sent: false, reason: setup.error };
+  }
+
+  const { transporter, user, fromName, fromEmail, notifyEmails } = setup;
 
   const results: { to: string; role: "customer" | "owner"; ok: boolean }[] = [];
-
   const customerEmail = payload.customerEmail.trim();
   const customerNorm = normalizeEmail(customerEmail);
+  const fromAddress = `"${fromName.replace(/"/g, "")}" <${fromEmail}>`;
+  const ownerFrom = `"${fromName.replace(/"/g, "")} Orders" <${fromEmail}>`;
 
-  // 1) Customer confirmation — To customer only. Never CC store notify emails.
+  // 1) Customer confirmation — To customer only.
   if (isValidEmail(customerEmail)) {
     try {
       await transporter.sendMail({
-        from: `"VE Gear" <${user}>`,
+        from: fromAddress,
         to: customerEmail,
         subject: `Order received · ${payload.orderNumber}`,
         html: buildCustomerOrderEmailHtml(payload),
@@ -52,35 +95,45 @@ export async function sendOrderEmails(payload: OrderEmailPayload) {
     }
   }
 
-  // 2) Single owner alert — To store Gmail, CC notify list (not the customer).
-  const ccList = ownerEmails.filter(
+  // 2) Owner alert — To SMTP user, CC notify list (not the customer).
+  const ccList = notifyEmails.filter(
     (email) =>
       normalizeEmail(email) !== normalizeEmail(user) &&
+      normalizeEmail(email) !== normalizeEmail(fromEmail) &&
       normalizeEmail(email) !== customerNorm,
   );
 
-  const shouldNotifyOwners =
-    isValidEmail(user) || ccList.length > 0 || ownerEmails.length > 0;
+  const ownerTo = isValidEmail(fromEmail)
+    ? fromEmail
+    : isValidEmail(user)
+      ? user
+      : ccList[0];
 
-  if (shouldNotifyOwners) {
+  if (ownerTo) {
     try {
       await transporter.sendMail({
-        from: `"VE Gear Orders" <${user}>`,
-        to: user,
-        ...(ccList.length > 0 ? { cc: ccList.join(", ") } : {}),
+        from: ownerFrom,
+        to: ownerTo,
+        ...(ccList.filter((e) => normalizeEmail(e) !== normalizeEmail(ownerTo))
+          .length
+          ? {
+              cc: ccList
+                .filter((e) => normalizeEmail(e) !== normalizeEmail(ownerTo))
+                .join(", "),
+            }
+          : {}),
         replyTo: isValidEmail(customerEmail) ? customerEmail : undefined,
         subject: `New order · ${payload.orderNumber} · ${payload.customerName}`,
         html: buildOwnerOrderEmailHtml(payload),
       });
-      results.push({ to: user, role: "owner", ok: true });
+      results.push({ to: ownerTo, role: "owner", ok: true });
       for (const cc of ccList) {
-        results.push({ to: cc, role: "owner", ok: true });
+        if (normalizeEmail(cc) !== normalizeEmail(ownerTo)) {
+          results.push({ to: cc, role: "owner", ok: true });
+        }
       }
     } catch {
-      results.push({ to: user, role: "owner", ok: false });
-      for (const cc of ccList) {
-        results.push({ to: cc, role: "owner", ok: false });
-      }
+      results.push({ to: ownerTo, role: "owner", ok: false });
     }
   }
 
