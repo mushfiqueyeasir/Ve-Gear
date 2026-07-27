@@ -10,12 +10,13 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { navItemsForRole, NAV_GROUPS } from "@/lib/admin/nav";
+import { navItemsForRole, NAV_GROUPS, type NavItem } from "@/lib/admin/nav";
 import { Icon } from "./Icon";
 import { AdminProvider, type AdminContextValue } from "./AdminContext";
 import {
@@ -35,8 +36,34 @@ const ROLE_LABEL: Record<string, string> = {
   viewer: "Viewer",
 };
 
+const NAV_GROUPS_STORAGE_KEY = "ve-admin-nav-groups";
+
 /** White mark → black on light palettes (Daylight) via html[data-theme]. */
 const logoToneClass = "transition-[filter] [[data-theme=light]_&]:brightness-0";
+
+function defaultOpenGroups(): Record<NavItem["group"], boolean> {
+  return {
+    Overview: true,
+    Catalog: true,
+    Sales: true,
+    Content: true,
+    Store: true,
+  };
+}
+
+function readOpenGroups(): Record<NavItem["group"], boolean> {
+  const defaults = defaultOpenGroups();
+  try {
+    const raw = localStorage.getItem(NAV_GROUPS_STORAGE_KEY);
+    if (!raw) return defaults;
+    const parsed = JSON.parse(raw) as Partial<
+      Record<NavItem["group"], boolean>
+    >;
+    return { ...defaults, ...parsed };
+  } catch {
+    return defaults;
+  }
+}
 
 export default function AdminShell({
   session,
@@ -49,14 +76,25 @@ export default function AdminShell({
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openGroups, setOpenGroups] =
+    useState<Record<NavItem["group"], boolean>>(defaultOpenGroups);
+  const [navReady, setNavReady] = useState(false);
 
   useEffect(() => {
     setCollapsed(localStorage.getItem("ve-admin-collapsed") === "1");
+    setOpenGroups(readOpenGroups());
+    setNavReady(true);
   }, []);
 
   useEffect(() => {
+    if (!navReady) return;
     localStorage.setItem("ve-admin-collapsed", collapsed ? "1" : "0");
-  }, [collapsed]);
+  }, [collapsed, navReady]);
+
+  useEffect(() => {
+    if (!navReady) return;
+    localStorage.setItem(NAV_GROUPS_STORAGE_KEY, JSON.stringify(openGroups));
+  }, [openGroups, navReady]);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -75,6 +113,17 @@ export default function AdminShell({
     items
       .filter((i) => pathname === i.href || pathname.startsWith(i.href + "/"))
       .sort((a, b) => b.href.length - a.href.length)[0] ?? null;
+
+  useEffect(() => {
+    if (!activeItem) return;
+    setOpenGroups((prev) =>
+      prev[activeItem.group] ? prev : { ...prev, [activeItem.group]: true },
+    );
+  }, [activeItem]);
+
+  const toggleGroup = (group: NavItem["group"]) => {
+    setOpenGroups((prev) => ({ ...prev, [group]: !prev[group] }));
+  };
 
   const signOut = async () => {
     await logAdminAuthEvent({
@@ -96,35 +145,51 @@ export default function AdminShell({
         {NAV_GROUPS.map((group) => {
           const groupItems = items.filter((i) => i.group === group);
           if (groupItems.length === 0) return null;
+          const isOpen = compact || openGroups[group];
           return (
             <div key={group}>
               {!compact && (
-                <p className="px-2.5 pb-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-                  {group}
-                </p>
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(group)}
+                  aria-expanded={isOpen}
+                  className="mb-1 flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-left transition hover:bg-foreground/5"
+                >
+                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                    {group}
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "size-3.5 text-muted-foreground transition-transform",
+                      isOpen ? "rotate-0" : "-rotate-90",
+                    )}
+                  />
+                </button>
               )}
-              <div className="space-y-0.5">
-                {groupItems.map((item) => {
-                  const active = activeItem?.href === item.href;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      title={compact ? item.label : undefined}
-                      className={cn(
-                        "flex min-h-11 items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm font-medium transition-colors",
-                        active
-                          ? "bg-primary/15 text-primary"
-                          : "text-sidebar-foreground/70 hover:bg-foreground/5 hover:text-foreground",
-                        compact && "justify-center px-2",
-                      )}
-                    >
-                      <Icon name={item.icon} className="size-4 shrink-0" />
-                      {!compact && <span>{item.label}</span>}
-                    </Link>
-                  );
-                })}
-              </div>
+              {isOpen ? (
+                <div className="space-y-0.5">
+                  {groupItems.map((item) => {
+                    const active = activeItem?.href === item.href;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        title={compact ? item.label : undefined}
+                        className={cn(
+                          "flex min-h-11 items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm font-medium transition-colors",
+                          active
+                            ? "bg-primary/15 text-primary"
+                            : "text-sidebar-foreground/70 hover:bg-foreground/5 hover:text-foreground",
+                          compact && "justify-center px-2",
+                        )}
+                      >
+                        <Icon name={item.icon} className="size-4 shrink-0" />
+                        {!compact && <span>{item.label}</span>}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : null}
             </div>
           );
         })}

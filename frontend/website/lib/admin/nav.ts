@@ -47,6 +47,13 @@ export const NAV_ITEMS: NavItem[] = [
     group: "Sales",
   },
   {
+    label: "Customers",
+    href: "/admin/customers",
+    icon: "Users",
+    roles: ["admin", "editor", "viewer"],
+    group: "Sales",
+  },
+  {
     label: "Reports",
     href: "/admin/reports",
     icon: "FileBarChart",

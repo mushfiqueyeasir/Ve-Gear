@@ -1,4 +1,4 @@
-import { requireAdminSession } from "@/lib/admin/auth";
+import { requireAdminSession, canWrite } from "@/lib/admin/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSiteSettings } from "@/utility/getSettings";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -8,7 +8,7 @@ import type { CustomerRow } from "@/type/db";
 export const dynamic = "force-dynamic";
 
 export default async function CustomersPage() {
-  await requireAdminSession();
+  const session = await requireAdminSession();
   const supabase = await createSupabaseServerClient();
   const [{ data: customers }, settings] = await Promise.all([
     supabase
@@ -26,7 +26,11 @@ export default async function CustomersPage() {
         title="Customers"
         description={`${rows.length} customer${rows.length === 1 ? "" : "s"}`}
       />
-      <CustomersTable data={rows} symbol={symbol} />
+      <CustomersTable
+        data={rows}
+        symbol={symbol}
+        canWrite={canWrite(session.role)}
+      />
     </div>
   );
 }
