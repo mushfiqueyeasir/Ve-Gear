@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { readCmsBlob } from "@/lib/cms/jsonStore";
 import { getSmtpSettingsForAdmin } from "@/lib/email/smtpSettings";
 import { getBkashSettingsForAdmin } from "@/lib/payments/bkashSettings";
+import { getStorageUsage } from "@/lib/admin/storageUsage";
 import type { SiteSettingsRow } from "@/type/db";
 import { SettingsForm } from "./SettingsForm";
 
@@ -37,11 +38,12 @@ export default async function SettingsPage() {
   await requireRole(["admin"]);
 
   const supabase = await createSupabaseServerClient();
-  const [{ data }, cms, smtp, bkash] = await Promise.all([
+  const [{ data }, cms, smtp, bkash, storageUsage] = await Promise.all([
     supabase.from("site_settings").select("*").eq("id", 1).maybeSingle(),
     readCmsBlob(),
     getSmtpSettingsForAdmin(),
     getBkashSettingsForAdmin(),
+    getStorageUsage(),
   ]);
 
   const row = (data as SiteSettingsRow | null) ?? DEFAULTS;
@@ -66,6 +68,7 @@ export default async function SettingsPage() {
         palette={cms.palette}
         smtp={smtp}
         bkash={bkash}
+        storageUsage={storageUsage}
       />
     </div>
   );

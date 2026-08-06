@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Save } from "lucide-react";
+import { HardDrive, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -58,6 +58,7 @@ import type {
   SmtpSettingsPublic,
 } from "@/lib/email/smtpSettings";
 import type { BkashSettingsPublic } from "@/lib/payments/bkashSettings";
+import type { StorageUsage } from "@/lib/admin/storageUsage";
 import {
   saveSettings,
   saveSmtpSettings,
@@ -70,6 +71,21 @@ function orNull(v: string): string | null {
   return t === "" ? null : t;
 }
 
+function formatBytes(bytes: number): string {
+  if (bytes < 1_000) return `${bytes} B`;
+
+  const units = ["KB", "MB", "GB", "TB"];
+  let value = bytes / 1_000;
+  let unit = units[0];
+  for (let index = 1; value >= 1_000 && index < units.length; index += 1) {
+    value /= 1_000;
+    unit = units[index];
+  }
+
+  const digits = value >= 100 ? 0 : value >= 10 ? 1 : 2;
+  return `${value.toFixed(digits)} ${unit}`;
+}
+
 export function SettingsForm({
   settings,
   seo: initialSeo,
@@ -80,6 +96,7 @@ export function SettingsForm({
   palette: initialPalette,
   smtp: initialSmtp,
   bkash: initialBkash,
+  storageUsage,
 }: {
   settings: SiteSettingsRow;
   seo?: CmsSeo | null;
@@ -90,9 +107,11 @@ export function SettingsForm({
   palette?: ThemePalette | null;
   smtp: SmtpSettingsPublic;
   bkash: BkashSettingsPublic;
+  storageUsage: StorageUsage;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [mainTab, setMainTab] = useState("store");
 
   const [storeName, setStoreName] = useState(settings.store_name ?? "");
   const [logo, setLogo] = useState<UploadedImage[]>(
@@ -366,10 +385,25 @@ export function SettingsForm({
   const subTabListClass =
     "mb-5 flex h-auto w-fit flex-wrap justify-start gap-1 rounded-lg border border-border bg-background/60 p-1";
   const subTabTriggerClass = "rounded-md px-3 py-1.5 text-xs sm:text-sm";
+  const storageRemaining = Math.max(
+    0,
+    storageUsage.quotaBytes - storageUsage.usedBytes,
+  );
+  const storagePercent =
+    storageUsage.quotaBytes > 0
+      ? (storageUsage.usedBytes / storageUsage.quotaBytes) * 100
+      : 0;
+  const storageBarPercent = Math.min(100, Math.max(0, storagePercent));
+  const storageBarColor =
+    storagePercent >= 90
+      ? "bg-destructive"
+      : storagePercent >= 75
+        ? "bg-amber-500"
+        : "bg-primary";
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      <Tabs defaultValue="store" className="w-full">
+      <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
         <TabsList className={mainTabListClass}>
           <TabsTrigger value="store" className="rounded-lg px-3 sm:px-4">
             Store
@@ -388,6 +422,9 @@ export function SettingsForm({
           </TabsTrigger>
           <TabsTrigger value="seo" className="rounded-lg px-3 sm:px-4">
             SEO
+          </TabsTrigger>
+          <TabsTrigger value="storage" className="rounded-lg px-3 sm:px-4">
+            Storage
           </TabsTrigger>
         </TabsList>
 
@@ -1231,22 +1268,122 @@ export function SettingsForm({
             />
           </FormField>
         </TabsContent>
+
+        <TabsContent value="storage" className="mt-0">
+          <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+            <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-5 sm:px-6">
+              <div className="flex min-w-0 items-start gap-3">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <HardDrive className="size-5" />
+                </div>
+                <div>
+                  <h2 className="font-display text-lg font-semibold text-foreground">
+                    File storage
+                  </h2>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    Product, category, banner, review, and branding images.
+                  </p>
+                </div>
+              </div>
+              <span className="shrink-0 rounded-full border border-border bg-background px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                Free plan
+              </span>
+            </div>
+
+            {storageUsage.available ? (
+              <div className="space-y-6 px-5 py-6 sm:px-6">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                      Used
+                    </p>
+                    <p className="mt-1 font-display text-2xl font-semibold tabular-nums text-foreground">
+                      {formatBytes(storageUsage.usedBytes)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                      Remaining
+                    </p>
+                    <p className="mt-1 font-display text-2xl font-semibold tabular-nums text-foreground">
+                      {formatBytes(storageRemaining)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                      Plan limit
+                    </p>
+                    <p className="mt-1 font-display text-2xl font-semibold tabular-nums text-foreground">
+                      {formatBytes(storageUsage.quotaBytes)}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mb-2 flex items-center justify-between gap-3 text-sm">
+                    <span className="text-muted-foreground">
+                      {storageUsage.objectCount.toLocaleString()} stored files
+                    </span>
+                    <span className="font-medium tabular-nums text-foreground">
+                      {storagePercent < 0.1 && storagePercent > 0
+                        ? "<0.1"
+                        : storagePercent.toFixed(1)}
+                      % used
+                    </span>
+                  </div>
+                  <div
+                    className="h-3 overflow-hidden rounded-full bg-muted"
+                    role="progressbar"
+                    aria-label="File storage used"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={Math.round(storageBarPercent)}
+                  >
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-[width]",
+                        storageBarColor,
+                      )}
+                      style={{ width: `${storageBarPercent}%` }}
+                    />
+                  </div>
+                  <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                    Usage includes every file in this Supabase project and
+                    refreshes when this page loads.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="px-5 py-8 sm:px-6">
+                <p className="text-sm font-medium text-foreground">
+                  Storage usage is unavailable
+                </p>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                  Check the Supabase service configuration, then reload this
+                  page.
+                </p>
+              </div>
+            )}
+          </section>
+        </TabsContent>
       </Tabs>
 
-      <FormActions>
-        <Button
-          onClick={onSave}
-          disabled={pending}
-          className="rounded-full px-6"
-        >
-          {pending ? (
-            <Loader2 className="mr-2 size-4 animate-spin" />
-          ) : (
-            <Save className="mr-2 size-4" />
-          )}
-          Save changes
-        </Button>
-      </FormActions>
+      {mainTab !== "storage" ? (
+        <FormActions>
+          <Button
+            onClick={onSave}
+            disabled={pending}
+            className="rounded-full px-6"
+          >
+            {pending ? (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 size-4" />
+            )}
+            Save changes
+          </Button>
+        </FormActions>
+      ) : null}
     </div>
   );
 }

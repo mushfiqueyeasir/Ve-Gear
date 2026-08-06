@@ -1,0 +1,33 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "model": "azure-gpt/azure-gpt-5.6-sol",
+
+  "provider": {
+    "azure-gpt": {
+      "npm": "@ai-sdk/openai",
+      "name": "Azure OpenAI GPT-5.6",
+
+      "options": {
+        "baseURL": "https://agentic-coding-dilip-resource.openai.azure.com/openai/v1",
+        "apiKey": "{env:AZURE_API_KEY}"
+      },
+
+      "models": {
+        "azure-gpt-5.6-sol": {
+          "name": "Azure GPT 5.6 Sol",
+
+          "limit": {
+            "context": 400000,
+            "output": 65536
+          },
+
+          "options": {
+            "forceReasoning": true,
+            "reasoningEffort": "high"
+          }
+        }
+      }
+    }
+  }
+}

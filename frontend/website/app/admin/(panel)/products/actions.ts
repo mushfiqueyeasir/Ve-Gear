@@ -52,6 +52,9 @@ export async function saveProduct(
 
   if (!input.title?.trim()) return { error: "Title is required." };
   if (!input.slug?.trim()) return { error: "Slug is required." };
+  if (input.images.length > 5) {
+    return { error: "A product can have a maximum of 5 images." };
+  }
 
   const supabase = await createSupabaseServerClient();
 

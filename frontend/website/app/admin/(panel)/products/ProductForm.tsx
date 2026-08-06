@@ -505,6 +505,8 @@ export function ProductForm({
             value={images}
             onChange={setImages}
             multiple
+            maxFiles={5}
+            maxFileSizeMb={4}
             label="Upload product images"
           />
         </TabsContent>

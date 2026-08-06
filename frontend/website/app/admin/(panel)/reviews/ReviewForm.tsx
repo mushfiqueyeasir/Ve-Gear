@@ -157,6 +157,7 @@ export function ReviewForm({
               value={images}
               onChange={setImages}
               label="Upload photo"
+              maxFileSizeMb={4}
             />
           </AdminCard>
 

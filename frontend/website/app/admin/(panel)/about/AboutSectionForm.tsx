@@ -332,6 +332,7 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
                   value={images}
                   onChange={setImages}
                   label="Upload hero image"
+                  maxFileSizeMb={6}
                 />
               </FormField>
             </>
@@ -403,6 +404,7 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
                   value={images}
                   onChange={setImages}
                   label="Upload story image"
+                  maxFileSizeMb={6}
                 />
               </FormField>
             </>
@@ -523,6 +525,7 @@ export function AboutSectionForm({ section }: { section: AboutSectionRow }) {
                   value={images}
                   onChange={setImages}
                   label="Upload fabric image"
+                  maxFileSizeMb={6}
                 />
               </FormField>
               <div className="space-y-3">

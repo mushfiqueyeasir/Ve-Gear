@@ -196,6 +196,7 @@ export function BannerForm({
                 value={images}
                 onChange={setImages}
                 label="Upload desktop image"
+                maxFileSizeMb={6}
               />
             </AdminCard>
             <AdminCard
@@ -207,6 +208,7 @@ export function BannerForm({
                 value={mobileImages}
                 onChange={setMobileImages}
                 label="Upload mobile image"
+                maxFileSizeMb={6}
               />
             </AdminCard>
           </div>

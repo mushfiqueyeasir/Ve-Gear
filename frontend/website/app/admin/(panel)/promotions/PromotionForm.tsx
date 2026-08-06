@@ -249,6 +249,7 @@ export function PromotionForm({
               value={images}
               onChange={setImages}
               label="Upload banner"
+              maxFileSizeMb={4}
             />
           </AdminCard>
 

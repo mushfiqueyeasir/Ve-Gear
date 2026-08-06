@@ -33,6 +33,8 @@ export function ImageUploader({
   label = "Drop image here or click to browse",
   aspect,
   enableCrop = false,
+  maxFiles,
+  maxFileSizeMb,
   /** Single-image preview: cover = photos, wide = logos, square = favicon. */
   preview = "cover",
 }: {
@@ -45,6 +47,10 @@ export function ImageUploader({
   aspect?: number;
   /** Enable crop dialog before upload (e.g. logo / favicon). */
   enableCrop?: boolean;
+  /** Maximum total images when multiple uploads are enabled. */
+  maxFiles?: number;
+  /** Maximum source file size in megabytes. */
+  maxFileSizeMb?: number;
   preview?: "cover" | "wide" | "square";
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -57,6 +63,16 @@ export function ImageUploader({
   const singleUrl = singlePreview
     ? storagePublicUrl(bucket, singlePreview.path)
     : null;
+  const hasReachedFileLimit = Boolean(
+    multiple && maxFiles && value.length >= maxFiles,
+  );
+  const uploadHint = [
+    "PNG, JPG",
+    multiple && maxFiles ? `max ${maxFiles} images` : null,
+    maxFileSizeMb ? `${maxFileSizeMb} MB max${multiple ? " each" : ""}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   const uploadFiles = async (files: File[]) => {
     if (!files.length) return;
@@ -95,11 +111,44 @@ export function ImageUploader({
   };
 
   const startCropQueue = (files: File[]) => {
-    const images = files.filter((f) => f.type.startsWith("image/"));
+    let images = files.filter((f) => f.type.startsWith("image/"));
     if (!images.length) {
       toast.error("Please choose an image file.");
       return;
     }
+
+    if (images.length !== files.length) {
+      toast.error("Only image files can be uploaded.");
+    }
+
+    if (maxFileSizeMb) {
+      const maxBytes = maxFileSizeMb * 1024 * 1024;
+      const oversized = images.filter((file) => file.size > maxBytes);
+      images = images.filter((file) => file.size <= maxBytes);
+      if (oversized.length) {
+        toast.error(
+          oversized.length === 1
+            ? `${oversized[0].name} exceeds the ${maxFileSizeMb} MB limit.`
+            : `${oversized.length} images exceed the ${maxFileSizeMb} MB limit.`,
+        );
+      }
+    }
+
+    if (multiple && maxFiles) {
+      const remaining = Math.max(0, maxFiles - value.length);
+      if (remaining === 0) {
+        toast.error(`You can upload a maximum of ${maxFiles} images.`);
+        return;
+      }
+      if (images.length > remaining) {
+        toast.error(
+          `Only ${remaining} more image${remaining === 1 ? "" : "s"} can be uploaded.`,
+        );
+        images = images.slice(0, remaining);
+      }
+    }
+
+    if (!images.length) return;
 
     if (!enableCrop) {
       void uploadFiles(images);
@@ -143,7 +192,7 @@ export function ImageUploader({
       handleFiles(e.dataTransfer.files);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [uploading, enableCrop, value, multiple],
+    [uploading, enableCrop, value, multiple, maxFiles, maxFileSizeMb],
   );
 
   const remove = (path: string) => {
@@ -158,7 +207,9 @@ export function ImageUploader({
     onChange(value.map((i) => ({ ...i, isMain: i.path === path })));
   };
 
-  const openPicker = () => inputRef.current?.click();
+  const openPicker = () => {
+    if (!hasReachedFileLimit) inputRef.current?.click();
+  };
 
   return (
     <div className="space-y-3">
@@ -320,7 +371,7 @@ export function ImageUploader({
               </span>
               {preview !== "square" && (
                 <span className="text-xs text-muted-foreground">
-                  {enableCrop ? "PNG, JPG — freeform crop" : "PNG, JPG"}
+                  {enableCrop ? `${uploadHint} · freeform crop` : uploadHint}
                 </span>
               )}
             </div>
@@ -331,7 +382,7 @@ export function ImageUploader({
           <button
             type="button"
             onClick={openPicker}
-            disabled={uploading}
+            disabled={uploading || hasReachedFileLimit}
             onDragEnter={(e) => {
               e.preventDefault();
               setDragOver(true);
@@ -371,13 +422,17 @@ export function ImageUploader({
             ) : (
               <>
                 <span className="font-medium">
-                  {dragOver
-                    ? "Drop to upload"
-                    : value.length
-                      ? "Add more images"
-                      : label}
+                  {hasReachedFileLimit
+                    ? `Maximum ${maxFiles} images reached`
+                    : dragOver
+                      ? "Drop to upload"
+                      : value.length
+                        ? "Add more images"
+                        : label}
                 </span>
-                <span className="text-xs text-muted-foreground">PNG, JPG</span>
+                <span className="text-xs text-muted-foreground">
+                  {uploadHint}
+                </span>
               </>
             )}
           </button>
