@@ -24,6 +24,10 @@
 .DS_Store
 *.pem
 
+# local environment files (examples are safe to commit)
+.env*
+!.env.example
+
 
 
 # debug

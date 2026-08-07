@@ -1,14 +1,11 @@
 import type { NextConfig } from "next";
-import { loadConfigFile } from "./lib/loadConfig";
-
-const config = loadConfigFile(process.cwd());
 
 // Allow Supabase Storage public URLs as Next/Image sources.
-// Covers <project-ref>.supabase.co and self-hosted hosts via config.json.
+// Covers <project-ref>.supabase.co and self-hosted hosts via the deployment env.
 const supabaseHost = (() => {
   try {
-    return config.NEXT_PUBLIC_SUPABASE_URL
-      ? new URL(config.NEXT_PUBLIC_SUPABASE_URL).hostname
+    return process.env.NEXT_PUBLIC_SUPABASE_URL
+      ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
       : undefined;
   } catch {
     return undefined;
@@ -30,14 +27,6 @@ const nextConfig: NextConfig = {
         ],
       },
     ];
-  },
-  // Map public config.json values into the Next.js env so client + server
-  // code can read them via lib/config.ts (appConfig).
-  env: {
-    NEXT_PUBLIC_SUPABASE_URL: config.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: config.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-    NEXT_PUBLIC_SITE_URL: config.NEXT_PUBLIC_SITE_URL ?? "",
-    SECURITY_ENABLED: String(config.SECURITY_ENABLED ?? "false"),
   },
   images: {
     remotePatterns: [

@@ -3,6 +3,8 @@
 
   "model": "azure-gpt/azure-gpt-5.6-sol",
 
+  "plugin": ["ecc-universal"],
+
   "provider": {
     "azure-gpt": {
       "npm": "@ai-sdk/openai",

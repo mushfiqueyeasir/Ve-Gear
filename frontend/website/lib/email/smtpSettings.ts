@@ -1,7 +1,6 @@
 import "server-only";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getGmailCredentials, getOrderNotifyEmails } from "@/lib/config.server";
 
 export type SmtpProvider = "gmail" | "smtp";
 
@@ -46,20 +45,19 @@ type SmtpRow = {
   notify_emails: string[] | null;
 };
 
-function fromConfigFallback(): SmtpSettings {
-  const { user, appPassword } = getGmailCredentials();
+function emptySettings(): SmtpSettings {
   return {
-    enabled: Boolean(user && appPassword),
+    enabled: false,
     provider: "gmail",
     host: null,
     port: 587,
     secure: false,
-    username: user || null,
-    hasPassword: Boolean(appPassword),
-    password: appPassword || null,
-    fromName: "VE Gear",
-    fromEmail: user || null,
-    notifyEmails: getOrderNotifyEmails(),
+    username: null,
+    hasPassword: false,
+    password: null,
+    fromName: "Store",
+    fromEmail: null,
+    notifyEmails: [],
   };
 }
 
@@ -93,50 +91,16 @@ export async function getSmtpSettings(): Promise<SmtpSettings> {
       .maybeSingle();
 
     if (error) {
-      return fromConfigFallback();
+      return emptySettings();
     }
 
     if (!data) {
-      // Table exists but empty — seed once from config.json so the Email tab works.
-      const fallback = fromConfigFallback();
-      if (fallback.username || fallback.password) {
-        await admin.from("email_smtp_settings").upsert(
-          {
-            id: 1,
-            enabled: fallback.enabled,
-            provider: "gmail",
-            host: null,
-            port: 587,
-            secure: false,
-            username: fallback.username,
-            password: fallback.password,
-            from_name: fallback.fromName,
-            from_email: fallback.fromEmail,
-            notify_emails: fallback.notifyEmails,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "id" },
-        );
-      }
-      return fallback;
+      return emptySettings();
     }
 
-    const mapped = mapRow(data as SmtpRow);
-    // If DB row exists but is empty with no creds, fall back to config.
-    if (!mapped.username && !mapped.password) {
-      const fallback = fromConfigFallback();
-      return {
-        ...fallback,
-        enabled: mapped.enabled || fallback.enabled,
-        notifyEmails: mapped.notifyEmails.length
-          ? mapped.notifyEmails
-          : fallback.notifyEmails,
-        fromName: mapped.fromName || fallback.fromName,
-      };
-    }
-    return mapped;
+    return mapRow(data as SmtpRow);
   } catch {
-    return fromConfigFallback();
+    return emptySettings();
   }
 }
 

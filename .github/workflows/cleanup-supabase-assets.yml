@@ -1,15 +1,12 @@
 name: Cleanup unused Supabase assets
 
 on:
-  schedule:
-    # Every day at 00:00 UTC (~24h)
-    - cron: "0 0 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
         description: "List orphans without deleting"
         required: false
-        default: "false"
+        default: "true"
         type: choice
         options:
           - "false"
@@ -38,8 +35,11 @@ jobs:
         run: npm ci
 
       - name: Run asset cleanup
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
             npm run cleanup:assets:dry
           else
             npm run cleanup:assets

@@ -19,7 +19,7 @@ export function assertSupabaseEnv() {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     throw new Error(
       "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and " +
-        "NEXT_PUBLIC_SUPABASE_ANON_KEY in config.json (run the provisioning script).",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY in the deployment environment.",
     );
   }
 }

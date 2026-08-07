@@ -40,7 +40,7 @@ async function createMailTransport(): Promise<MailSetup> {
   if (!user || !pass) {
     return {
       error:
-        "SMTP credentials missing. Configure them in Settings → Notifications (or config.json fallback).",
+        "SMTP credentials missing. Configure them in Settings → Notifications.",
     };
   }
 

@@ -13,7 +13,7 @@ export function createSupabaseAdminClient() {
   if (!SUPABASE_URL || !serviceKey) {
     throw new Error(
       "Supabase admin client requires NEXT_PUBLIC_SUPABASE_URL and " +
-        "SUPABASE_SERVICE_ROLE_KEY in config.json.",
+        "SUPABASE_SERVICE_ROLE_KEY in the deployment environment.",
     );
   }
   return createClient(SUPABASE_URL, serviceKey, {

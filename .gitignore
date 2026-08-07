@@ -1,6 +1,10 @@
 # Provisioning secrets — never commit the Supabase Management API token
 .provision.env
 *.provision.env
+.client-secrets/
+frontend/website/config.json
+.env*
+.vercel/
 
 # node
 node_modules/

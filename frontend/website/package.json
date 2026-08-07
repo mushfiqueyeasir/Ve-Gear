@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:client": "node scripts/run-client-env.mjs dev",
     "build": "next build",
+    "build:client": "node scripts/run-client-env.mjs build",
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write ."

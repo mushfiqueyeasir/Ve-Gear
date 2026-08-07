@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reverbsolution.com/schemas/tenant-manifest.schema.json",
+  "title": "Store deployment manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "displayName",
+    "status",
+    "domains",
+    "vercel",
+    "supabase",
+    "features"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "displayName": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["onboarding", "active", "suspended", "archived"] },
+    "domains": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["production", "aliases"],
+      "properties": {
+        "production": { "type": "string", "format": "uri", "pattern": "^https://" },
+        "aliases": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri", "pattern": "^https://" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "vercel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectName", "rootDirectory", "productionBranch"],
+      "properties": {
+        "projectName": { "type": "string", "pattern": "^store-[a-z0-9-]+$" },
+        "rootDirectory": { "const": "frontend/website" },
+        "productionBranch": { "const": "main" }
+      }
+    },
+    "supabase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectRef", "url", "schemaVersion"],
+      "properties": {
+        "projectRef": { "type": "string", "pattern": "^[a-z0-9]+$" },
+        "url": { "type": "string", "format": "uri", "pattern": "^https://" },
+        "schemaVersion": { "type": "string", "pattern": "^[0-9]{4}$" }
+      }
+    },
+    "features": {
+      "type": "object",
+      "additionalProperties": { "type": "boolean" }
+    }
+  }
+}

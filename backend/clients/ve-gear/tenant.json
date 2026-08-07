@@ -1,0 +1,26 @@
+{
+  "$schema": "../../../ops/schemas/tenant-manifest.schema.json",
+  "id": "ve-gear",
+  "displayName": "VE Gear",
+  "status": "active",
+  "domains": {
+    "production": "https://www.vegear.com",
+    "aliases": ["https://vegear.com"]
+  },
+  "vercel": {
+    "projectName": "store-ve-gear",
+    "rootDirectory": "frontend/website",
+    "productionBranch": "main"
+  },
+  "supabase": {
+    "projectRef": "lznxmqehyzqwqfkfgxxh",
+    "url": "https://lznxmqehyzqwqfkfgxxh.supabase.co",
+    "schemaVersion": "0016"
+  },
+  "features": {
+    "bkash": true,
+    "smtp": true,
+    "promoCodes": true,
+    "analytics": true
+  }
+}

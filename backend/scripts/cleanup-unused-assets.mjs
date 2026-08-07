@@ -5,22 +5,12 @@
  *   node scripts/cleanup-unused-assets.mjs
  *   node scripts/cleanup-unused-assets.mjs --dry-run
  *
- * Env vars override the inline defaults when set (e.g. GitHub Actions secrets).
+ * Required environment variables:
+ *   SUPABASE_URL (or SUPABASE_PROJECT_REF)
+ *   SUPABASE_SERVICE_ROLE_KEY
  */
 
 import { createClient } from "@supabase/supabase-js";
-
-/**
- * Inline project credentials (env overrides these when present).
- * Service role is enough for list/query/delete — no Management API token needed.
- * (GitHub push protection blocks sbp_ personal access tokens in the repo.)
- */
-const INLINE_CONFIG = {
-  projectRef: "lznxmqehyzqwqfkfgxxh",
-  url: "https://lznxmqehyzqwqfkfgxxh.supabase.co",
-  serviceRoleKey:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6bnhtcWVoeXpxd3Fma2ZneHhoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDYxMDAyMSwiZXhwIjoyMTAwMTg2MDIxfQ.3vluxV1eRYocWjnU8Ex56AglVyUKgdcmfp8Y8VEzBJQ",
-};
 
 const BUCKETS = [
   "product-images",
@@ -44,12 +34,9 @@ const dryRun = process.argv.includes("--dry-run");
 
 function loadConfig() {
   return {
-    projectRef:
-      process.env.SUPABASE_PROJECT_REF?.trim() || INLINE_CONFIG.projectRef,
-    url: process.env.SUPABASE_URL?.trim() || INLINE_CONFIG.url,
-    serviceRoleKey:
-      process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
-      INLINE_CONFIG.serviceRoleKey,
+    projectRef: process.env.SUPABASE_PROJECT_REF?.trim() || "",
+    url: process.env.SUPABASE_URL?.trim() || "",
+    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || "",
   };
 }
 
