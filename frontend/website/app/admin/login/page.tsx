@@ -6,10 +6,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, ArrowUpRight, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import StoreInput from "@/components/Common/Input";
-import { logAdminAuthEvent } from "@/app/admin/auth-audit-actions";
-import type { UserRole } from "@/type/db";
+import { signInAdmin } from "@/app/admin/auth-audit-actions";
 
 const PARTICLES = Array.from({ length: 14 });
 
@@ -28,35 +26,11 @@ function LoginForm() {
       redirect.startsWith("/admin") && !redirect.startsWith("//")
         ? redirect
         : "/admin";
-    const supabase = createSupabaseBrowserClient();
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: trimmedEmail,
-      password,
-    });
-    if (error) {
+    const result = await signInAdmin(trimmedEmail, password);
+    if (result.error) {
       setLoading(false);
-      void logAdminAuthEvent({ type: "login_failed", email: trimmedEmail });
-      toast.error(error.message || "Invalid credentials");
+      toast.error(result.error);
       return;
-    }
-
-    // Audit in the background — awaiting a server action here raced the session
-    // cookies and left client navigations stuck on the login page.
-    const user = data.user;
-    if (user?.id) {
-      void (async () => {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", user.id)
-          .maybeSingle();
-        await logAdminAuthEvent({
-          type: "login",
-          userId: user.id,
-          email: user.email ?? trimmedEmail,
-          role: (profile?.role as UserRole) ?? "viewer",
-        });
-      })();
     }
 
     toast.success("Welcome back");

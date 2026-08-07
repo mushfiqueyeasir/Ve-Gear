@@ -4,12 +4,13 @@ import { useCallback, useRef, useState } from "react";
 import Image from "next/image";
 import { Upload, X, Star, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { storagePublicUrl } from "@/utility/imageUrl";
 import type { BucketName } from "@/lib/supabase/config";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { createImageUploadUrl } from "@/app/admin/storage-actions";
+import { useAdmin } from "./AdminContext";
 import { ImageCropDialog } from "./ImageCropDialog";
+import { buildStoragePublicUrl } from "@/utility/storageUrl";
 
 export interface UploadedImage {
   path: string;
@@ -53,6 +54,7 @@ export function ImageUploader({
   maxFileSizeMb?: number;
   preview?: "cover" | "wide" | "square";
 }) {
+  const { storageBaseUrl } = useAdmin();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -61,7 +63,7 @@ export function ImageUploader({
 
   const singlePreview = !multiple && value[0] ? value[0] : null;
   const singleUrl = singlePreview
-    ? storagePublicUrl(bucket, singlePreview.path)
+    ? buildStoragePublicUrl(storageBaseUrl, bucket, singlePreview.path)
     : null;
   const hasReachedFileLimit = Boolean(
     multiple && maxFiles && value.length >= maxFiles,
@@ -77,21 +79,33 @@ export function ImageUploader({
   const uploadFiles = async (files: File[]) => {
     if (!files.length) return;
     setUploading(true);
-    const supabase = createSupabaseBrowserClient();
     const uploaded: UploadedImage[] = [];
 
     try {
       for (const file of files) {
-        const ext = file.name.split(".").pop() ?? "jpg";
-        const key = `${crypto.randomUUID()}.${ext}`;
-        const { error } = await supabase.storage
-          .from(bucket)
-          .upload(key, file, { cacheControl: "3600", upsert: false });
-        if (error) {
-          toast.error(`Upload failed: ${error.message}`);
+        const authorization = await createImageUploadUrl({
+          bucket,
+          contentType: file.type,
+          size: file.size,
+        });
+        if (!authorization.path || !authorization.signedUrl) {
+          toast.error(`Upload failed: ${authorization.error || "Unknown error"}`);
           continue;
         }
-        uploaded.push({ path: key, alt: file.name });
+
+        const body = new FormData();
+        body.append("cacheControl", "3600");
+        body.append("", file);
+        const response = await fetch(authorization.signedUrl, {
+          method: "PUT",
+          body,
+          headers: { "x-upsert": "false" },
+        });
+        if (!response.ok) {
+          toast.error(`Upload failed: ${await response.text()}`);
+          continue;
+        }
+        uploaded.push({ path: authorization.path, alt: file.name });
       }
 
       if (uploaded.length) {
@@ -440,7 +454,11 @@ export function ImageUploader({
           {value.length > 0 && (
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
               {value.map((img) => {
-                const url = storagePublicUrl(bucket, img.path);
+                const url = buildStoragePublicUrl(
+                  storageBaseUrl,
+                  bucket,
+                  img.path,
+                );
                 return (
                   <div
                     key={img.path}

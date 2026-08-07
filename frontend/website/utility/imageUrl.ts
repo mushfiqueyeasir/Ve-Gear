@@ -1,4 +1,8 @@
-import { BUCKETS, SUPABASE_URL, type BucketName } from "@/lib/supabase/config";
+import "server-only";
+
+import { getSupabaseUrl } from "@/lib/config.server";
+import { BUCKETS, type BucketName } from "@/lib/supabase/config";
+import { buildStoragePublicUrl } from "@/utility/storageUrl";
 
 // Resolve a Supabase Storage object path into a public URL.
 // `path` is the object key within `bucket` (e.g. "abc/main.jpg").
@@ -7,13 +11,7 @@ export function storagePublicUrl(
   bucket: BucketName,
   path: string | null | undefined,
 ): string | null {
-  if (!path) return null;
-  // Already an absolute URL (e.g. legacy/imported data) — pass through.
-  if (/^https?:\/\//i.test(path)) return path;
-  const base = SUPABASE_URL.replace(/\/$/, "");
-  if (!base) return null;
-  const clean = path.replace(/^\/+/, "");
-  return `${base}/storage/v1/object/public/${bucket}/${clean}`;
+  return buildStoragePublicUrl(getSupabaseUrl(), bucket, path);
 }
 
 export const productImageUrl = (p?: string | null) =>

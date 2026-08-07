@@ -8,6 +8,7 @@ export interface AdminContextValue {
   role: UserRole;
   email: string;
   fullName: string | null;
+  storageBaseUrl: string;
   canWrite: boolean;
   isAdmin: boolean;
 }

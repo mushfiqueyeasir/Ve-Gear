@@ -412,14 +412,14 @@ The manifest may be committed because it contains identifiers and desired state,
 
 ## 8. Configuration and Secret Boundaries
 
-### 8.1 Public deployment configuration
+### 8.1 Server-only deployment configuration
 
-These values are safe to expose to the browser but must differ per deployment:
+These values must differ per deployment and are available only to server code:
 
 ```text
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-NEXT_PUBLIC_SITE_URL
+SUPABASE_URL
+SUPABASE_ANON_KEY
+SITE_URL
 ```
 
 They should be configured in each Vercel project's environment settings.
@@ -431,6 +431,7 @@ They should be configured in each Vercel project's environment settings.
 These values must only exist in server runtime environments:
 
 ```text
+SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
 ```
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   Menu,
   X,
@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { navItemsForRole, NAV_GROUPS, type NavItem } from "@/lib/admin/nav";
 import { Icon } from "./Icon";
 import { AdminProvider, type AdminContextValue } from "./AdminContext";
@@ -28,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { logAdminAuthEvent } from "@/app/admin/auth-audit-actions";
+import { signOutAdmin } from "@/app/admin/auth-audit-actions";
 
 const ROLE_LABEL: Record<string, string> = {
   admin: "Administrator",
@@ -73,7 +72,6 @@ export default function AdminShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openGroups, setOpenGroups] =
@@ -126,17 +124,13 @@ export default function AdminShell({
   };
 
   const signOut = async () => {
-    await logAdminAuthEvent({
-      type: "logout",
-      userId: session.userId,
-      email: session.email,
-      role: session.role,
-    });
-    const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signOut();
+    const result = await signOutAdmin();
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
     toast.success("Signed out");
-    router.push("/admin/login");
-    router.refresh();
+    window.location.assign("/admin/login");
   };
 
   const NavList = ({ compact }: { compact: boolean }) => (

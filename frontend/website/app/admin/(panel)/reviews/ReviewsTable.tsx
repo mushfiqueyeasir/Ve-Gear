@@ -6,7 +6,9 @@ import Image from "next/image";
 import { Pencil, Trash2, Star } from "lucide-react";
 import { toast } from "sonner";
 import type { ReviewRow } from "@/type/db";
-import { reviewImageUrl } from "@/utility/imageUrl";
+import { BUCKETS } from "@/lib/supabase/config";
+import { buildStoragePublicUrl } from "@/utility/storageUrl";
+import { useAdmin } from "@/components/admin/AdminContext";
 import { AdminList } from "@/components/admin/AdminList";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { Badge } from "@/components/ui/badge";
@@ -78,6 +80,7 @@ export function ReviewsTable({
   data: ReviewWithProduct[];
   canWrite: boolean;
 }) {
+  const { storageBaseUrl } = useAdmin();
   return (
     <AdminList
       items={data}
@@ -89,7 +92,11 @@ export function ReviewsTable({
       }
       emptyMessage="No reviews yet."
       renderLeading={(item) => {
-        const url = reviewImageUrl(item.image_path);
+        const url = buildStoragePublicUrl(
+          storageBaseUrl,
+          BUCKETS.review,
+          item.image_path,
+        );
         return (
           <div className="relative size-12 overflow-hidden rounded-full border border-border bg-muted">
             {url ? (

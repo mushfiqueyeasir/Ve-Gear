@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/config";
 import { noStoreFetch } from "@/lib/supabase/noStoreFetch";
 
 // Refreshes the Supabase auth session on every /admin request and gates access:
@@ -9,12 +8,14 @@ import { noStoreFetch } from "@/lib/supabase/noStoreFetch";
 // panel layout + per-page requireRole().
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
+  const supabaseUrl = process.env.SUPABASE_URL?.trim() ?? "";
+  const anonKey = process.env.SUPABASE_ANON_KEY?.trim() ?? "";
 
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  if (!supabaseUrl || !anonKey) {
     return response;
   }
 
-  const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  const supabase = createServerClient(supabaseUrl, anonKey, {
     global: { fetch: noStoreFetch },
     cookies: {
       getAll() {

@@ -6,7 +6,9 @@ import Image from "next/image";
 import { Pencil, Trash2, BadgePercent } from "lucide-react";
 import { toast } from "sonner";
 import type { PromotionRow } from "@/type/db";
-import { promotionImageUrl } from "@/utility/imageUrl";
+import { BUCKETS } from "@/lib/supabase/config";
+import { buildStoragePublicUrl } from "@/utility/storageUrl";
+import { useAdmin } from "@/components/admin/AdminContext";
 import { formatDate } from "@/lib/admin/format";
 import { AdminList } from "@/components/admin/AdminList";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
@@ -57,6 +59,7 @@ export function PromotionsTable({
   data: PromotionRow[];
   canWrite: boolean;
 }) {
+  const { storageBaseUrl } = useAdmin();
   return (
     <AdminList
       items={data}
@@ -64,7 +67,11 @@ export function PromotionsTable({
       searchFilter={(item, q) => item.title.toLowerCase().includes(q)}
       emptyMessage="No promotions yet. Create your first one."
       renderLeading={(item) => {
-        const url = promotionImageUrl(item.image_path);
+        const url = buildStoragePublicUrl(
+          storageBaseUrl,
+          BUCKETS.promotion,
+          item.image_path,
+        );
         return (
           <div className="relative size-12 overflow-hidden rounded-md border border-border bg-muted">
             {url ? (

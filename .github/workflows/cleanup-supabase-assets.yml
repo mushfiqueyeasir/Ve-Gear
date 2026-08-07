@@ -3,6 +3,11 @@ name: Cleanup unused Supabase assets
 on:
   workflow_dispatch:
     inputs:
+      client:
+        description: "Client ID to clean, or all active clients"
+        required: false
+        default: "all"
+        type: string
       dry_run:
         description: "List orphans without deleting"
         required: false
@@ -12,10 +17,47 @@ on:
           - "false"
           - "true"
 
+permissions:
+  contents: read
+
 jobs:
-  cleanup:
-    name: Delete unreferenced storage objects
+  discover:
+    name: Discover active clients
     runs-on: ubuntu-latest
+    outputs:
+      clients: ${{ steps.clients.outputs.clients }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build client matrix
+        id: clients
+        working-directory: backend
+        env:
+          REQUESTED_CLIENT: ${{ inputs.client }}
+        run: |
+          clients="$(node scripts/list-cleanup-clients.mjs --client "$REQUESTED_CLIENT")"
+          echo "clients=$clients" >> "$GITHUB_OUTPUT"
+
+  cleanup:
+    name: Cleanup ${{ matrix.client }}
+    needs: discover
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        client: ${{ fromJSON(needs.discover.outputs.clients) }}
+    concurrency:
+      group: cleanup-supabase-assets-${{ matrix.client }}
+      cancel-in-progress: false
     defaults:
       run:
         working-directory: backend
@@ -36,11 +78,11 @@ jobs:
 
       - name: Run asset cleanup
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CLIENT_ID: ${{ matrix.client }}
+          CLIENT_SUPABASE_CREDENTIALS: ${{ secrets.CLIENT_SUPABASE_CREDENTIALS }}
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
-            npm run cleanup:assets:dry
+            npm run cleanup:assets:dry -- --client "$CLIENT_ID"
           else
-            npm run cleanup:assets
+            npm run cleanup:assets -- --client "$CLIENT_ID"
           fi

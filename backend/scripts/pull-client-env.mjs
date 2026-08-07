@@ -4,6 +4,7 @@ import { parseEnv } from "node:util";
 import {
   loadClient,
   parseArguments,
+  parseEnvFile,
   repositoryRoot,
   runVercel,
   validateClient,
@@ -41,17 +42,22 @@ runVercel([
 
 const absoluteOutputPath = join(websiteDirectory, `.env.${manifest.id}`);
 const pulled = parseEnv(readFileSync(absoluteOutputPath, "utf8"));
-const allowedNames = [
-  "NEXT_PUBLIC_SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-  "SUPABASE_SERVICE_ROLE_KEY",
-  "NEXT_PUBLIC_SITE_URL",
-];
-for (const name of allowedNames) {
-  if (!pulled[name]) throw new Error(`Vercel did not return required variable ${name}`);
+const secrets = parseEnvFile(
+  join(repositoryRoot, ".client-secrets", `${manifest.id}.env`),
+);
+const environment = {
+  SUPABASE_URL: pulled.SUPABASE_URL,
+  SUPABASE_ANON_KEY: secrets.SUPABASE_ANON_KEY,
+  SUPABASE_SERVICE_ROLE_KEY: secrets.SUPABASE_SERVICE_ROLE_KEY,
+  SITE_URL: pulled.SITE_URL,
+};
+for (const [name, value] of Object.entries(environment)) {
+  if (!value) throw new Error(`Missing required variable ${name}`);
 }
 
-const lines = allowedNames.map((name) => `${name}=${JSON.stringify(pulled[name])}`);
+const lines = Object.entries(environment).map(
+  ([name, value]) => `${name}=${JSON.stringify(value)}`,
+);
 lines.push('SECURITY_ENABLED="true"');
 writeFileSync(absoluteOutputPath, `${lines.join("\n")}\n`);
 

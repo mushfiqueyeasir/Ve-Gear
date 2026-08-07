@@ -4,8 +4,8 @@ import type { NextConfig } from "next";
 // Covers <project-ref>.supabase.co and self-hosted hosts via the deployment env.
 const supabaseHost = (() => {
   try {
-    return process.env.NEXT_PUBLIC_SUPABASE_URL
-      ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
+    return process.env.SUPABASE_URL
+      ? new URL(process.env.SUPABASE_URL).hostname
       : undefined;
   } catch {
     return undefined;

@@ -23,7 +23,7 @@ if (validationErrors.length) {
 
 const secretPath = join(repositoryRoot, ".client-secrets", `${manifest.id}.env`);
 const secrets = parseEnvFile(secretPath);
-for (const key of ["NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"]) {
+for (const key of ["SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"]) {
   if (!secrets[key]) throw new Error(`${key} is required in ${secretPath}`);
 }
 
@@ -62,17 +62,15 @@ if (!args.adopt) {
 }
 
 const environment = {
-  NEXT_PUBLIC_SUPABASE_URL: manifest.supabase.url,
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  SUPABASE_URL: manifest.supabase.url,
+  SUPABASE_ANON_KEY: secrets.SUPABASE_ANON_KEY,
   SUPABASE_SERVICE_ROLE_KEY: secrets.SUPABASE_SERVICE_ROLE_KEY,
-  NEXT_PUBLIC_SITE_URL: manifest.domains.production,
+  SITE_URL: manifest.domains.production,
   SECURITY_ENABLED: "true",
 };
 
 for (const [name, value] of Object.entries(environment)) {
-  const visibility = name.startsWith("NEXT_PUBLIC_") || name === "SECURITY_ENABLED"
-    ? "--no-sensitive"
-    : "--sensitive";
+  const visibility = name.endsWith("_KEY") ? "--sensitive" : "--no-sensitive";
   runVercel(
     ["env", "add", name, "production", "--force", visibility, "--project", desiredProject, "--yes"],
     { input: `${value}\n` },
@@ -100,6 +98,8 @@ writeFileSync(
     vercelProjectName: desiredProject,
     productionDomain: manifest.domains.production,
     lastProvisionedDeploymentUrl: deploymentUrl,
+    supabaseProjectRef: manifest.supabase.projectRef,
+    supabaseUrl: manifest.supabase.url,
     trackedAt: new Date().toISOString(),
   }, null, 2)}\n`,
 );

@@ -6,7 +6,9 @@ import { Pencil, Trash2, GalleryHorizontalEnd } from "lucide-react";
 import { toast } from "sonner";
 import { useTransition } from "react";
 import type { BannerRow } from "@/type/db";
-import { bannerImageUrl } from "@/utility/imageUrl";
+import { BUCKETS } from "@/lib/supabase/config";
+import { buildStoragePublicUrl } from "@/utility/storageUrl";
+import { useAdmin } from "@/components/admin/AdminContext";
 import { AdminList } from "@/components/admin/AdminList";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { Badge } from "@/components/ui/badge";
@@ -60,6 +62,7 @@ export function BannersTable({
   editBasePath?: string;
   sectionId?: string;
 }) {
+  const { storageBaseUrl } = useAdmin();
   const editHref = (id: string) =>
     sectionId
       ? `${editBasePath}/${id}?section=${sectionId}`
@@ -79,7 +82,11 @@ export function BannersTable({
       }
       emptyMessage="No banner slides yet. Create your first slide."
       renderLeading={(item) => {
-        const url = bannerImageUrl(item.image_path);
+        const url = buildStoragePublicUrl(
+          storageBaseUrl,
+          BUCKETS.banner,
+          item.image_path,
+        );
         return (
           <div className="relative h-12 w-20 overflow-hidden rounded-md border border-border bg-muted">
             {url ? (

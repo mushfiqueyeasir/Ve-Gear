@@ -1,5 +1,6 @@
 import AdminShell from "@/components/admin/AdminShell";
 import { requireAdminSession, canWrite, isAdmin } from "@/lib/admin/auth";
+import { getSupabaseUrl } from "@/lib/config.server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -21,6 +22,7 @@ export default async function PanelLayout({
         role: session.role,
         email: session.email,
         fullName: session.fullName,
+        storageBaseUrl: getSupabaseUrl(),
         canWrite: canWrite(session.role),
         isAdmin: isAdmin(session.role),
       }}
