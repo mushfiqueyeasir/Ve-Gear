@@ -10,8 +10,7 @@
     "status",
     "domains",
     "vercel",
-    "supabase",
-    "features"
+    "supabase"
   ],
   "properties": {
     "$schema": { "type": "string" },
@@ -50,10 +49,6 @@
         "url": { "type": "string", "format": "uri", "pattern": "^https://" },
         "schemaVersion": { "type": "string", "pattern": "^[0-9]{4}$" }
       }
-    },
-    "features": {
-      "type": "object",
-      "additionalProperties": { "type": "boolean" }
     }
   }
 }

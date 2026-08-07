@@ -232,7 +232,7 @@ Rules:
 - Do not create a client-specific application copy.
 - Do not create long-lived client branches.
 - Do not hardcode client names, domains, assets, or credentials in source.
-- Store optional behavior behind database settings or feature flags.
+- Give every client the full product; store merchant configuration in database settings.
 - Tag or pin every production release to a commit SHA.
 
 ### 5.2 Vercel layer
@@ -387,12 +387,6 @@ release:
 
 schema:
   desiredVersion: "0016"
-
-features:
-  bkash: true
-  smtp: true
-  promoCodes: true
-  analytics: true
 
 vercel:
   projectId: prj_example
@@ -1033,7 +1027,7 @@ Evaluate shared tenancy only when:
 - [ ] Make order prefix configurable.
 - [ ] Define Bangladesh-edition scope versus global scope.
 - [ ] Review default legal and fulfillment content.
-- [ ] Define feature flags and supported customization boundaries.
+- [ ] Define supported merchant customization boundaries.
 - [ ] Remove automatic first-user administrator promotion.
 
 ### Operations
@@ -1060,7 +1054,7 @@ The proposed deployment model is the correct starting point:
 
 > **One codebase, one Vercel deployment per client, and one Supabase project per client.**
 
-The most important architectural rule is to keep client differences in configuration, database content, and feature flags rather than separate source branches or copied application folders.
+The most important architectural rule is to keep client differences in configuration and database content rather than separate source branches or copied application folders. Every client receives the complete feature set.
 
 The most important operational rule is to automate the fleet before client count makes manual deployment risky.
 

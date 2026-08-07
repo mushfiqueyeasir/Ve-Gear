@@ -16,11 +16,5 @@
     "projectRef": "lznxmqehyzqwqfkfgxxh",
     "url": "https://lznxmqehyzqwqfkfgxxh.supabase.co",
     "schemaVersion": "0016"
-  },
-  "features": {
-    "bkash": true,
-    "smtp": true,
-    "promoCodes": true,
-    "analytics": true
   }
 }
